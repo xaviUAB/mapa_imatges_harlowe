@@ -1,0 +1,879 @@
+:: StoryTitle
+Plantilla so i mapes v3
+
+
+:: StoryData
+{
+  "ifid": "a3dac3bf-364e-4545-a106-fd57247a3f08",
+  "format": "Harlowe",
+  "format-version": "3.3.9",
+  "start": "laboratori",
+  "tag-colors": {
+    "No-tocar": "red",
+    "Editar": "orange",
+    "Llegir": "green",
+    "startup": "orange"
+  },
+  "zoom": 1
+}
+
+
+:: ExecutaSetter (Borrar?) [No-tocar] {"position":"50,525","size":"100,100"}
+(set: $setterParts to (split: $comandaSetter, " to "))
+(if: (length: $setterParts) is 2)[
+  (set: $nomVar to (trim: $setterParts's 1st))
+  (set: $valorVar to (trim: $setterParts's 2nd))
+  (if: $nomVar's 1st is "$")[
+    (set: $nomNet to (substring: $nomVar, 2))
+    (set: (variable: "$" + $nomNet) to $valorVar)
+  ]
+]
+(goto: $retornA)
+
+
+
+:: Instruccions per crear mapes d'imatge [Llegir] {"position":"50,150","size":"100,100"}
+<!--
+1. Anar a https://xaviuab.github.io/mapa_imatges_harlowe/
+1.1 Carrega la imatge que utikitzaras a Twine (hauria d'estar en una carpeta anomenada "imatges")
+1.2 Dibuixa un rectangle sobre la zona que  vols fer "sensible" (hotspot), Reaccionarà quan el ratolí entri o quan es faci clic
+1.3 Selecciona si vols que sigui un hotspot de navegació (que canvii de passatge) o de variable (que canvii el valor d'una variable)
+1.4 Afegeix els textos i els sons que han de mostrar-se quan l'usuari interactui amb el hotspot
+1.5. Crea tants hotspots com siguin necessaris
+1.6. Fes clic al botó de "Copiar Codi"
+1.7. Enganxa-ho al passatge de Twine corresponent
+
+AVANÇAT
+Pots crear condicions i, mentre no es compleixin, que sonin o es mostrin altres textos.
+També pots limitar el nombre de vegades que s'interactua amb un hotspot
+Fins i tot pots modificar una "variable secundària" si cal
+
+ATENCIÓ ATENCIÓ ATENCIÓ ATENCIÓ ATENCIÓ ATENCIÓ
+Pots carregar codi ja creat dins del "Editor de Hotspots per Twine"
+PERÔ ELIMINARÀ TOT EL CODI QUE NO CORRESPONGUI AL  SISTEMA DE HOTSPOTS.
+Si has afegit codi al passatge no generat pel sistema, no l'esborris del passatge, ni substitueixis completament el codi generat pel que ja tenies.
+
+
+
+
+Tutorial bàsic de Twine disponible a https://bit.ly/Tutorial_Twine
+
+->
+
+
+:: Instruccions per incloure so [Llegir] {"position":"175,150","size":"100,100"}
+<!--
+1. Dins de "hal.tracks" hem de registrar els sons que farem servir
+
+1.1 Dedicarem una línea per a cada so seguint aquesta estructura:
+"àlies: URL del So".
+Exemple: 
+ocellet: https://static.wixstatic.com/mp3/d2f47f_742a2f12b2d745cd9abe728ce9f5671f.mp3
+lemur: https://static.wixstatic.com/mp3/d2f47f_c7599443d69947c6b97b8d6efc8af3d7.mp3
+
+1.2 també els pots tenir en una carpeta (anomenada "sons" per exemple)
+Hauràs de posar el nom que utilitzaras al Twine + ":" (dos punts) + nom de la carpeta + "/" (barra) + el nom del fitxer MP3. Així:
+pc_ok:sons/pc_ok.mp3
+
+2. Per fer sonar els àudios escriu el codi  (track: 'àlies', 'acció') al final del passatge.
+2.1. 
+Música de fons per a tota la història
+A la pàgina inicial has d'incloure dues instruccions: una per indicar que el fitxer es reproduirà indefinidament (loop) i una altre per iniciar el so.
+Així:
+(track: 'musica', 'loop', true)
+(track: 'musica', 'playwhenpossible')
+
+2.2. 
+So a l'entrar a una pàgina
+Simplement s'ha d'escriure (track: 'NomAssignatAlSo', 'AccióAExecutar').
+L'acció a executar serà "play" o "playwhenpossible". Així:
+(track: 'ocellet', 'playwhenpossible')
+ o 
+ (track: 'lemur', 'play')
+
+2.3.
+So al fer clic sobre una imatge
+A vegades pot ser interessant que el o la jugadora interactui amb les imatges.
+Podem fer que al fer clic sobre una imatge, soni una música, un efecte, una veu...
+Per fer això hem de conèixer la URL de la imatge i escriure el seguent codi:
+
+{link-repeat:'<img src = "URL DE LA IMAGE">'
+[
+	(track: 'àlies del so a hal.tracks', 'accio')
+	]
+}
+
+
+2.4.
+Per aturar un so utilitzar l'acció "stop"
+Exemple:  (track: 'lemur', 'stop')
+
+
+->
+
+
+:: Per llegir [Llegir] {"position":"50,25","size":"100,100"}
+Els passatges marcats en ''verd'' donen informació
+Els passatges en ''taronja'' es poden editar
+Els passatges ''vermells'' ''NO ES  PODEN MODIFICAR''
+
+''ATENCIÓ''!
+El "JavaScript" i el "Stylesheet" (dins de "Story") estan programats perquè tot funcioni correctament. 
+Modificar el contingut és possible però cal saber què es fa. Cnaviar alguna cosa pot suposar que el sistema deixi de funcionar
+
+
+:: StoryInit [startup] {"position":"175,275","size":"100,100"}
+(set:_comentari to "No esborrar la variable tempInfoDisplay")\
+(set: $tempInfoDisplay to "")\
+(set:_comentari to "A partir d'aquí, posa els valors inicials a les variables del joc")\
+(set: $diners_peixera to 1503)
+
+
+:: beure {"position":"1150,150","size":"100,100"}
+Beure
+[[laboratori]]
+
+
+:: finestra {"position":"950,325","size":"100,100"}
+<div class="twine-image-wrapper" style="min-width:1024px;">
+    <img src="imatges/biblio01.jpg" usemap="#hotspotmap" alt="Imatge amb hotspots">
+    <map name="hotspotmap">
+    <!-- Pc -->
+        <area shape="rect"
+            coords="478,277,533,312"
+            alt="Pc"
+            class="hotspot-item"
+            data-sound="pc_ok"
+            data-sound-click="pc_ok"
+            data-passage="laboratori"
+              data-transition-depart="rumble"
+            data-transition-arrive="slide-down"
+        >
+
+    </map>
+    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
+</div>
+
+(live: 0.1s)[
+    <span id="Ocult" style="display:none;">
+    (link: "laboratori")[(goto: "laboratori")]
+    </span>
+]
+
+Diners Peixera: ''(print: $diners_peixera)
+Diners: ''(print: $diners)''
+Titol: ''(print: $llibre)''
+[[laboratori]]
+
+
+:: foc {"position":"775,325","size":"100,100"}
+Foc
+Diners Peixera: (print: $diners_peixera)
+(track: 'ocellet' , 'playwhenpossible')
+(t8n-arrive: "rumble")+(t8n-depart: "zoom")[[laboratori]]
+
+
+:: hal.tracks [Editar] {"position":"50,275","size":"100,100"}
+ocellet:https://static.wixstatic.com/mp3/d2f47f_742a2f12b2d745cd9abe728ce9f5671f.mp3
+lemur:https://static.wixstatic.com/mp3/d2f47f_c7599443d69947c6b97b8d6efc8af3d7.mp3
+pc_ok:sons/pc_ok.mp3
+pc_error:sons/pc_error.mp3
+
+
+:: laboratori {"position":"850,100","size":"100,100"}
+<div class="twine-image-wrapper" style="min-width:1472px;">
+    <img src="imatges/laboratori.jpg" usemap="#hotspotmap" alt="Imatge amb hotspots">
+    <map name="hotspotmap">
+    <!-- flama -->
+        <area shape="rect"
+            coords="509,349,573,495"
+            alt="flama"
+            class="hotspot-item"
+            data-sound="ocellet"
+            data-passage="foc"
+            data_info="És una flama i crema $diners_peixera"
+            data-transition-depart="rumble"
+            data-transition-arrive="slide-down"
+            title="crema"
+        >
+
+    <!-- finestra -->
+        <area shape="rect"
+            coords="675,164,813,483"
+            alt="finestra"
+            class="hotspot-item"
+            data-condition-var="$diners"
+            data-condition-val="&gt;999"
+            text_fail_clic="No pots passar si no tens 1000"
+            text_fail_enter="Per passar necessites diners"
+            data-sound-fail="pc_error"
+            data-sound-click-fail="pc_error"
+            data-sound="lemur"
+            data-sound-click="pc_ok"
+            data-passage="finestra"
+            data_info="Ja tens els diners!"
+            data-transition-depart="zoom"
+            data-transition-arrive="flicker"
+            title="Vidres transparents"
+        >
+
+    <!-- caixa -->
+        <area shape="rect"
+            coords="958,579,1064,747"
+            alt="caixa"
+            class="hotspot-item"
+            data-condition-var="$diners"
+            data-condition-val="&gt;499"
+            text_fail_clic="Encara et falten diners"
+            text_fail_enter="Has d&#039;obrir-la amb 500"
+            data-sound-click-fail="pc_error"
+            data-sound-click="pc_ok"
+            data-passage="tancat"
+            data_info="Ja tens 500€ o més. Pots entrar!"
+            data-transition-depart="slide-up"
+            data-transition-arrive="slide-up"
+            title="Caixeta"
+        >
+
+    <!-- peixera -->
+        <area shape="rect"
+            coords="970,413,1154,498"
+            alt="peixera"
+            class="hotspot-item"
+            data-setter="$diners +=501"
+            data_info="Aquí hi ha 1001 euros"
+            data_info_2="Has agafat els diners. Ara tens $diners €!"
+            title="Fes clic i tindràs 501€ més"
+            data_variable="$diners"
+            data_valor="+=501"
+            data-visit-limit="4"
+            data-visit-limit-enter="Ups!"
+            data-visit-limit-clic="Ja no pots agafar més diners"
+        >
+
+    <!-- llibres -->
+        <area shape="rect"
+            coords="304,326,457,392"
+            alt="llibres"
+            class="hotspot-item"
+            data-condition-var="$ulleres"
+            data-condition-val="1"
+            text_fail_clic="Busca unes ulleres"
+            text_fail_enter="No puc llegir bé. Necessito ulleres"
+            data-setter="$llibre = &quot;Platero y tú&quot;"
+            data_info="Com es dirà aquest llibre gruixut?"
+            data_info_2="Es diu $llibre"
+            title="Nom del llibre?"
+            data_variable="$llibre"
+            data_valor="Platero y tú"
+        >
+
+    <!-- ulleres -->
+        <area shape="rect"
+            coords="301,430,373,512"
+            alt="ulleres"
+            class="hotspot-item"
+            data-condition-var="$diners"
+            data-condition-val="&gt;1999"
+            text_fail_clic="Necessites 2000€"
+            text_fail_enter="Són unes ulleres molt cares"
+            data-setter="$ulleres = 1"
+            data_info="És un estoig d&#039;ulleres"
+            data_info_2="Has agafat les ulleres"
+            title="És un estoig d&#039;ulleres"
+            data_variable="$ulleres"
+            data_valor="1"
+            data-visit-limit="1"
+            data-visit-limit-enter="És un estoig d&#039;ulleres buit"
+            data-visit-limit-clic="Ja has agafat les ulleres"
+        >
+
+    <!-- Bruixola -->
+        <area shape="rect"
+            coords="327,115,385,189"
+            alt="Bruixola"
+            class="hotspot-item"
+            data-setter="$res = 0"
+            data_info="És una brúixola màgica"
+            data_info_2="Està molt amunt. No pots arribar"
+            data_variable="$res"
+            data_valor="0"
+        >
+
+    </map>
+    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
+</div>
+
+(live: 0.1s)[
+    <span id="Ocult" style="display:none;">
+    (link: "foc")[(t8n-arrive: "slide-down")+(t8n-depart: "rumble")(goto: "foc")]
+    (if: $diners >999)[(link: "finestra")[(t8n-arrive: "zoom")+(t8n-depart: "flicker")(goto: "finestra")]]
+    (if: $diners >499)[(link: "tancat")[(t8n-arrive: "slide-up")+(t8n-depart: "slide-up")(goto: "tancat")]]
+    </span>
+]
+
+
+
+:: tancat {"position":"1125,325","size":"100,100"}
+(align:"=><=")[Tancat]
+(align:"=><=")[Euros: (print: $diners)]€
+[[laboratori]]
+
+
+:: StoryScript [script]
+jQuery(document).ready(function () {
+
+    // Inicialitza els comptadors de clics per a hotspots si no existeixen
+    if (typeof State !== 'undefined' && typeof State.variables !== 'undefined') {
+        if (State.variables.hotspotClicks === undefined) {
+            State.variables.hotspotClicks = {};
+        }
+        // NOU: Inicialitza la variable de transició temporal
+        if (State.variables.tempPassageTransition === undefined) {
+            State.variables.tempPassageTransition = "";
+        }
+    } else {
+        console.error("ERROR: State.variables no està definit. Els comptadors de hotspot i les transicions no funcionaran.");
+    }
+
+
+    // Funció auxiliar per avaluar les condicions
+    function evaluateCondition(conditionVarName, conditionVal) {
+        if (typeof State === 'undefined' || typeof State.variables === 'undefined') {
+            console.error("ERROR: State.variables no està definit per avaluar la condició.");
+            return false;
+        }
+        if (!conditionVarName || conditionVal === undefined || conditionVal === null) {
+            return true; 
+        }
+
+        const varName = conditionVarName.substring(1); 
+        const currentValue = State.variables[varName];
+        let expression = ''; 
+        
+        conditionVal = String(conditionVal); 
+
+        let operatorUsed = '';
+        let valuePart = conditionVal;
+
+        const operators = ['===', '==', '!==', '!=', '>=', '<=', '>', '<'];
+        for (const op of operators) {
+            if (conditionVal.startsWith(op)) {
+                operatorUsed = op;
+                valuePart = conditionVal.substring(op.length).trim();
+                break;
+            }
+        }
+
+        if (!operatorUsed) { 
+            operatorUsed = '==';
+        }
+        
+        let parsedValuePart;
+        // Try to parse as boolean first
+        if (valuePart === 'true') parsedValuePart = true;
+        else if (valuePart === 'false') parsedValuePart = false;
+        // Then try to parse as number
+        else if (!isNaN(Number(valuePart)) && valuePart !== '') parsedValuePart = Number(valuePart);
+        // Otherwise, keep as string (and ensure it's quoted for eval)
+        else parsedValuePart = valuePart; 
+        
+        expression = `${JSON.stringify(currentValue)} ${operatorUsed} ${JSON.stringify(parsedValuePart)}`;
+
+        try {
+            const result = eval(expression); 
+            return result;
+        } catch (e) {
+            console.error("ERROR: Error avaluant la condició:", expression, e);
+            return false;
+        }
+    }
+
+    // Funció auxiliar per reproduir un so amb HAL
+    function playHotspotSound(soundId) {
+        if (soundId && typeof Chapel !== 'undefined' && typeof Chapel.Audio !== 'undefined' && typeof Chapel.Audio.track === 'function') {
+            try {
+                const track = Chapel.Audio.track(soundId);
+                track.stop(); 
+                track.playWhenPossible();
+                // console.log("DEBUG: 🔊 So reproduït via HAL:", soundId); 
+            } catch (e) {
+                console.error("ERROR: Error en reproduir el so amb HAL:", soundId, e.message);
+            }
+        } else if (soundId) {
+            console.warn("ADVERTENCIA: L'API de HAL no està disponible per al so:", soundId);
+        }
+    }
+
+    // Funció auxiliar per aturar un so amb HAL
+    function stopHotspotSound(soundId) {
+        if (soundId && typeof Chapel !== 'undefined' && typeof Chapel.Audio !== 'undefined' && typeof Chapel.Audio.track === 'function') {
+            try {
+                const track = Chapel.Audio.track(soundId);
+                track.stop(); 
+            } catch (e) {
+                // console.warn("ADVERTENCIA: No s'ha pogut aturar el so amb HAL:", soundId, e.message); 
+            }
+        }
+    }
+    
+    // Funció per aturar tots els sons de hotspots actius (útil en canvis de passatge)
+    function stopAllHotspotSounds() {
+        jQuery('.hotspot-item').each(function() {
+            const soundId = jQuery(this).data('sound');
+            const soundFailId = jQuery(this).data('sound-fail');
+            const soundClickId = jQuery(this).data('sound-click');
+            const soundClickFailId = jQuery(this).data('sound-click-fail');
+
+            stopHotspotSound(soundId);
+            stopHotspotSound(soundFailId);
+            stopHotspotSound(soundClickId);
+            stopHotspotSound(soundClickFailId);
+        });
+    }
+
+
+    var TWINE_IMAGE_INFO_DISPLAY_ID = 'twineImageInfoDisplay'; 
+
+    // Funció per assignar el text a $tempInfoDisplay i fer que Harlowe el processi
+    function toggleImageInfo(text) {
+        console.log("DEBUG: toggleImageInfo cridada amb text:", text);
+        if (typeof State !== 'undefined' && State.variables) {
+            State.variables.tempInfoDisplay = text; 
+            console.log("DEBUG: $tempInfoDisplay set a:", State.variables.tempInfoDisplay);
+            
+            if (text === undefined || text === null || String(text).trim() === '') {
+                 jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).hide();
+                 console.log("DEBUG: #twineImageInfoDisplay amagat (text buit).");
+            } else {
+                jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).show();
+                console.log("DEBUG: #twineImageInfoDisplay mostrat.");
+            }
+        } else {
+            console.error("ERROR: State.variables no està definit. No es pot actualitzar $tempInfoDisplay.");
+        }
+    }
+
+
+    // Funció per executar les operacions de setter d'un hotspot
+    function executeHotspotSetters(hotspotElement) {
+        const setterRaw = jQuery(hotspotElement).get(0).dataset.setter;
+        const dataVariable2 = jQuery(hotspotElement).data('variable-2');
+        const dataValor2 = jQuery(hotspotElement).data('valor-2');
+
+        let combinedSetterStatements = setterRaw || '';
+
+        if (dataVariable2 && dataValor2) {
+            const secondSetterStatement = `${dataVariable2} ${dataValor2}`;
+            console.log("DEBUG: Second Setter Statement Constructed:", secondSetterStatement);
+            if (combinedSetterStatements) {
+                combinedSetterStatements += `; ${secondSetterStatement}`;
+            } else {
+                combinedSetterStatements = secondSetterStatement;
+            }
+            console.log("DEBUG: Combined Setter Statements for execution:", combinedSetterStatements);
+        }
+
+        if (!combinedSetterStatements || typeof State === 'undefined' || typeof State.variables === 'undefined') return;
+        const vars = State.variables;
+
+        const statements = combinedSetterStatements.split(';');
+        statements.forEach(stmt => {
+            const trimmedStmt = stmt.trim();
+            if (!trimmedStmt) return;
+            const match = trimmedStmt.match(/^\s*(\$\w+)\s*(=|\+=|-=|\*=|\/=)\s*(.*)\s*$/);
+            if (!match) {
+                console.warn("ADVERTENCIA: Setter no reconegut o mal formatat:", trimmedStmt);
+                return;
+            }
+
+            const varName = match[1].substring(1);
+            const operator = match[2];
+            let valueStr = match[3];
+
+            let value;
+            if (!isNaN(Number(valueStr))) {
+                value = Number(valueStr);
+            } else if (valueStr === 'true') {
+                value = true;
+            } else if (valueStr === 'false') {
+                value = false;
+            } else if (valueStr.startsWith('$')) {
+                const targetVarName = valueStr.substring(1);
+                value = vars[targetVarName];
+            } else {
+                value = valueStr.replace(/^['"]|['"]$/g, '');
+            }
+
+            if (vars[varName] === undefined) {
+                vars[varName] = (typeof value === 'number') ? 0 : "";
+            }
+
+            switch (operator) {
+                case '=':
+                    vars[varName] = value;
+                    break;
+                case '+=':
+                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] += value;
+                    else vars[varName] += String(value);
+                    break;
+                case '-=':
+                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] -= value;
+                    else console.warn(`ADVERTENCIA: Intent de restar un valor no numèric de ${varName} o ${value}.`);
+                    break;
+                case '*=':
+                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] *= value;
+                    else console.warn(`ADVERTENCIA: Intent de multiplicar amb un valor no numèric de ${varName} o ${value}.`);
+                    break;
+                case '/=':
+                    if (typeof value === 'number' && typeof vars[varName] === 'number') {
+                        if (value !== 0) vars[varName] /= value;
+                        else console.error(`ERROR: Divisió per zero en ${varName} /= ${value}.`);
+                    } else {
+                        console.warn(`ADVERTENCIA: Intent de dividir amb un valor no numèric de ${varName} o ${value}.`);
+                    }
+                    break;
+                default:
+                    console.warn("ADVERTENCIA: Operador no suportat pel setter:", operator);
+            }
+        });
+    }
+
+    // Gestió de 'mouseenter' per mostrar informació i reproduir so
+    jQuery(document).on('mouseenter', '.hotspot-item', function () { 
+        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
+        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
+        const limitVisitEnter = jQuery(this).attr('data-visit-limit-enter'); 
+        const soundFailId = jQuery(this).data('sound-fail'); 
+
+        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
+        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
+            console.log(`DEBUG: Mouseenter - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text d'entrada:`, limitVisitEnter);
+            toggleImageInfo(limitVisitEnter);
+            playHotspotSound(soundFailId); 
+            return; 
+        }
+
+        const conditionVarName = jQuery(this).data('condition-var');
+        const conditionVal = jQuery(this).data('condition-val');
+        const infoText = jQuery(this).attr('data_info');
+        const failEnterInfo = jQuery(this).attr('text_fail_enter');
+        const soundId = jQuery(this).data('sound'); 
+
+        const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
+
+        if (isConditionMet) {
+            if (infoText) {
+                toggleImageInfo(infoText);
+            } else {
+                toggleImageInfo(''); 
+            }
+            playHotspotSound(soundId); // So normal de mouseenter
+        } else {
+            if (failEnterInfo) {
+                toggleImageInfo(failEnterInfo);
+            } else {
+                toggleImageInfo(''); 
+            }
+            playHotspotSound(soundFailId); // So de fallada de mouseenter
+        }
+    });
+
+    // Gestió de 'mouseleave' per amagar informació i aturar sons (només sons d'hover)
+    jQuery(document).on('mouseleave', '.hotspot-item', function () { 
+        toggleImageInfo(''); 
+
+        const soundId = jQuery(this).data('sound');
+        const soundFailId = jQuery(this).data('sound-fail');
+
+        // Atura només els sons de mouseenter
+        if (soundId) { 
+            stopHotspotSound(soundId);
+        }
+        if (soundFailId) { 
+            stopHotspotSound(soundFailId);
+        }
+    });
+
+
+    // Gestió de clics en hotspots amb data-passage
+    jQuery(document).on('click', 'area.hotspot-item[data-passage]', function () {
+        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
+        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
+        const limitVisitClic = jQuery(this).attr('data-visit-limit-clic'); 
+        
+        const soundId = jQuery(this).data('sound'); // So de mouseenter exitós
+        const soundFailId = jQuery(this).data('sound-fail'); // So de mouseenter fallat
+        const soundClickId = jQuery(this).data('sound-click'); // NOU: So de clic exitós
+        const soundClickFailId = jQuery(this).data('sound-click-fail'); // NOU: So de clic fallat
+        const transitionArrive = jQuery(this).data('transition-arrive'); // NOU: Transició d'arribada
+
+        // ATURA ELS SONS DE HOVER (mouse enter/fail) abans de qualsevol altra cosa en aquest hotspot
+        stopHotspotSound(soundId);
+        stopHotspotSound(soundFailId);
+
+        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
+        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
+            console.log(`DEBUG: Clic - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text de clic:`, limitVisitClic, ". No es navega.");
+            toggleImageInfo(limitVisitClic);
+            // Si hi ha so de clic fallat, sona. Si no, no sona res.
+            if (soundClickFailId) { 
+                playHotspotSound(soundClickFailId); 
+            }
+            return; 
+        }
+
+        const passageName = jQuery(this).data('passage');
+        const conditionVarName = jQuery(this).data('condition-var');
+        const conditionVal = jQuery(this).data('condition-val');
+        const failClickInfo = jQuery(this).attr('text_fail_clic');
+        
+
+        if (passageName && typeof State !== 'undefined' && State.variables) {
+            const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
+
+            if (isConditionMet) {
+                // Executem els setters abans de la navegació si la condició es compleix
+                executeHotspotSetters(this); // 'this' es refereix a l'element 'area' clicat
+
+                if (!isNaN(visitLimit)) { 
+                    State.variables.hotspotClicks[hotspotId] = (State.variables.hotspotClicks[hotspotId] || 0) + 1;
+                }
+                // Si hi ha so de clic exitós, sona. Si no, no sona res.
+                if (soundClickId) {
+                    playHotspotSound(soundClickId); 
+                }
+                
+                // NOU: Estableix la transició d'arribada abans de navegar
+                State.variables.tempPassageTransition = transitionArrive || ""; 
+
+                State.variables.retornA = passageName; 
+                const link = jQuery("tw-link").filter(function () {
+                    const text = jQuery(this).text().trim();
+                    return text.toLowerCase() === passageName.trim().toLowerCase();
+                });
+                if (link.length > 0) {
+                    link.click(); 
+                } else {
+                    console.warn("ADVERTENCIA: No s'ha trobat <tw-link> per a la navegació Harlowe:", passageName);
+                }
+            } else {
+                // Si hi ha so de clic fallat, sona. Si no, no sona res.
+                if (soundClickFailId) {
+                    playHotspotSound(soundClickFailId);
+                }
+                if (failClickInfo) {
+                    toggleImageInfo(failClickInfo); 
+                } else {
+                    toggleImageInfo(''); 
+                }
+            }
+        }
+    });
+
+    // Gestió de clics en hotspots amb data-setter
+    jQuery(document).on('click', 'area.hotspot-item[data-setter]', function () {
+        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
+        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
+        const limitVisitClic = jQuery(this).attr('data-visit-limit-clic'); 
+        
+        const soundId = jQuery(this).data('sound'); // So de mouseenter exitós
+        const soundFailId = jQuery(this).data('sound-fail'); // So de mouseenter fallat
+        const soundClickId = jQuery(this).data('sound-click'); // NOU: So de clic exitós
+        const soundClickFailId = jQuery(this).data('sound-click-fail'); // NOU: So de clic fallat
+
+        // ATURA ELS SONS DE HOVER (mouse enter/fail) abans de qualsevol altra cosa en aquest hotspot
+        stopHotspotSound(soundId);
+        stopHotspotSound(soundFailId);
+
+        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
+        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
+            console.log(`DEBUG: Clic - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text de clic:`, limitVisitClic, ". No s'executa setter.");
+            toggleImageInfo(limitVisitClic);
+            // Si hi ha so de clic fallat, sona. Si no, no sona res.
+            if (soundClickFailId) {
+                playHotspotSound(soundClickFailId); 
+            }
+            return; 
+        }
+
+        const conditionVarName = jQuery(this).data('condition-var');
+        const conditionVal = jQuery(this).data('condition-val');
+        const failClickInfo = jQuery(this).attr('text_fail_clic'); 
+        const infoText2 = jQuery(this).attr('data_info_2');
+        const infoText = jQuery(this).attr('data_info'); 
+        
+
+        const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
+
+        if (isConditionMet) {
+            // Executem els setters si la condició es compleix
+            executeHotspotSetters(this); // 'this' es refereix a l'element 'area' clicat
+
+            if (!isNaN(visitLimit)) { 
+                State.variables.hotspotClicks[hotspotId] = (State.variables.hotspotClicks[hotspotId] || 0) + 1;
+            }
+
+            // Si hi ha so de clic exitós, sona. Si no, no sona res.
+            if (soundClickId) {
+                playHotspotSound(soundClickId); 
+            }
+            // El display d'informació s'actualitza després d'executar els setters, per si les variables canvien els textos
+            if (infoText2) {
+                 toggleImageInfo(infoText2);
+            } else {
+                toggleImageInfo(infoText);
+            }
+        } else {
+            // Si hi ha so de clic fallat, sona. Si no, no sona res.
+            if (soundClickFailId) {
+                playHotspotSound(soundClickFailId);
+            }
+            if (failClickInfo) {
+                toggleImageInfo(failClickInfo); 
+            } else {
+                toggleImageInfo('');
+            }
+        }
+    });
+
+    // Esdeveniments de passatge
+    // NOU: Atura tots els sons dels hotspots i neteja la variable de transició quan un passatge s'inicia o es mostra
+    jQuery(document).on(':passagedisplay', function() {
+        stopAllHotspotSounds(); // Atura tots els sons en el display del passatge
+        if (typeof State !== 'undefined' && State.variables) {
+            State.variables.tempInfoDisplay = '';
+        }
+        jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).empty().hide();
+    });
+
+    jQuery(document).on(':passageinit', function() {
+        stopAllHotspotSounds(); // Atura tots els sons en la inicialització del passatge (aquesta és més robusta)
+        if (typeof State !== 'undefined' && State.variables) {
+            State.variables.tempInfoDisplay = '';
+            // NOU: Neteja la variable de transició en la inicialització del passatge
+            // Aquesta és una segona línia de defensa per si la de Harlowe no es crida per alguna raó.
+            State.variables.tempPassageTransition = ""; 
+        }
+        jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).empty().hide(); 
+    });
+});
+
+
+
+/**
+ * Harlowe Audio Library (HAL), by Chapel, v2.3.0
+ * for Harlowe 2.1.0 and higher
+ * Released under the Unlicense, and dedicated to the public domain.
+**/
+;!function(e){(jQuery.browser=jQuery.browser||{}).mobile=/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(e)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(e.substr(0,4))}(navigator.userAgent||navigator.vendor||window.opera),function(){"use strict";window.Fast={filter:function(e,t){for(var o=e.length,n=[],a=0;a<o;a++)t(e[a],a,e)&&n.push(e[a]);return n},forEach:function(e,t){for(var o=e.length,n=0;n<o;n++)t(e[n],n,e)},map:function(e,t){for(var o=e.length,n=new Array(o),a=0;a<o;a++)n[a]=t(e[a],a,e);return n},find:function(e,t){for(var o=e.length,n=0;n<o;n++)if(t(e[n],n,e))return e[n]},findIndex:function(e,t){for(var o=e.length,n=0;n<o;n++)if(t(e[n],n,e))return n;return-1},some:function(e,t){for(var o=e.length,n=0;n<o;n++)if(t(e[n],n,e))return!0;return!1}}}(),window.Chapel=window.Chapel||{},window.Chapel.options={preload:!0,loadDelay:0,muteOnBlur:!0,startingVol:.5,persistPrefs:!0,globalA:!0,showControls:!0,sidebarStartClosed:!0,volumeDisplay:!1,trackLoadLimit:500,totalLoadLimit:8e3,debug:!1},window.Chapel.debug=function(){Chapel.options.debug&&console.log.apply(null,arguments)},function(){"use strict";var n=$("tw-storydata"),o=/(.+?):(.+)/,t=/[\r\n]+/,a=/^["']/,r=/["']$/;function e(e){return Fast.map(Fast.filter(e.split(t),function(e){return e&&e.trim()&&e.includes(":")}),function(e){return e.trim()})}function i(e){return e.trim().replace(a,"").replace(r,"").trim()}function s(e){var t=e.match(o);return t instanceof Array?{key:i(t[1]),value:i(t[2])}:e}var u,l,c,p=n.find('tw-passagedata[name="hal.tracks"]'),d=null,p=(p.length&&(p=e(p.text()),u=[],l=[],Fast.forEach(p,function(e){var e=s(e);"string"==typeof e&&l.push(e),u.push([e.key,(e=e.value,Fast.map(e.split(","),i))])}),l.length&&console.error("Some track definitions could not be parsed:\n"+l.join("\n")+"\nPlease check these definitions and try again."),d=new Map(u)),n.find('tw-passagedata[name="hal.config"]')),m=null;function f(e){var t=n.attr("format-version");if(e)return t;var e=t.split("."),t=e[0],o=e[1],e=e[2],t=Number(t),o=Number(o);return[t=(t=Number.isNaN(t)?3:t)<1?3:t,o=Number.isNaN(o)?3:o,e=Number.isNaN(e)?0:e]}function h(){var e=f();return!(3<=e[0]&&3<=e[1])}function g(t){return function(){var e=[].slice.call(arguments).slice(1),e=t.apply(null,e);return"string"==typeof e||"boolean"==typeof e||"number"==typeof e?e:""}}p.length&&(p=e(p.text()),c={},Fast.forEach(Fast.map(p,function(e){return s(e)}),function(e){c[e.key]=e.value}),m=c),m&&Fast.forEach(Object.keys(m),function(e){var t=e,o=c[e],e=typeof Chapel.options[e];"boolean"==e?"true"===o?Chapel.options[t]=!0:"false"===o&&(Chapel.options[t]=!1):"number"==e?(o=Number(o),Number.isNaN(o)||(Chapel.options[t]=o)):"string"==e&&o&&(Chapel.options[t]=o)});var y=require("macros");if(window.Chapel=window.Chapel||{},window.Chapel.Macros={add:function(o){o&&"object"==typeof o&&Fast.forEach(Object.keys(o),function(e){var t;t=o[e=e],h()?y.add(e,g(t),y.TypeSignature.zeroOrMore(y.TypeSignature.Any)):y.add(e,"Any",g(t),y.TypeSignature.zeroOrMore(y.TypeSignature.Any))})}},window.Chapel.Get=Object.freeze({version:f(),isHarlowe3OrLater:3<=f()[0],storyTitle:n.attr("name"),IFID:n.attr("ifid"),useOldMacroAPI:h(),fromPassage:d}),Chapel.debug("Harlowe Version -> ",Chapel.Get.version.join(".")),Chapel.debug("Harlowe Major Version -> ",Chapel.Get.version[0]),Chapel.debug("Story Title -> ",Chapel.Get.storyTitle),Chapel.debug("Story IFID -> ",Chapel.Get.IFID),Chapel.Get.version[0]<2)throw new Error("The Harlowe Audio Library is only designed to work with Harlowe 2 and 3; you appear to be using Harlowe 1 or an otherwise invalid story format.","get.js -> initialization",176);Chapel.options.storagekey="%%hal-"+Chapel.Get.IFID+"-{"+Chapel.Get.storyTitle+"}",Chapel.debug("Storage Key -> ",Chapel.options.storagekey)}(),function(){"use strict";var t=Chapel.options,e=function(e,t){if(window.localStorage)try{e=""+e,"string"!=typeof t&&(t=JSON.stringify(t)),window.localStorage.setItem(e,t)}catch(e){console.error(e)}},o=function(e){if(window.localStorage)try{return e=""+e,window.localStorage.getItem(e)}catch(e){console.error(e)}},n=function(e){if(window.localStorage)try{e=""+e,window.localStorage.removeItem(e)}catch(e){console.error(e)}},a={loaded:[],classes:{},master:{volume:t.startingVol,mute:!1},groups:{playing:[],looping:[],custom:{}},mute:function(e){a.master.mute=!!e,$(document).trigger({type:":master-mute",mute:!!e})},isMuted:function(){return!!a.master.mute},volume:function(e){e=Number(e),Number.isNaN(e)||(1<e?e=1:e<0&&(e=0),a.master.volume=e),$(document).trigger({type:":master-volume",volume:e})},getVolume:function(){return a.master.volume},stopAll:function(){a.classes.Track&&Fast.forEach(a.classes.Track.list,function(e){e.stop()})},audioPlaying:function(){return!!a.groups.playing.length},savePrefs:function(){e(t.storagekey,a.master)},loadPrefs:function(){var e=o(t.storagekey);e&&"object"==typeof e&&e.hasOwnProperty("volume")&&"number"==typeof e.volume&&e.hasOwnProperty("mute")&&"boolean"==typeof e.volume&&(delete a.master,a.master=e)},clearPrefs:function(){n(t.storagekey)}},r={track:[":available",":loaded",":play",":stop",":mute",":volume"],master:[":master-mute",":master-volume"]};var i=r.track.concat(r.master);function s(e,t){if(!e||"string"!=typeof e||!e.trim())return null;e=Fast.filter(Fast.map(e.split(" "),function(e){return(e=":"!==(e=e.split(".")[0])[0]?":"+e:e)+".userland"}),function(e){return(t?i:r.track).includes(e)}).join(" ");return e&&e.trim()?e:null}a.data={parseEvent:s,bail:function(e){throw new Error(e,"audio.js -> bail()",140)}},a.on=function(e,t){t&&"function"==typeof t?(e=s(e,!0))&&$(document).on(e,t):console.error("Chapel.Audio.on() -> invalid callback")},a.one=function(e,t){t&&"function"==typeof t?(e=s(e,!0))&&$(document).one(e,t):console.error("Chapel.Audio.one() -> invalid callback")},a.off=function(e){(e=s(e,!0))&&$(document).off(e)},t.persistPrefs&&($(document).on(":master-mute",a.savePrefs),$(document).on(":master-volume",a.savePrefs)),$(document).on(":play",function(e){e.track.addToGroup("playing")}),$(document).on(":stop",function(e){e.track.removeFromGroup("playing")}),t.muteOnBlur&&$(window).on("blur",function(){a.isMuted()||(a.mute(!0),$(window).one("focus",function(){a.mute(!1)}))}),a.parseEvent=s,window.Chapel=window.Chapel||{},window.Chapel.Audio=a}(),function(){"use strict";var a=Chapel.Audio,o=a.data.pareEvent,r=a.data.bail,i=Chapel.options,t=$(document.createElement("div")).attr("id","audio-container").css("display","none").appendTo(document.body),s={aac:"audio/aac",caf:"audio/x-caf","x-caf":"audio/x-caf",mp3:'audio/mpeg; codecs="mp3"',mpeg:'audio/mpeg; codecs="mp3"',m4a:"audio/mp4",mp4:"audio/mp4","x-m4a":"audio/mp4","x-mp4":"audio/mp4",oga:"audio/ogg",ogg:"audio/ogg",opus:'audio/ogg; codecs="opus"',wav:"audio/wav",wave:"audio/wav",weba:"audio/webm",webm:"audio/webm"};function u(e,t,o){this instanceof u||r("Track: called without `new` operator"),e||r("Track: no id specified"),"string"!=typeof e&&r("Track: track id is not a string"),t&&(!Array.isArray(t)||t.length)||r("Track: no sources specified"),o?t=[].slice.call(arguments).slice(1):"string"==typeof t&&(t=[t]);var n=$(document.createElement("audio"));Fast.forEach(t,function(e){$(document.createElement("source")).attr({src:e,type:(e=(e=(e=(e=(e=e).split("."))[e.length-1]).includes("?")?e.split("?")[0]:e).toLowerCase().trim(),Object.keys(s).includes(e)||r('Track: unsupported file type "'+e+'"'),s[e])}).appendTo(n)}),n.attr({"data-track":"id","data-volume":1,"data-mute":!1}).one("canplaythrough.hal",function(){a.loaded.push(e)}),i.preload&&n.attr("preload","auto"),n[0].volume=+a.master.volume,this.id=e,this.$el=n,this.unwrap=n[0],this.sources=t}Object.assign(u,{list:[],is:function(e){return e instanceof u},has:function(t){return Fast.some(u.list,function(e){return e.id===t})},emit:function(e,t){$(document).trigger({type:e,track:t}),t.emit(e)},add:function(e,t,o){var n=new u(e,t=o?[].slice.call(arguments).slice(1):t);return u.list.push(n),n.$el.on("canplay",function(){u.emit(":available",n)}),n.$el.on("canplaythrough",function(){u.emit(":loaded",n)}),n.attach(),n},renew:function(){Fast.forEach(u.list,function(e){e.mute(e.isMuted()),e.volume(e.getVolume())})},getIdx:function(t){return Fast.findIndex(u.list,function(e){return e.id===t})},get:function(t){var e=Fast.find(u.list,function(e){return e.id===t});if(e)return e;throw new ReferenceError('There is no track with the id "'+t+'". Please check your spelling and capitalization.',"track.js -> Track.get()",155)},removeFromDOM:function(e){(e="string"==typeof e?u.get(e):e)&&u.is(e)?e.unattach():t.remove()},_runOnMultiple:function(e,t,o){e instanceof Array&&u.prototype.hasOwnProperty(t)&&Fast.forEach(e,function(e){(e=u.is(e)?e:u.get(e)||null)&&e[t].apply(e,o&&o instanceof Array?o:[])})}}),Object.assign(u.prototype,{constructor:u,emit:function(e){this.$el.trigger({type:e,track:this})},clone:function(){return new u(this.id,this.sources)},isAttached:function(){return $.contains(t[0],this.unwrap)},attach:function(){return this.isAttached()||this.$el.appendTo(t),this},unattach:function(){return this.isAttached()&&this.$el.remove(),this},isPlaying:function(){return!this.unwrap.paused},play:function(){var e=this;return this.unwrap.play(),u.emit(":play",this),this.$el.on("ended",function(){e.unwrap.loop||(e.unwrap.currentTime=0,u.emit(":stop",e))}),this},playWhenPossible:function(){var t=this;return this.unwrap.play().then(function(){u.emit(":play",t),t.$el.on("ended",function(){t.unwrap.loop||(t.unwrap.currentTime=0,u.emit(":stop",t))})},function(e){$(document).one("click mousedown keydown touchstart",function(){t.play()})}).catch(function(e){console.error(e)}),this},forcePlay:function(){var e=this,t=$(document.createElement("a")).css("display","none").appendTo(document.body).on("click",function(){e.play()});setTimeout(function(){t.trigger("click")},safeAudioStart)},pause:function(){return this.unwrap.pause(),u.emit(":pause",this),this},stop:function(){return this.unwrap.pause(),this.unwrap.currentTime=0,u.emit(":stop",this),this},mute:function(e){return this.$el.attr("data-mute",e=!!e),a.master.mute?this.unwrap.muted=!0:this.unwrap.muted=e,u.emit(":mute",this),this},isMuted:function(){var e=this.$el.attr("data-mute");return"boolean"==typeof e?e:"false"!==e},toggleMute:function(){return this.mute(!this.isMuted()),this},volume:function(e){return e=Number(e),Number.isNaN(e)||(1<e?e=1:e<0&&(e=0),this.$el.attr("data-volume",e),this.unwrap.volume=e*a.master.volume),u.emit(":volume",this),this},getVolume:function(){return Number(this.$el.attr("data-volume"))},addToGroup:function(e,t){var o=this,t=(t?a.groups.custom:a.groups)[e];return Fast.some(t,function(e){return o.id===e.id})||t.push(this),this},removeFromGroup:function(e,t){var o=this,t=(t?a.groups.custom:a.groups)[e],e=Fast.findIndex(t,function(e){return e.id&&e.id===o.id});return t.splice(e,1),this},loop:function(e){return this.unwrap.loop=!!e,this.unwrap.loop?this.addToGroup("looping"):this.removeFromGroup("looping"),this},isLooping:function(){return!!this.unwrap.loop},toggleLoop:function(){return this.loop(!this.isLooping()),this},seek:function(e){return e<0?e=this.unwrap.duration-e:e>this.unwrap.duration&&(e=this.unwrap.duration),this.unwrap.currentTime=e,this},fadeIn:function(e){var t=this,o=(e=e||1,this.getVolume());return this.volume(0),this.play(),this.$el.animate({volume:o*a.master.volume},1e3*e,function(){t.volume(o),u.emit(":volume",t),u.emit(":fade",t)}),this},fadeOut:function(e){e=e||1;var t=this,o=this.getVolume();return this.$el.animate({volume:0},1e3*e,function(){t.stop(),t.volume(o),u.emit(":volume",t),u.emit(":fade",t)}),this},fadeTo:function(e,t){var o=this;if(e=e||1,t=Number(t),!Number.isNaN(t))return 1<t?t=1:t<0&&(t=0),this.$el.animate({volume:t*a.master.volume},1e3*e,function(){o.volume(t),u.emit(":volume",o),u.emit(":fade",o)}),this;alert("ivalid volume level")},delay:function(e,t){var o=this;"function"==typeof t&&(e=Number(e),(Number.isNaN(e)||e<0)&&(e=0),setTimeout(function(){t.call(o,o,e)},e))},on:function(e,t){if(!t||"function"!=typeof t)return console.error("<track>.on() -> invalid callback"),this;(e=o(e))&&this.$el.on(e,t)},one:function(e,t){if(!t||"function"!=typeof t)return console.error("<track>.one() -> invalid callback"),this;(e=o(e))&&this.$el.one(e,t)},off:function(e){(e=o(e))&&this.$el.off(e)}}),a.classes.Track=u,a.newTrack=function(){try{return u.add.apply(null,arguments)}catch(e){console.error(e.message),alert("Error in A.newTrack() -> see the console for more information.")}},a.track=function(e){try{return u.get(e)}catch(e){console.error(e.message),alert("Error in A.track() -> see the console for more information.")}},$(document).on(":master-mute",u.renew),$(document).on(":master-volume",u.renew)}(),function(){"use strict";var n=Chapel.Audio,a=n.classes.Track,o=(n.data._extend,/(play)?list:(.+)/i);n.createGroup=function(e,t,o){o=o?[].slice.call(arguments).slice(1):t;t=e,(e=o)&&Array.isArray(e)||(e=[]),n.groups.custom[t]=Fast.map(e,function(e){return a.get(e)})},n.group=function(e){if(!(this instanceof n.group))return new n.group(e);if(Object.keys(n.groups.custom).includes(e))this.members=n.groups.custom[e];else{if(!(n.groups[e]&&n.groups[e]instanceof Array))throw new ReferenceError('There is no group with the id "'+id+'". Please check your spelling and capitalization.',"group.js -> A.group()",29);this.members=n.groups[e]}var t;o.test(e)&&(t=e.match(o)[2])&&t.trim()&&(this.members=n.playlist(t).tracks),Array.isArray(this.members)||(this.members=[],console.error('Could not find members for track group "'+e+'"!'))},Object.assign(n.group,{is:function(e){return this instanceof n.group},_runOnAll:function(e,t,o,n){null!=n?o=[].slice.call(arguments).slice(2):o instanceof Array||(o=[o]);n=[e.members,t,o];a._runOnMultiple.apply(null,n)}}),Object.assign(n.group.prototype,{constructor:n.group,_run:function(){n.group._runOnAll.apply(null,[this].concat([].slice.call(arguments)))},play:function(){return this._run("play"),this},pause:function(){return this._run("pause"),this},stop:function(){return this._run("stop"),this},mute:function(e){return this._run("mute",e),this},volume:function(e){return this._run("volume",e),this},loop:function(e){return this._run("loop",e),this}})}(),function(){"use strict";var e=Chapel.Audio,a=e.classes.Track;e.data._extend;function n(e,t){if(!(this instanceof n))return new n(e,t);this.id=e,this.tracks=t.map(function(e){return a.get(e)}),this.looping=!1,this.current="",this.playing=!1}Object.assign(n,{list:{},is:function(e){return e instanceof n},add:function(e,t,o){return o&&(t=[].slice.call(arguments).slice(1)),n.list[e]=new n(e,t),n.list[e]},_runOnAll:function(e,t,o,n){null!=n?o=[].slice.call(arguments).slice(2):o instanceof Array||(o=[o]);n=[e.tracks,t,o];a._runOnMultiple.apply(null,n)}}),Object.assign(n.prototype,{constructor:n,clone:function(){return new n(this.id,this.tracks.map(function(e){return e.id}))},_run:function(){n._runOnAll.apply(null,[this].concat([].slice.call(arguments)))},volume:function(e){return this._run("volume",e),this},mute:function(e){return this._run("mute",e),this},shuffle:function(){for(var e,t,o=this.tracks,n=o.length-1;0<n;n--)e=Math.floor(Math.random()*(n+1)),t=o[n],o[n]=o[e],o[e]=t;return this.tracks=o,this},random:function(){return this.tracks[Math.floor(Math.random()*this.tracks.length)]},isPlaying:function(){return this.playing},nowPlaying:function(){return a.get(this.current)},play:function(e){var t=this;if((e=e||(t.current?Fast.findIndex(t.tracks,function(e){return e.id===t.current}):0))>=t.tracks.length&&t.looping)e=0;else if(e>=t.tracks.length)return t.current="",void(t.playing=!1);var o=t.tracks[e],n=o.isLooping();return o.loop(!1),o.play(),t.playing=!0,setTimeout(function(){o.isPlaying()||(t.playing=!1)},20),t.current=o.id,o.$el.one("ended.playlist",function(){e++,o.loop(n),t.play(e)}),t},loop:function(e){return this.looping=!!e,this},isLooping:function(){return this.looping},stop:function(){var e;return this.current&&this.isPlaying()?(e=this.nowPlaying())&&(e.stop(),e.$el.off(".playlist")):this._run("stop"),this.current="",this.playing=!1,this},pause:function(){var e;return this.current&&this.isPlaying()&&((e=this.nowPlaying())&&e.pause()),this.playing=!1,this}}),e.classes.Playlist=n,e.createPlaylist=function(){try{n.add.apply(null,arguments)}catch(e){console.error(e.message),alert("Error in A.createPlaylist() -> see the console for more information.")}},e.playlist=function(e){try{var t=n.list[e]||null;if(t)return t;throw new ReferenceError('There is no playlist with the id "'+e+'". Please check your spelling and capitalization.',"list.js -> A.playlist()",171)}catch(e){console.error(e.message),alert("Error in A.createPlaylist() -> see the console for more information.")}}}(),function(){"use strict";var t=Chapel.Audio,o=t.classes.Track,n=t.classes.Playlist;function a(t,o){if("object"!=typeof o)throw new TypeError("Invalid extension.","extensions.js -> _extend()",8);Fast.forEach(Object.keys(o),function(e){if(void 0!==t[e])throw new Error('Invalid extension: cannot clobber existing property "'+e+'".',"extensions.js -> _extend()",8);t[e]=o[e]})}t.extend=function(e){a(Audio,e)},o.extend=function(e){a(o,e)},o.extendPrototype=function(e){a(o.prototype,e)},t.extendTrack=o.extend,t.extendTrackProto=o.extendPrototype,t.group.extend=function(e){a(t.group,e)},t.group.extendPrototype=function(e){a(t.group.prototype,e)},t.extendGroup=t.group.extend,t.extendGroupProto=t.group.extendPrototype,n.extend=function(e){a(n,e)},n.extendPrototype=function(e){a(n.prototype,e)},t.extendPlaylist=n.extend,t.extendPlaylistProto=n.extendPrototype}(),function(){"use strict";var e,t,o,n,a,r,i,s=Chapel.options;s.showControls&&(e=$(document.createElement("div")).attr("id","story-menu").css("display","none"),t=$(document.createElement("span")).attr("id","vol-title").append("Volume"),s.volumeDisplay||t.css("display","none"),o=$(document.createElement("input")).attr({id:"audio-volume",type:"range",min:1,max:99,step:1,title:"Volume"}).addClass("hal"),(a=Math.trunc(100*window.Chapel.Audio.master.volume))<0?a=0:100<a&&(a=100),o.attr("value",a),n=function(e){void 0===e&&(e=o.val()),t.empty().append("Volume "+e)},o.on("input",function(){window.Chapel.Audio.volume($(this).val()/100),n($(this).val())}),a=$(document.createElement("tw-link")).attr({id:"audio-mute",title:"Mute"}).append("Mute <span></span>").on("click",function(e){e.preventDefault(),$(this).toggleClass("muted"),Chapel.Audio.mute(!Chapel.Audio.isMuted())}),Chapel.Audio.isMuted()&&a.addClass("muted"),r=$(document.createElement("tw-link")).attr("id","audio-panel-toggle").on("click",function(e){e.preventDefault(),i.toggleClass("closed")}),i=$(document.createElement("div")).attr("id","audio-controls").append(e,t,o,a,r).appendTo(document.body),s.sidebarStartClosed&&i.addClass("closed"),window.Chapel=window.Chapel||{},window.Chapel.Audio=window.Chapel.Audio||{},window.Chapel.Audio.controls={$panel:i,$volume:o,$mute:a,$user:e,close:function(){i.addClass("closed")},open:function(){i.removeClass("closed")},toggle:function(){i.toggleClass("closed")},hide:function(){i.css("display","none")},show:function(){i.css("display","block")},updateVolume:n})}(),function(){"use strict";var s=Chapel.options,t=State,e=$(document.createElement("div")).attr("id","audio-overlay").css("display","none").appendTo(document.body);function o(){e.css("display","block").append('<div class="lds-ring"><div></div><div></div><div></div><div></div></div>')}function u(){e.fadeOut(function(){e.empty()})}window.Chapel=window.Chapel||{},window.Chapel.Audio=window.Chapel.Audio||{},window.Chapel.Audio.loadScreen={show:o,dismiss:u,kill:function(){$("#audio-overlay").remove()}},window.Chapel.Audio.$overlay=e,window.Chapel.Audio.preload=function(){var a,e,r,i;Chapel.debug("This is a mobile browser -> ",$.browser.mobile),t.pastLength||t.futureLength||$.browser.mobile||($(document).ready(function(){o()}),a=100+s.loadDelay,e=Chapel.Audio.classes.Track.list,r=Chapel.Audio.loaded,e.length?(i=Fast.map(e,function(e){return e.id}),0<s.totalLoadLimit&&setTimeout(function(){u()},s.totalLoadLimit),function e(){var t,o,n;i.length?(t=i.shift(),r.includes(t)?e():(o=Chapel.Audio.classes.Track.get(t)).unwrap.readyState<2?(n=!1,o.$el.one("canplaythrough.hal",function(){e(),n=!0}),setTimeout(function(){n||(o.$el.off("canplaythrough.hal"),e())},s.trackLoadLimit)):(r.includes(t)||r.push(t),e())):setTimeout(u,a)}()):setTimeout(u,a))}}(),function(){"use strict";var e,t,o=Chapel.options.storagekey+"_hal_restart_",n=(Chapel.debug("HAL Session Key -> ",o),window.sessionStorage?(Chapel.debug("Session Storage Available"),e=function(e,t){window.sessionStorage.setItem(o+e,t)},t=function(e){return window.sessionStorage.getItem(o+e)}):(Chapel.debug("Session Storage Unavailable"),e=function(){},t=function(){},console.warn("Session storage is unavailable...")),{save:e,load:t});window.Chapel.Audio.state={_store:n,saveTracks:function(){var e;try{e=Fast.map(Chapel.Audio.classes.Track.list,function(e){return{id:e.id,sources:e.sources}}),Chapel.debug("Session Saved (Tracks) -> ",e),e=JSON.stringify(e),n.save("tracks",e)}catch(e){console.error(e.message)}},loadTracks:function(){var e;try{e=(e=n.load("tracks"))&&JSON.parse(e),Array.isArray(e)&&e.length&&(Chapel.debug("Session Loaded (Tracks) -> ",e),Fast.forEach(e,function(e){e.id&&e.sources&&!Chapel.Audio.classes.Track.has(e.id)?Chapel.Audio.newTrack.apply(null,[e.id].concat(e.sources)):Chapel.debug("Track reloading skipped.")}))}catch(e){console.error(e.message)}},savePlaylists:function(){try{var o=Chapel.Audio.classes.Playlist.list,e=Fast.map(Object.keys(o),function(e){var t={};return t.tracks=Fast.map(o[e].tracks,function(e){return e.id}),t.id=o[e].id,t});Chapel.debug("Session Saved (Playlists) -> ",e),e=JSON.stringify(e),n.save("playlists",e)}catch(e){console.error(e.message)}},loadPlaylists:function(){var e;try{(e=(e=n.load("playlists"))&&JSON.parse(e))&&Array.isArray(e)&&e.length&&(Chapel.debug("Session Loaded (Playlists) -> ",e),Fast.forEach(e,function(e){e.id&&e.tracks&&Chapel.Audio.createPlaylist(e.id,e.tracks)}))}catch(e){console.error(e.message)}},saveGroups:function(){var t;try{t={},Fast.forEach(Object.keys(Chapel.Audio.groups.custom),function(e){t[e]=Fast.map(Chapel.Audio.groups.custom[e],function(e){return"string"==typeof e?e:e.id})}),Chapel.debug("Session Saved (Groups) -> ",t),t=JSON.stringify(t),n.save("groups",t)}catch(e){console.error(e.message)}},loadGroups:function(){var t;try{(t=(t=n.load("groups"))&&JSON.parse(t))&&"object"==typeof t&&(Chapel.debug("Session Loaded (Groups) -> ",t),Fast.forEach(Object.keys(t),function(e){Fast.map(t[e],function(e){return Chapel.Audio.classes.Track.get(e)})}),Chapel.Audio.groups.custom=t)}catch(e){console.error(e.message)}}}}(),function(){"use strict";var e=Chapel.options;e.globalA&&void 0===window.A&&(Chapel.debug("Created global A interface."),window.A=window.Chapel.Audio),Chapel.Get.fromPassage&&(Chapel.debug("Loading tracks from track def special passage -> ",Chapel.Get.fromPassage),Chapel.Get.fromPassage.forEach(function(e,t){Chapel.Audio.newTrack.apply(null,[t].concat(e))})),$(document).on("unload",function(){Chapel.debug("User Prefs Saved"),window.Chapel.Audio.savePrefs()}),Chapel.Audio.classes.Track.renew(),Chapel.Audio.controls&&Chapel.Audio.controls.updateVolume(),Chapel.Get.isHarlowe3OrLater&&($(window).on("unload",function(){Chapel.debug("HAL State Saved"),Chapel.Audio.state.saveTracks(),Chapel.Audio.state.savePlaylists(),Chapel.Audio.state.saveGroups()}),Chapel.debug("HAL State Loaded"),Chapel.Audio.state.loadTracks(),Chapel.Audio.state.loadPlaylists(),Chapel.Audio.state.loadGroups()),e.persistPrefs&&(Chapel.debug("User Prefs Loaded"),Chapel.Audio.loadPrefs())}(),function(){"use strict";var i,s,e,u,t;Chapel.options.showControls&&(i=Engine,s=Chapel.Audio.controls.$user,e=function(){return"none"!==s.css("display")},u=function(){return e()||s.css("display","block"),s},t=function(){return e()&&s.css("display","none"),s},Chapel.Audio.menu={hide:t,show:u,isShown:e,links:{add:function(e,t,o){var n,a;if(!e||"string"!=typeof e)return r="undefined",alert(r),void console.error(r);o||"function"!=typeof t?(t&&"string"==typeof t&&(n=t),o&&"function"==typeof o&&(a=o)):(a=t,n=null);var r=$(document.createElement("tw-link")).append(e).attr({tabindex:"0",name:e.toLowerCase().trim()}).on("click",function(){n&&i.goToPassage(n),a&&a()}).addClass("story-menu").appendTo(s);return u(),r},clear:function(){return s.empty(),t()},hide:function(e){e=e.toLowerCase().trim(),$('tw-link.story-menu[name="'+e+'"]').addClass("hide")},show:function(e){e=e.toLowerCase().trim(),$('tw-link.story-menu[name="'+e+'"]').removeClass("hide")},toggle:function(e){e=e.toLowerCase().trim(),$('tw-link.story-menu[name="'+e+'"]').toggleClass("hide")},remove:function(e){e=e.toLowerCase().trim(),$('tw-link.story-menu[name="'+e+'"]').remove()}}})}(),function(){"use strict";var n=Chapel.Audio;function o(e){return e&&"function"==typeof e}function a(e,t){if(!e||"string"!=typeof e)return null;switch(e=e.toLowerCase().trim()){case"isplaying":e="isPlaying";break;case"playwhenpossible":e="playWhenPossible";break;case"ismuted":e="isAMuted";break;case"togglemute":e="toggleMute";break;case"getvolume":e="getVolume";break;case"islooping":e="isLooping";break;case"toggleloop":e="toggleLoop";break;case"fadein":e="fadeIn";break;case"fadeout":e="fadeOut";break;case"fadeto":e="fadeTo";break;case"stopall":e="stopAll"}if("isPlaying"===e&&"master"===t&&(e="audioPlaying"),"group"===t){if(o(n.group.prototype[e]))return e}else if("master"===t){if(o(n[e]))return e}else if(o(n.classes[t].prototype[e]))return e;throw new ReferenceError('Cannot run the command: "'+e+'" on the API "'+t+'". The command may be invalid, or this may be a bug in HAL.',"macros.js -> getCommand()",10)}window.Chapel.Macros.add({newtrack:function(){var e=[].slice.call(arguments);try{return n.newTrack.apply(null,e)}catch(e){alert("Error in the (newtrack:) macro: "+e.message)}},newplaylist:function(e,t){t=[].slice.call(arguments).slice(1);try{return n.createPlaylist(e,t)}catch(e){alert("Error in the (newplaylist:) macro: "+e.message)}},newgroup:function(e,t){t=[].slice.call(arguments).slice(1);try{return n.createGroup(e,t)}catch(e){alert("Error in the (newgroup:) macro: "+e.message)}},masteraudio:function(e){try{return e=a(e,"master"),n[e].apply(null,[].slice.call(arguments).slice(1))}catch(e){alert("Error in the (masteraudio:) macro: "+e.message)}},track:function(e,t){try{var o=n.track(e);return o[t=a(t,"Track")].apply(o,[].slice.call(arguments).slice(2))}catch(e){alert("Error in the (track:) macro: "+e.message)}},playlist:function(e,t){try{var o=n.playlist(e);return o[t=a(t,"Playlist")].apply(o,[].slice.call(arguments).slice(2))}catch(e){alert("Error in the (playlist:) macro: "+e.message)}},group:function(e,t){try{var o=n.group(e);return o[t=a(t,"group")].apply(o,[].slice.call(arguments).slice(2))}catch(e){alert("Error in the (group:) macro: "+e.message)}}})}();
+/** End of HAL code */
+
+:: StoryStylesheet [stylesheet]
+html, body {
+  background-color: black; /* O #000000 */
+  overflow-x: hidden; /* Evita barres de desplaçament horitzontals durant les animacions */
+  position: relative; /* Assegura que les transformacions funcionin correctament */
+}
+
+/* Amaga completament la barra lateral, incloent el botó de "tornar enrere" */
+tw-sidebar {
+    display: none;
+}
+
+/* Assegura't que el cos del Twine no tingui marges ni padding */
+tw-story {
+    max-width: 100%;
+  	margin-top: 15px !important;
+  	margin-left: 40px !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+
+}
+
+/* Fes que el passatge ocupi el 100% de l'altura i l'ample
+   i centra el seu contingut (imatge i text) */
+.tw-passage {
+    min-height: 100vh !important;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden; /* Assegura que el contingut del passatge no desborda */
+
+    /* Aquestes regles centren el contingut del passatge (el twine-image-wrapper) */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra verticalment el contingut del passatge */
+    align-items: center;     /* Centra horitzontalment el contingut del passatge */
+}
+
+/* Contenidor que centra la imatge i el text */
+.twine-image-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* Centra elements fills (com la imatge) horitzontalment */
+    justify-content: center; /* Centra elements fills verticalment (si hi ha espai) */
+
+    line-height: 0;
+    text-align: center; /* Afegeix text-align per si hi ha text simple directament aquí */
+
+    width: 100%; /* Ocupa tot l'ample del pare */
+    height: 100%; /* Ocupa tota l'altura del pare per permetre un bon centrat vertical */
+    flex-grow: 1; /* Permet que s'expandeixi si el pare és un flex-container */
+}
+
+/* Imatge que manté la mida original i es centra */
+.twine-image-wrapper img {
+    display: block; /* Important perquè margin: auto funcioni */
+    width: auto;
+    max-width: 100%; /* Assegura que no es desbordi en pantalles petites */
+    height: auto;
+    max-height: 100%; /* Assegura que no es desbordi verticalment */
+    margin: 0 auto; /* Aquesta és la clau per centrar la imatge horitzontalment */
+}
+
+/* Element de text sota la imatge */
+#twineImageInfoDisplay {
+		display: none;
+        position: absolute;
+        top: 30px; /* Ajusta aquest valor per moure el text amunt/avall */
+        left: 50%;
+        transform: translateX(-50%); /* Centra l'element horitzontalment */
+        background-color: rgba(0, 0, 0, 0.7); /* Fons semi-transparent fosc */
+        color: white; /* Text blanc */
+        padding: 20px 20px; /* Espaiat intern */
+        border-radius: 18px; /* Cantonades arrodonides */
+        z-index: 1000; /* Assegura que estigui per sobre d'altres elements */
+        white-space: nowrap; /* Evita que el text es talli en diverses línies */
+        max-width: 80%; /* Limita l'amplada màxima del quadre */
+        box-sizing: border-box; /* Inclou el padding en l'amplada/alçada */
+        text-align: center; /* Centra el text dins del quadre */
+}
+
+
+/* Les regles de hotspots les deixem tal qual, no influeixen en el centrat general */
+.hotspot-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+.hotspot-item[data-passage]:hover, .hotspot-item[data-setter]:hover {
+    cursor: pointer;
+
+}
+
+
+
+
+
+/**
+ * Harlowe Audio Library (HAL), by Chapel, v2.3.0
+ * for Harlowe 2.1.0 and higher
+ * Released under the Unlicense, and dedicated to the public domain.
+**/
+#audio-overlay{position:fixed;top:0;right:0;left:0;bottom:0;z-index:100000;background:#111}.lds-ring{display:block;position:relative;top:20%;margin:auto;width:20em;height:20em}.lds-ring div{box-sizing:border-box;display:block;position:absolute;width:18em;height:18em;margin:6px;border:6px solid #fff;border-radius:50%;-webkit-animation:lds-ring 1.2s cubic-bezier(.5,0,.5,1) infinite;animation:lds-ring 1.2s cubic-bezier(.5,0,.5,1) infinite;border-color:#fff transparent transparent transparent}.lds-ring div:nth-child(1){-webkit-animation-delay:-.45s;animation-delay:-.45s}.lds-ring div:nth-child(2){-webkit-animation-delay:-.3s;animation-delay:-.3s}.lds-ring div:nth-child(3){-webkit-animation-delay:-.15s;animation-delay:-.15s}@-webkit-keyframes lds-ring{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes lds-ring{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}input#audio-volume{width:100%;margin:2em 0}span#vol-title{position:relative;bottom:-1em;font-size:1rem;float:left}tw-link#audio-mute{display:inline-block;padding:.3em;width:90%;text-decoration:none;color:#111;background:#eee;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;border:1px solid #000}tw-link#audio-mute:hover{opacity:.8}tw-link#audio-mute:active{opacity:.6}tw-link#audio-mute span{display:inline-block;width:1em;position:relative;height:1em;top:.2em;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAQAAABLCVATAAABF0lEQVR4Ae2VJVREYRSEB3ftuFUaLhF6I22iF7TgLr1XvAc849CwiBac9Xtm3e97cefp/Pec7+mdH0mZrGtMoBomyAEHfjGHXKg07gNxeUS3BuMAqGZswE7YcOIYgqgG7BFlSQgTAgKysC2jNjQmghFQCOpMxq+QmQgmFATU4kcq/YlgfKB1lALUqFSukRIbEwpy4BTZPM/Bu9TaQ362KAsl56sAtSR+Sgv6RCFdr/gjBYiuj65c3J0eNEmXz95TgybocvmoJj3avf5l59L1iD/WglZCP7/uh8zgeQ6epdahaZENFIPCCFvEYNPW4JdNazBGzhkj6caCbSc02DRRu0+8RR/+rb7wx6D505HxCVKvG0zpp+yknHe8MBDkT/s8AAAAAElFTkSuQmCC);background-size:contain}tw-link#audio-mute.muted span{right:4px;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAASElEQVR4Ae3WsQ0AMAjAsJ7ez9MTGEmlRGL3BJzPq6prw2DDYMNgw2DDYMOwh1kAMUygQIEC2RejANVxnVE9aDOqJ39GVZWqB5Z3r1ndBX5oAAAAAElFTkSuQmCC)}div#audio-volume{float:left}div#audio-controls{font:100% Georgia,serif;font-size:1.5em;position:fixed;width:8em;height:100%;padding:1em 2em;z-index:10000;top:0;left:0;bottom:0;background:#333;color:#eee;transition:left .3s;text-align:center}div#audio-controls.closed{left:-10.5em}div#audio-controls tw-link#audio-panel-toggle{display:inline-block;width:1.5em;position:absolute;height:1.5em;top:0;right:0;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;text-decoration:none;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAQAAABLCVATAAAAYklEQVR4Ae3MsQFAMAAEQMDEagCgN4EuVTrbPcACeUBugDNeSdMQomI0PmYdTEYD9DA5jcVoBKuxGY1kNQ6jGRSaGaIj8gw1aI/KYVUSNqsSzMpiVT2zMjlVN0fqVW5o2luMGHqkQmD9cPYAAAAASUVORK5CYII=);background-size:contain}div#audio-controls.closed tw-link#audio-panel-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAQAAABLCVATAAAAZElEQVR4Ae3TpwGAMBQAUfrEeHB0cDhcXBSO7ehlgBw9N8BL/YZO95r6uA/UEbOv+ylfHRJ9z1BWLynKJqmWohyS6ijKOygKCpmjZYqXTTA2xUiCsShGAMw8/Q3ArFgFMHek0w3WCaR74eO2YQAAAABJRU5ErkJggg==)}@media screen and (max-width:800px){div#audio-controls.closed{left:-12em}div#audio-controls.closed tw-link#audio-panel-toggle{right:-1.5em}}div#story-menu{margin:1em 0}tw-link.story-menu{width:100%;display:block;font-weight:400;background:#ccc;font-size:.9em;padding:.1em 0;color:#111;border:1px solid #333}tw-link.story-menu.hide{display:none}tw-link.story-menu:hover{opacity:.8}tw-link.story-menu:active{opacity:.6}input[type=range].hal{-webkit-appearance:none;width:100%;margin:2.25px 0}input[type=range].hal:focus{outline:0}input[type=range].hal::-webkit-slider-runnable-track{width:100%;height:15.5px;cursor:pointer;box-shadow:.4px .4px 1px #000,0 0 .4px #0d0d0d;background:#111;border-radius:0;border:0 solid #010101}input[type=range].hal::-webkit-slider-thumb{box-shadow:0 0 2.2px rgba(17,17,17,.1),0 0 0 rgba(30,30,30,.1);border:0 solid #fff;height:20px;width:11px;border-radius:0;background:rgba(255,255,255,.93);cursor:pointer;-webkit-appearance:none;margin-top:-2.25px}input[type=range].hal:focus::-webkit-slider-runnable-track{background:#444}input[type=range].hal::-moz-range-track{width:100%;height:15.5px;cursor:pointer;box-shadow:.4px .4px 1px #000,0 0 .4px #0d0d0d;background:#111;border-radius:0;border:0 solid #010101}input[type=range].hal::-moz-range-thumb{box-shadow:0 0 2.2px rgba(17,17,17,.1),0 0 0 rgba(30,30,30,.1);border:0 solid #fff;height:20px;width:11px;border-radius:0;background:rgba(255,255,255,.93);cursor:pointer}input[type=range].hal::-ms-track{width:100%;height:15.5px;cursor:pointer;background:0 0;border-color:transparent;color:transparent}input[type=range].hal::-ms-fill-lower{background:#000;border:0 solid #010101;border-radius:0;box-shadow:.4px .4px 1px #000,0 0 .4px #0d0d0d}input[type=range].hal::-ms-fill-upper{background:#111;border:0 solid #010101;border-radius:0;box-shadow:.4px .4px 1px #000,0 0 .4px #0d0d0d}input[type=range].hal::-ms-thumb{box-shadow:0 0 2.2px rgba(17,17,17,.1),0 0 0 rgba(30,30,30,.1);border:0 solid #fff;height:20px;width:11px;border-radius:0;background:rgba(255,255,255,.93);cursor:pointer;height:15.5px}input[type=range].hal:focus::-ms-fill-lower{background:#111}input[type=range].hal:focus::-ms-fill-upper{background:#444}
+/** End of HAL code */
