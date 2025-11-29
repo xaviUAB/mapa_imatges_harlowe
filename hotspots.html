@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Hotspots per Twine (Harlowe)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            font-size: 0.95em; /* Base font size for the body */
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #imageEditor {
+            flex: 2;
+            min-width: 400px;
+            position: relative;
+            cursor: crosshair;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 0;
+            height: auto;
+            min-height: 400px;
+            border: 1px dashed #ccc;
+            overflow: hidden; /* Important per controlar el desbordament visual */
+            box-sizing: border-box; /* Per incloure padding i border en el width/height */
+            /* Add touch-action to prevent default browser touch gestures on the editor itself */
+            touch-action: none; /* Prevents pan/zoom on the editor area */
+        }
+        #imageDisplay {
+            max-width: 100%;
+            height: auto;
+            display: none;
+            user-select: none; /* Evita que la imatge es pugui seleccionar amb el ratolí */
+            -webkit-user-drag: none; /* Evita que la imatge es pugui arrossegar */
+            /* Add touch-action: none to image as well if needed, but it might inherit from parent */
+            touch-action: none; /* Prevents pan/zoom on the image itself */
+        }
+        #drawingInstructions {
+            text-align: center;
+            margin-top: 50px;
+            color: #666;
+        }
+        .hotspot-area {
+            position: absolute;
+            border: 2px dashed #007bff;
+            background-color: rgba(0, 123, 255, 0.2);
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-size: 14px;
+            box-sizing: border-box;
+            z-index: 5; /* Base z-index for the hotspot area */
+            touch-action: none; /* Prevents pan/zoom on hotspots */
+        }
+        .hotspot-name-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2px 5px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 3px;
+            white-space: nowrap;
+            pointer-events: none; /* Permet el clic a través del nom */
+            z-index: 15; /* Higher z-index to be above the hotspot area */
+        }
+        .hotspot-area:hover {
+            background-color: rgba(0, 123, 255, 0.4);
+        }
+        #hotspotsConfig {
+            flex: 1;
+            min-width: 300px;
+        }
+        .hotspot-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px; /* Increased margin-bottom for spacing between hotspot items */
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .hotspot-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.05em; /* Slightly larger than text fields */
+        }
+        /* Estil per etiquetes en negreta específiques */
+        .hotspot-item label.bold-label {
+            font-weight: bold;
+        }
+        .hotspot-item input[type="text"],
+        .hotspot-item select,
+        .hotspot-item textarea,
+        .hotspot-item input[type="number"] { /* Added number type */
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 10px; /* Kept existing margin-bottom for input fields */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em; /* Standardized font size for inputs */
+        }
+        .hotspot-item textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .hotspot-item button.delete-config-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .hotspot-item button.delete-config-button:hover {
+            background-color: #c82333;
+        }
+        #outputCode {
+            width: calc(100% - 40px);
+            height: 300px;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            resize: vertical;
+        }
+        .button-group {
+            margin-top: 10px;
+        }
+        .button-group button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+        #copyFeedback {
+            display: none;
+            margin-left: 10px;
+            color: green;
+            font-weight: bold;
+        }
+        .hotspot-delete-button-visual {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            z-index: 20; /* Even higher z-index to be above the hotspot area */
+        }
+        .hotspot-delete-button-visual:hover {
+            background-color: #c82333;
+        }
+        /* Styles for the resize handle */
+        .hotspot-resize-handle {
+            position: absolute;
+            bottom: -10px; /* Adjust to position slightly outside */
+            right: -10px; /* Adjust to position slightly outside */
+            width: 20px; /* Increased size */
+            height: 20px; /* Increased size */
+            background-color: white;
+            border: 1px solid #007bff;
+            border-radius: 50%;
+            cursor: nwse-resize; /* Diagonal resize cursor */
+            z-index: 25; /* Higher than delete button and name display */
+            touch-action: none; /* Prevents pan/zoom on resize handle */
+        }
+        .hidden-field {
+            display: none;
+        }
+        #editorImageInfoDisplay {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1em;
+            display: none;
+            z-index: 100; /* Assegura que estigui per sobre de tot */
+            pointer-events: none; /* No interfereix amb els clics */
+        }
+        /* New styles for condition labels */
+        .condition-label-container label,
+        .column label { /* Changed to target all labels in columns */
+            color: #333; /* Default color for all labels */
+        }
+        .column .condition-label { /* Specific class for condition labels */
+            color: darkred; /* Dark red for condition labels */
+        }
+        .column .limit-label { /* Specific class for limit labels */
+            color: darkorange; /* Dark orange for limit labels */
+        }
+        .column .darkblue-label { /* NEW: Specific class for dark blue labels */
+            color: darkblue; /* Dark blue for the new labels */
+        }
+        .column .darkyellow-label { /* NEW: Specific class for dark yellow labels */
+            color: darkorange; /* Changed from #DAA520 to darkorange */
+        }
+
+
+        /* Styles for section separation */
+        .hotspot-section {
+            margin-bottom: 10px; /* Space between sections */
+            padding-bottom: 10px; /* Padding before the border */
+            border-bottom: 1px dashed #e0e0e0; /* Dashed line for separation */
+        }
+
+        .hotspot-section:last-of-type {
+            border-bottom: none; /* No border for the last section */
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        /* New styles for two-column layout */
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px; /* Space between columns */
+            margin-top: 15px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            /* No padding-top here. The blank div will handle the spacing. */
+        }
+        /* Specific style for condition fields to stack vertically */
+        .condition-inputs-wrapper {
+            display: block !important; /* Override flex to stack */
+        }
+        .condition-inputs-wrapper label,
+        .condition-inputs-wrapper input,
+        .condition-inputs-wrapper textarea {
+            margin-bottom: 10px; /* Add space between stacked elements */
+        }
+        /* Style for the checkbox container to ensure proper alignment */
+        .secondary-variable-toggle-container,
+        .condition-toggle-container,
+        .visit-limit-toggle-container { /* Added visit-limit-toggle-container */
+            margin-top: 10px; /* Space above the checkbox */
+            margin-bottom: 10px; /* Space below the checkbox */
+        }
+        /* Specific style for the label containing the checkbox for "Activar Condició" */
+        .condition-toggle-container label {
+            color: #8B0000 !important; /* Force dark red for the entire label content */
+            display: flex; /* Keep this for alignment */
+            align-items: center;
+            font-weight: bold;
+        }
+        .secondary-variable-toggle-container label,
+        .visit-limit-toggle-container label { /* Added visit-limit-toggle-container */
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        .secondary-variable-toggle-container input[type="checkbox"],
+        .condition-toggle-container input[type="checkbox"],
+        .visit-limit-toggle-container input[type="checkbox"] { /* Added visit-limit-toggle-container */
+            margin-right: 8px; /* Space between checkbox and label text */
+            width: auto; /* Reset width for checkbox */
+            margin-bottom: 0; /* Remove bottom margin for checkbox */
+        }
+        /* The strong-red-label class is no longer strictly necessary if the direct rule works,
+           but keeping it for backward compatibility if other elements use it. */
+        .strong-red-label {
+            color: #8B0000 !important; /* Darker red, force with !important */
+        }
+
+        /* Styles for the new button row in hotspot-item */
+        .hotspot-item .button-row {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px; /* Space between buttons */
+            margin-top: 20px; /* Space above buttons */
+        }
+        .hotspot-item .button-row button {
+            display: inline-block; /* Ensure they are inline */
+            margin: 0; /* Remove previous margins */
+        }
+        .scroll-to-top-button {
+            background-color: #28a745; /* Green color */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .scroll-to-top-button:hover {
+            background-color: #218838;
+        }
+        
+        /* Estils per al botó de càrrega JSON */
+        .json-upload-btn {
+            background-color: #6f42c1; /* Purple */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .json-upload-btn:hover {
+            background-color: #59359a;
+        }
+        /* Estils per al botó de generar diàleg */
+        .generate-dialog-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .generate-dialog-btn:hover {
+            background-color: #218838;
+        }
+
+        .json-file-status {
+            font-size: 0.9em;
+            color: #666;
+            margin-left: 10px;
+            font-style: italic;
+        }
+
+        /* Styles for custom confirmation modal */
+        #confirmationModal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        #confirmationModal > div {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+        #confirmationModal button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 44px;
+            cursor: pointer;
+            color: white;
+        }
+        #confirmationModal #cancelDeleteButton {
+            background-color: #6c757d; /* Grey */
+        }
+        #confirmationModal #confirmDeleteButton {
+            background-color: #dc3545; /* Red */
+        }
+    </style>
+</head>
+<body>
+    <h1>Editor de Hotspots per a Històries de Twine (Harlowe)</h1>
+    <p>1. Carrega una imatge. 2. Dibuixa rectangles sobre les àrees que vulguis fer interactives. 3. Configura cada hotspot. 4. Copia el codi generat i enganxa'l al passatge de Twine.</p>
+
+    <div class="container">
+        <div class="panel" id="imageConfig">
+            <h2>Configuració de la Imatge</h2>
+            <label for="imageUpload">Carregar Imatge:</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <div id="imageEditor">
+                <img id="imageDisplay" src="" alt="Imatge de la història" style="display: none;">
+                <p id="drawingInstructions">Carrega una imatge i dibuixa un hotspot!</p>
+                <div id="editorImageInfoDisplay"></div>
+            </div>
+        </div>
+
+        <div class="panel" id="hotspotsConfig">
+            <h2>Hotspots Configurats</h2>
+            <div id="hotspotsContainer">
+                <p>No hi ha hotspots creats.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Codi Twine (Harlowe) Generat</h2>
+        <textarea id="outputCode"></textarea>
+        <div class="button-group">
+            <button id="copyCodeButton">Copiar Codi</button>
+            <button id="loadCodeButton">Carregar Codi existent</button>
+            <span id="copyFeedback">Codi copiat!</span>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const imageDisplay = document.getElementById('imageDisplay');
+        const imageEditor = document.getElementById('imageEditor');
+        const hotspotsContainerEl = document.getElementById('hotspotsContainer');
+        const outputCode = document.getElementById('outputCode');
+        const copyCodeButton = document.getElementById('copyCodeButton');
+        const drawingInstructions = document.getElementById('drawingInstructions');
+        const editorImageInfoDisplay = document.getElementById('editorImageInfoDisplay');
+        const copyFeedback = document.getElementById('copyFeedback');
+        const loadCodeButton = document.getElementById('loadCodeButton');
+
+        let isDrawing = false;
+        let isDragging = false;
+        let isResizing = false; // New state for resizing
+        let activeHotspotElement = null;
+        let dragOffsetX, dragOffsetY;
+        let initialHotspotWidth, initialHotspotHeight; // New variables for resizing
+        let initialMouseX, initialMouseY; // New variables for resizing
+        let startX, startY; // For drawing start and tap detection
+        let currentRect = null;
+        let hotspots = [];
+        let hotspotIdCounter = 0;
+        let hasMovedDuringInteraction = false; // New flag to track if mouse moved during mousedown/touchstart
+        let initialInteractionTarget = null; // New global variable to store the element where interaction started
+
+
+        // Add a small threshold for movement to distinguish a tap from a drag
+        const TAP_THRESHOLD = 8; // pixels (increased for more forgiving tap detection)
+
+        // Function to hide the "Code copied!" feedback
+        function hideCopyFeedback() {
+            copyFeedback.classList.remove('show');
+        }
+
+        // Function to escape HTML special characters for attribute values
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') {
+                return unsafe; // Return as is if not a string (e.g., numbers, booleans)
+            }
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/`/g, "&#x60;"); // Escape backticks for HTML entity representation
+        }
+        
+        // Function to escape backticks specifically for JavaScript template literals
+        function escapeForTemplateLiteral(str) {
+            if (typeof str !== 'string') {
+                str = String(str || '');
+            }
+            return str.replace(/`/g, '\\`');
+        }
+
+
+        // Event listener for image upload
+        imageUpload.addEventListener('change', (e) => {
+            hideCopyFeedback(); // Hide feedback on new image upload
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imageDisplay.src = event.target.result;
+                    imageDisplay.style.display = 'block';
+                    drawingInstructions.style.display = 'none';
+                    editorImageInfoDisplay.style.display = 'none';
+
+                    imageDisplay.onload = () => {
+                        // Adjust image editor height based on image dimensions
+                        const extraSpace = 80;
+                        imageEditor.style.minHeight = imageDisplay.offsetHeight + extraSpace + 'px';
+                        imageEditor.style.height = imageDisplay.offsetHeight + extraSpace + 'px';
+                        hotspots = []; // Clear existing hotspots when a new image is loaded
+                        renderHotspots();
+                        generateTwineCode();
+                    };
+                    imageDisplay.onerror = () => {
+                        // Handle image loading errors
+                        alert("Error al carregar la imatge.");
+                        imageDisplay.src = '';
+                        imageDisplay.style.display = 'none';
+                        drawingInstructions.style.display = 'block';
+                        editorImageInfoDisplay.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Reset display if no file is selected
+                imageDisplay.src = '';
+                imageDisplay.style.display = 'none';
+                drawingInstructions.style.display = 'block';
+                imageEditor.style.height = 'auto';
+                imageEditor.style.minHeight = '400px';
+                hotspots = [];
+                renderHotspots();
+                generateTwineCode();
+            }
+        });
+
+        // Helper to get coordinates from mouse or touch event
+        function getCoords(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+            }
+            return { clientX: e.clientX, clientY: e.clientY };
+        }
+
+        // Helper function to find the closest parent with the 'hotspot-area' class
+        function findHotspotAreaParent(element) {
+            let currentElement = element;
+            while (currentElement && currentElement !== imageEditor) {
+                if (currentElement.classList.contains('hotspot-area')) {
+                    return currentElement;
+                }
+                currentElement = currentElement.parentElement;
+            }
+            return null; // Not found within the imageEditor or is not a hotspot-area
+        }
+
+        // Mouse down and Touch start event listener for image editor (drawing, dragging, and resizing)
+        imageEditor.addEventListener('mousedown', startInteraction);
+        imageEditor.addEventListener('touchstart', startInteraction);
+
+        function startInteraction(e) {
+            hideCopyFeedback(); // Hide feedback on interaction
+            if (imageDisplay.style.display === 'none' || !imageDisplay.src) return; // Only interact if an image is loaded
+            
+            const { clientX, clientY } = getCoords(e);
+
+            // Store initial clientX, clientY for tap detection
+            startX = clientX;
+            startY = clientY;
+            hasMovedDuringInteraction = false; // Reset flag at the start of a new interaction
+            initialInteractionTarget = e.target; // Store the initial target for tap detection
+
+            // Check if the target is the delete button
+            if (e.target.classList.contains('hotspot-delete-button-visual')) {
+                const hotspotElement = findHotspotAreaParent(e.target);
+                if (hotspotElement) {
+                    const hotspotId = parseInt(hotspotElement.dataset.hotspotId);
+                    const hotspot = hotspots.find(h => h.id === hotspotId);
+                    if (hotspot) {
+                        showConfirmationModal(hotspot.id, hotspot.name || `Hotspot ${hotspot.id}`);
+                    }
+                }
+                e.stopPropagation(); // Prevent further bubbling
+                e.preventDefault(); // Prevent default touch behavior (e.g., scrolling, context menu)
+                return;
+            }
+
+            // Check if the target is the resize handle
+            if (e.target.classList.contains('hotspot-resize-handle')) {
+                isResizing = true;
+                activeHotspotElement = findHotspotAreaParent(e.target); // Get the parent hotspot-area
+                if (activeHotspotElement) {
+                    initialHotspotWidth = activeHotspotElement.offsetWidth;
+                    initialHotspotHeight = activeHotspotElement.offsetHeight;
+                    initialMouseX = clientX;
+                    initialMouseY = clientY;
+                    activeHotspotElement.style.cursor = 'nwse-resize'; // Keep resize cursor
+                }
+                e.stopPropagation(); // Prevent drawing or dragging the hotspot
+                e.preventDefault(); // Prevent default touch behavior
+                return;
+            } 
+            
+            // Check if the target is a hotspot area itself (or its name display)
+            const clickedHotspotArea = findHotspotAreaParent(e.target);
+            if (clickedHotspotArea) {
+                isDragging = true;
+                activeHotspotElement = clickedHotspotArea;
+                const hotspotRect = activeHotspotElement.getBoundingClientRect();
+                dragOffsetX = clientX - hotspotRect.left;
+                dragOffsetY = clientY - hotspotRect.top;
+                activeHotspotElement.style.cursor = 'grabbing';
+                e.stopPropagation(); // Prevent further bubbling
+                e.preventDefault(); // Prevent default touch behavior
+            } else if (imageEditor.contains(e.target) && (e.target === imageDisplay || e.target === imageEditor || e.target.parentElement === imageEditor || e.target.parentElement.parentElement === imageEditor ) ) {
+                // If it's a click on the image editor background and not a hotspot
+                isDrawing = true;
+                const imageRect = imageDisplay.getBoundingClientRect();
+                // Coordinates relative to the image itself
+                startX = clientX - imageRect.left;
+                startY = clientY - imageRect.top;
+
+                currentRect = document.createElement('div');
+                currentRect.classList.add('hotspot-area');
+                const editorRect = imageEditor.getBoundingClientRect();
+                // Position currentRect relative to imageEditor
+                currentRect.style.left = `${clientX - editorRect.left}px`;
+                currentRect.style.top = `${clientY - editorRect.top}px`;
+                currentRect.style.width = '0px';
+                currentRect.style.height = '0px';
+                currentRect.style.cursor = 'crosshair';
+                imageEditor.appendChild(currentRect);
+                imageEditor.style.cursor = 'grabbing';
+                e.preventDefault(); // Prevent default touch behavior
+            }
+        }
+
+        // Mouse move and Touch move event listener for drawing, dragging, and resizing
+        document.addEventListener('mousemove', handleInteractionMove);
+        document.addEventListener('touchmove', handleInteractionMove, { passive: false }); // passive: false for preventDefault
+
+        function handleInteractionMove(e) {
+            const { clientX, clientY } = getCoords(e);
+
+            // Only set hasMovedDuringInteraction to true if movement exceeds threshold
+            if (Math.abs(clientX - startX) > TAP_THRESHOLD || Math.abs(clientY - startY) > TAP_THRESHOLD) {
+                hasMovedDuringInteraction = true;
+            }
+
+            if (isDrawing && currentRect) {
+                // Update dimensions of the new hotspot being drawn
+                const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
+                let currentMouseEventX_onImage = clientX - imageRect.left, currentMouseEventY_onImage = clientY - imageRect.top;
+                let rLeft = Math.min(startX, currentMouseEventX_onImage), rTop = Math.min(startY, currentMouseEventY_onImage),
+                    rRight = Math.max(startX, currentMouseEventX_onImage), rBottom = Math.max(startY, currentMouseEventY_onImage);
+                
+                // Clamp coordinates to image boundaries
+                rLeft = Math.max(0, rLeft);
+                rTop = Math.max(0, rTop);
+                rRight = Math.min(imageRect.width, rRight);
+                rBottom = Math.min(imageRect.height, rBottom);
+                
+                let rWidth = rRight - rLeft, rHeight = rBottom - rTop;
+
+                if (rWidth < 0) rWidth = 0;
+                if (rHeight < 0) rHeight = 0;
+
+                currentRect.style.left = `${(imageRect.left - editorRect.left) + rLeft}px`;
+                currentRect.style.top = `${(imageRect.top - editorRect.top) + rTop}px`;
+                currentRect.style.width = `${rWidth}px`;
+                currentRect.style.height = `${rHeight}px`;
+                e.preventDefault(); // Prevent scrolling during drawing
+            } else if (isDragging && activeHotspotElement) {
+                // Update position of the dragged hotspot
+                const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
+                let newLeftInEditor = clientX - editorRect.left - dragOffsetX, newTopInEditor = clientY - editorRect.top - dragOffsetY;
+                const hotspotWidth = activeHotspotElement.offsetWidth, hotspotHeight = activeHotspotElement.offsetHeight,
+                      imageLeftInEditor = imageRect.left - editorRect.left, imageTopInEditor = imageRect.top - editorRect.top,
+                      imageRightInEditor = imageLeftInEditor + imageRect.width, imageBottomInEditor = imageTopInEditor + imageRect.height;
+                
+                // Clamp hotspot position to image boundaries
+                newLeftInEditor = Math.max(imageLeftInEditor, Math.min(newLeftInEditor, imageRightInEditor - hotspotWidth));
+                newTopInEditor = Math.max(imageTopInEditor, Math.min(newTopInEditor, imageBottomInEditor - hotspotHeight));
+                
+                activeHotspotElement.style.left = `${newLeftInEditor}px`;
+                activeHotspotElement.style.top = `${newTopInEditor}px`;
+                e.preventDefault(); // Prevent scrolling during dragging
+            } else if (isResizing && activeHotspotElement) {
+                const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
+                const imageLeftInEditor = imageRect.left - editorRect.left;
+                const imageTopInEditor = imageRect.top - editorRect.top;
+                const imageRightInEditor = imageLeftInEditor + imageRect.width;
+                const imageBottomInEditor = imageTopInEditor + imageRect.height;
+
+                let newWidth = initialHotspotWidth + (clientX - initialMouseX);
+                let newHeight = initialHotspotHeight + (clientY - initialMouseY);
+
+                // Get current position of the hotspot
+                const currentLeft = parseFloat(activeHotspotElement.style.left);
+                const currentTop = parseFloat(activeHotspotElement.style.top);
+
+                // Clamp new width/height to image boundaries and minimum size (e.g., 5px)
+                newWidth = Math.max(5, Math.min(newWidth, imageRightInEditor - currentLeft));
+                newHeight = Math.max(5, Math.min(newHeight, imageBottomInEditor - currentTop));
+
+                activeHotspotElement.style.width = `${newWidth}px`;
+                activeHotspotElement.style.height = `${newHeight}px`;
+                e.preventDefault(); // Prevent scrolling during resizing
+            }
+        }
+
+        // Mouse up and Touch end event listener for finishing drawing, dragging, or resizing
+        document.addEventListener('mouseup', endInteraction);
+        document.addEventListener('touchend', endInteraction);
+        document.addEventListener('touchcancel', endInteraction); // Handle cancelled touches
+
+        function endInteraction(e) {
+            const { clientX, clientY } = getCoords(e);
+            const movedSignificantly = Math.abs(clientX - startX) > TAP_THRESHOLD || Math.abs(clientY - startY) > TAP_THRESHOLD;
+
+            const wasDrawing = isDrawing;
+            const wasDragging = isDragging;
+            const wasResizing = isResizing;
+
+            isDrawing = false;
+            isDragging = false;
+            isResizing = false;
+            imageEditor.style.cursor = 'crosshair';
+
+            if (wasDrawing && currentRect) {
+                // Logic for finishing drawing a new hotspot
+                const natW = imageDisplay.naturalWidth, natH = imageDisplay.naturalHeight,
+                      dispW = imageDisplay.offsetWidth, dispH = imageDisplay.offsetHeight;
+
+                const hotspotRectVis = currentRect.getBoundingClientRect(), imageRectVis = imageDisplay.getBoundingClientRect();
+                let l_disp = hotspotRectVis.left - imageRectVis.left, t_disp = hotspotRectVis.top - imageRectVis.top,
+                    w_disp = hotspotRectVis.width, h_disp = hotspotRectVis.height;
+                currentRect.remove(); // Remove the temporary drawing rectangle
+                currentRect = null; // Clear the reference
+
+                if (w_disp >= 5 && h_disp >= 5 && dispW && dispH) { // Only add if it's a reasonable size
+                    const sX = natW / dispW, sY = natH / dispH;
+                    const fL = l_disp * sX, fT = t_disp * sY, fW = w_disp * sX, fH = h_disp * sY;
+
+                    const coords = [Math.round(fL),Math.round(fT),Math.round(fL+fW),Math.round(fT+fH)].join(',');
+                    hotspotIdCounter++;
+                    hotspots.push({
+                        id: hotspotIdCounter,
+                        name: `Hotspot ${hotspotIdCounter}`,
+                        type: 'passage',
+                        coords: coords,
+                        value: '',
+                        titleText: '', sound: '', soundClick: '', infoText: '', infoText2: '',
+                        transition: '', transitionArrive: '',
+                        variable: '', valor: '', titleTextSetter: '', soundSetter: '', hotspotSoundClickSetter: '',
+                        infoTextSetter: '', infoTextSetter2: '',
+                        // Dialog fields
+                        characterName: '',
+                        jsonContent: '',
+                        jsonFileName: '',
+                        
+                        passageConditionVariable: '', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
+                        passageSoundFail: '', passageSoundClickFail: '',
+                        setterConditionVariable: '', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
+                        setterSoundFail: '', setterSoundClickFail: '',
+                        visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
+                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false
+                    });
+                }
+                renderHotspots();
+                generateTwineCode(); // Generate code after adding a new hotspot
+            } else if ((wasDragging || wasResizing) && activeHotspotElement) { // Handle both drag and resize ending
+                const hotspotId = parseInt(activeHotspotElement.dataset.hotspotId);
+                const hotspot = hotspots.find(h => h.id === hotspotId);
+
+                if (hotspot) {
+                    if (!movedSignificantly) {
+                        // This was a tap on an existing hotspot/resize handle, not a drag/resize
+                        const configElement = document.querySelector(`#hotspotsContainer .hotspot-item[data-hotspot-id="${hotspotId}"]`);
+                        if (configElement) {
+                            configElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else {
+                        // This was an actual drag or resize, update coordinates
+                        const natW = imageDisplay.naturalWidth, natH = imageDisplay.naturalHeight,
+                            dispW = imageDisplay.offsetWidth, dispH = imageDisplay.offsetHeight;
+                        if (dispW && dispH) {
+                            const hotspotRectVis = activeHotspotElement.getBoundingClientRect(), imageRectVis = imageDisplay.getBoundingClientRect();
+                            const l_disp = hotspotRectVis.left - imageRectVis.left, t_disp = hotspotRectVis.top - imageRectVis.top,
+                                  w_disp = hotspotRectVis.width, h_disp = hotspotRectVis.height;
+                            const sX = natW / dispW, sY = natH / dispH;
+                            const fL = l_disp * sX, fT = t_disp * sY, fW = w_disp * sX, fH = h_disp * sY;
+                            hotspot.coords = [Math.round(fL), Math.round(fT), Math.round(fL + fW), Math.round(fT + fH)].join(',');
+                            generateTwineCode(); // Generate code after dragging or resizing
+                        }
+                    }
+                }
+            }
+            activeHotspotElement = null;
+            initialInteractionTarget = null;
+        }
+
+        // Function to update visibility of inner fields (secondary variable, condition, visit limit)
+        function updateInnerFieldVisibility(hotspot, itemElement) {
+            // Get both sections
+            const passageSection = itemElement.querySelector('.passage-specific-fields');
+            const setterSection = itemElement.querySelector('.setter-specific-fields');
+            const dialogSection = itemElement.querySelector('.dialog-specific-fields');
+
+            // Process Passage section if it exists
+            if (passageSection) {
+                const secondaryFieldsContainer = passageSection.querySelector('.secondary-variable-fields');
+                const enableSecondaryCheckbox = passageSection.querySelector('[data-field="enableSecondaryVariable"]');
+                if (secondaryFieldsContainer && enableSecondaryCheckbox) {
+                    secondaryFieldsContainer.classList.toggle('hidden-field', !hotspot.enableSecondaryVariable);
+                    enableSecondaryCheckbox.checked = hotspot.enableSecondaryVariable; // Sync checkbox state
+                }
+
+                const conditionFieldsContainer = passageSection.querySelector('.condition-fields-container');
+                const enableConditionCheckbox = passageSection.querySelector('[data-field="enableConditionVariable"]');
+                if (conditionFieldsContainer && enableConditionCheckbox) {
+                    conditionFieldsContainer.classList.toggle('hidden-field', !hotspot.enableConditionVariable);
+                    enableConditionCheckbox.checked = hotspot.enableConditionVariable; // Sync checkbox state
+                }
+                
+                // New logic for visit limit section visibility (Passage)
+                const visitLimitSectionContainer = passageSection.querySelector('.visit-limit-section-container');
+                const enableVisitLimitCheckbox = passageSection.querySelector('[data-field="enableVisitLimit"]');
+                if (visitLimitSectionContainer && enableVisitLimitCheckbox) {
+                    visitLimitSectionContainer.classList.toggle('hidden-field', !hotspot.enableVisitLimit);
+                    enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit; // Sync checkbox state
+                }
+            }
+
+            // Process Setter section if it exists
+            if (setterSection) {
+                const secondaryFieldsContainer = setterSection.querySelector('.secondary-variable-fields');
+                const enableSecondaryCheckbox = setterSection.querySelector('[data-field="enableSecondaryVariable"]');
+                if (secondaryFieldsContainer && enableSecondaryCheckbox) {
+                    secondaryFieldsContainer.classList.toggle('hidden-field', !hotspot.enableSecondaryVariable);
+                    enableSecondaryCheckbox.checked = hotspot.enableSecondaryVariable; // Sync checkbox state
+                }
+
+                const conditionFieldsContainer = setterSection.querySelector('.condition-fields-container');
+                const enableConditionCheckbox = setterSection.querySelector('[data-field="enableConditionVariable"]');
+                if (conditionFieldsContainer && enableConditionCheckbox) {
+                    conditionFieldsContainer.classList.toggle('hidden-field', !hotspot.enableConditionVariable);
+                    enableConditionCheckbox.checked = hotspot.enableConditionVariable; // Sync checkbox state
+                }
+
+                // New logic for visit limit section visibility (Setter)
+                const visitLimitSectionContainer = setterSection.querySelector('.visit-limit-section-container');
+                const enableVisitLimitCheckbox = setterSection.querySelector('[data-field="enableVisitLimit"]');
+                if (visitLimitSectionContainer && enableVisitLimitCheckbox) {
+                    visitLimitSectionContainer.classList.toggle('hidden-field', !hotspot.enableVisitLimit);
+                    enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit; // Sync checkbox state
+                }
+            }
+        }
+
+        // Function to render hotspots in the image editor and configuration panel
+        function renderHotspots() {
+            hotspotsContainerEl.innerHTML = ''; // Clear current hotspot configurations
+            // Remove visual hotspot elements from the image editor
+            document.querySelectorAll('#imageEditor .hotspot-area').forEach(el => { if (el !== currentRect) el.remove(); });
+            
+            if (hotspots.length === 0) hotspotsContainerEl.innerHTML = '<p>No hi ha hotspots creats.</p>';
+
+            if (imageDisplay.src && imageDisplay.naturalWidth && imageDisplay.naturalHeight) {
+                const dispW = imageDisplay.offsetWidth, dispH = imageDisplay.offsetHeight,
+                      natW = imageDisplay.naturalWidth, natH = imageDisplay.naturalHeight;
+                const imgRectGlob = imageDisplay.getBoundingClientRect(), editorRectGlob = imageEditor.getBoundingClientRect(),
+                      offsetXinEd = imgRectGlob.left - editorRectGlob.left, offsetYinEd = imgRectGlob.top - editorRectGlob.top,
+                      scaleX = dispW / natW, scaleY = dispH / natH;
+                
+                hotspots.forEach(hotspot => {
+                    const coordsArr = hotspot.coords.split(',').map(Number),
+                          visRect = document.createElement('div');
+                    visRect.classList.add('hotspot-area');
+                    visRect.dataset.hotspotId = hotspot.id;
+                    // Position and size visual hotspot based on scaled coordinates
+                    visRect.style.left = `${(coordsArr[0] * scaleX) + offsetXinEd}px`;
+                    visRect.style.top = `${(coordsArr[1] * scaleY) + offsetYinEd}px`;
+                    visRect.style.width = `${(coordsArr[2] - coordsArr[0]) * scaleX}px`;
+                    visRect.style.height = `${(coordsArr[3] - coordsArr[1]) * scaleY}px`;
+
+                    const nameDisplay = document.createElement('div');
+                    nameDisplay.classList.add('hotspot-name-display');
+                    nameDisplay.textContent = hotspot.name || `Hotspot ${hotspot.id}`;
+                    visRect.appendChild(nameDisplay);
+
+                    const delBtn = document.createElement('div');
+                    delBtn.classList.add('hotspot-delete-button-visual');
+                    delBtn.textContent = 'X'; // Keep it as 'X'
+                    delBtn.title = `Eliminar aquest hotspot (${hotspot.name || `Hotspot ${hotspot.id}`})`; // Fixed typo from hotpot to hotspot
+                    visRect.appendChild(delBtn);
+
+                    // Add resize handle
+                    const resizeHandle = document.createElement('div');
+                    resizeHandle.classList.add('hotspot-resize-handle');
+                    resizeHandle.title = "Redimensionar hotspot";
+                    visRect.appendChild(resizeHandle);
+
+                    imageEditor.appendChild(visRect);
+                });
+            }
+
+            // Options for transition select dropdowns
+            const transitionOptions = `
+                <option value="">Cap</option>
+                <option value="instant">Instantani</option>
+                <option value="dissolve">Dissoldre</option>
+                <option value="fade">Esvaïment</option>
+                <option value="rumble">Tremolor</option>
+                <option value="shudder">Estremiment</option>
+                <option value="pulse">Pulsació</option>
+                <option value="zoom">Zoom</option>
+                <option value="flicker">Parpelleig</option>
+                <option value="slide-left">Lliscar Esquerra</option>
+                <option value="slide-right">Lliscar Dreta</option>
+                <option value="slide-up">Lliscar Amunt</option>
+                <option value="slide-down">Lliscar Avall</option>
+                <option value="fade-left">Esvaïment Esquerra</option>
+                <option value="fade-right">Esvaïment Dreta</option>
+                <option value="fade-up">Esvaïment Amunt</option>
+                <option value="fade-down">Esvaïment Avall</option>
+            `;
+
+            // Render configuration items for each hotspot
+            hotspots.forEach(hotspot => {
+                const item = document.createElement('div');
+                item.classList.add('hotspot-item');
+                item.dataset.hotspotId = hotspot.id;
+
+                item.innerHTML = `
+                    <div class="hotspot-section general-settings">
+                        <label>Nom Hotspot:</label><input type="text" data-field="name" value="${escapeHtml(hotspot.name || '')}" placeholder="Ej: Puerta">
+                        <label>Acció:</label><select data-field="type">
+                            <option value="passage" ${hotspot.type==='passage'?'selected':''}>Anar Passatge</option>
+                            <option value="setter" ${hotspot.type==='setter'?'selected':''}>Canviar Variable</option>
+                            <option value="dialog" ${hotspot.type==='dialog'?'selected':''}>Iniciar diàleg</option>
+                        </select>
+                    </div>
+                    
+                    <div class="hotspot-section setter-specific-fields ${hotspot.type==='setter'?'':'hidden-field'}">
+                        <div class="two-column-layout">
+                            <div class="column">
+                                <div style="height: 1.5em;"></div> <div style="height: 1.5em;"></div> <label>Nom de la variable (ej: $nom_variable):</label><input type="text" data-field="variable" value="${escapeHtml(hotspot.variable || '')}" placeholder="Ej: $punts">
+                                <label>Valor de la variable (Número o text. Es pot sumar. Ej: +=100):</label><input type="text" data-field="valor" value="${escapeHtml(hotspot.valor || '')}" placeholder="Ej: 1000 o &quot;text&quot;">
+                                
+                                <label>Text (mouse enter):</label><textarea data-field="infoTextSetter">${escapeHtml(hotspot.infoTextSetter)}</textarea>
+                                <label class="text-alternatiu-label">Text al fer clic (sota imatge - suporta Harlowe):</label><textarea data-field="infoTextSetter2">${escapeHtml(hotspot.infoTextSetter2)}</textarea>
+                                <label>So (clic - nom àudio enregistrat a hal.tracks):</label><input type="text" data-field="soundClickSetter" value="${escapeHtml(hotspot.soundClickSetter || '')}">
+                                <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="soundSetter" value="${escapeHtml(hotspot.soundSetter || '')}">
+                                <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleTextSetter" value="${escapeHtml(hotspot.titleTextSetter || '')}">
+                            </div>
+                            <div class="column condition-inputs-wrapper">
+                                <div class="condition-toggle-container">
+                                    <label class="strong-red-label">
+                                        <input type="checkbox" data-field="enableConditionVariable" ${hotspot.enableConditionVariable ? 'checked' : ''}> Activar Condició
+                                    </label>
+                                </div>
+                                <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
+                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="setterConditionVariable" value="${escapeHtml(hotspot.setterConditionVariable || '')}" placeholder="Ej: $clau">
+                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="setterConditionValue" value="${escapeHtml(hotspot.setterConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="setterFailInfoEnter">${escapeHtml(hotspot.setterFailInfoEnter)}</textarea>
+                                    <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="setterFailInfo">${escapeHtml(hotspot.setterFailInfo)}</textarea>
+                                    <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="setterSoundClickFail" value="${escapeHtml(hotspot.setterSoundClickFail || '')}">
+                                    <label class="condition-label">So (mouse enter - mentre no s'assoleix la condició):</label><input type="text" data-field="setterSoundFail" value="${escapeHtml(hotspot.setterSoundFail || '')}">
+                                </div>
+                                <div class="visit-limit-toggle-container">
+                                    <label class="darkyellow-label">
+                                        <input type="checkbox" data-field="enableVisitLimit" ${hotspot.enableVisitLimit ? 'checked' : ''}> Límit de visites
+                                    </label>
+                                </div>
+                                <div class="visit-limit-section-container ${hotspot.enableVisitLimit ? '' : 'hidden-field'}">
+                                    <label class="limit-label">Número de visites:</label><input type="number" data-field="visitLimit" value="${escapeHtml(hotspot.visitLimit || '')}" placeholder="">
+                                    <label class="limit-label">Text de límit de visites (mouse enter):</label><textarea data-field="visitLimitTextEnter">${escapeHtml(hotspot.visitLimitTextEnter)}</textarea>
+                                    <label class="limit-label">Text de límit de visites (clic):</label><textarea data-field="visitLimitTextClic">${escapeHtml(hotspot.visitLimitTextClic)}</textarea>
+                                </div>
+                                <div class="secondary-variable-toggle-container">
+                                    <label class="darkblue-label">
+                                        <input type="checkbox" data-field="enableSecondaryVariable" ${hotspot.enableSecondaryVariable ? 'checked' : ''}> Variable secundària
+                                    </label>
+                                </div>
+                                <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
+                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
+                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hotspot-section dialog-specific-fields ${hotspot.type==='dialog'?'':'hidden-field'}">
+                        <label class="bold-label">Diàleg:</label>
+                        <div style="margin-bottom: 10px; display: flex; align-items: center;">
+                            <button class="json-upload-btn">Carregar diàleg</button>
+                            <button class="generate-dialog-btn">Generar diàleg</button>
+                            <input type="file" class="json-file-input" accept=".json" style="display: none;">
+                            <span class="json-file-status" style="margin-left: 10px; font-size: 0.9em; color: #666; font-style: italic;">${escapeHtml(hotspot.jsonFileName || 'Cap fitxer carregat')}</span>
+                        </div>
+                        <input type="text" data-field="characterName" value="${escapeHtml(hotspot.characterName || '')}" placeholder="S'omplirà automàticament (id_dialogue)" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                    </div>
+
+                    <div class="hotspot-section passage-specific-fields ${hotspot.type==='passage'?'':'hidden-field'}">
+                        <div class="two-column-layout">
+                            <div class="column">
+                                <div style="height: 1.5em;"></div> <div style="height: 1.5em;"></div> <label>Passatge destí:</label><input type="text" data-field="value" value="${escapeHtml(hotspot.value || '')}" placeholder="Ej: Bosc">
+                                
+                                <label>Transició de sortida:</label>
+                                <select data-field="transition">
+                                    ${transitionOptions}
+                                </select>
+                                <label>Transició d'arribada:</label>
+                                <select data-field="transitionArrive">
+                                    ${transitionOptions}
+                                </select>
+                                <label>Text (mouse enter):</label><textarea data-field="infoText">${escapeHtml(hotspot.infoText)}</textarea>
+                                <label class="text-alternatiu-label">Text al fer clic (sota imatge - suporta Harlowe):</label><textarea data-field="infoText2">${escapeHtml(hotspot.infoText2)}</textarea>
+                                <label>So (clic - nom àudio enregistrat a hal.tracks):</label><input type="text" data-field="soundClick" value="${escapeHtml(hotspot.soundClick || '')}">
+                                <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="sound" value="${escapeHtml(hotspot.sound || '')}">
+                                <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleText" value="${escapeHtml(hotspot.titleText || '')}">
+                            </div>
+                            <div class="column condition-inputs-wrapper">
+                                <div class="condition-toggle-container">
+                                    <label class="strong-red-label">
+                                        <input type="checkbox" data-field="enableConditionVariable" ${hotspot.enableConditionVariable ? 'checked' : ''}> Activar Condició
+                                    </label>
+                                </div>
+                                <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
+                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="passageConditionVariable" value="${escapeHtml(hotspot.passageConditionVariable || '')}" placeholder="Ej: $clau">
+                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="passageConditionValue" value="${escapeHtml(hotspot.passageConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="passageFailInfoEnter">${escapeHtml(hotspot.passageFailInfoEnter)}</textarea>
+                                    <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="passageFailInfo">${escapeHtml(hotspot.passageFailInfo)}</textarea>
+                                    <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="passageSoundClickFail" value="${escapeHtml(hotspot.passageSoundClickFail || '')}">
+                                    <label class="condition-label">So (mouse enter - mentre no s'assoleix la condició):</label><input type="text" data-field="passageSoundFail" value="${escapeHtml(hotspot.passageSoundFail || '')}">
+                                </div>
+                                <div class="visit-limit-toggle-container">
+                                    <label class="darkyellow-label">
+                                        <input type="checkbox" data-field="enableVisitLimit" ${hotspot.enableVisitLimit ? 'checked' : ''}> Límit de visites
+                                    </label>
+                                </div>
+                                <div class="visit-limit-section-container ${hotspot.enableVisitLimit ? '' : 'hidden-field'}">
+                                    <label class="limit-label">Número de visites:</label><input type="number" data-field="visitLimit" value="${escapeHtml(hotspot.visitLimit || '')}" placeholder="">
+                                    <label class="limit-label">Text de límit de visites (mouse enter):</label><textarea data-field="visitLimitTextEnter">${escapeHtml(hotspot.visitLimitTextEnter)}</textarea>
+                                    <label class="limit-label">Text de límit de visites (clic):</label><textarea data-field="visitLimitTextClic">${escapeHtml(hotspot.visitLimitTextClic)}</textarea>
+                                </div>
+                                <div class="secondary-variable-toggle-container">
+                                    <label class="darkblue-label">
+                                        <input type="checkbox" data-field="enableSecondaryVariable" ${hotspot.enableSecondaryVariable ? 'checked' : ''}> Variable secundària
+                                    </label>
+                                </div>
+                                <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
+                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
+                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="delete-config-button">Eliminar ${escapeHtml(hotspot.name || `Hotspot ${hotspot.id}`)}</button>
+                        <button class="scroll-to-top-button">Anar a la imatge</button>
+                    </div>`;
+                hotspotsContainerEl.appendChild(item);
+
+                const pFields = item.querySelector('.passage-specific-fields');
+                const sFields = item.querySelector('.setter-specific-fields');
+                const dFields = item.querySelector('.dialog-specific-fields');
+                
+                // Set selected options for existing and new dropdowns
+                if (hotspot.type === 'passage') {
+                    pFields.querySelector(`select[data-field="transition"]`).value = hotspot.transition;
+                    pFields.querySelector(`select[data-field="transitionArrive"]`).value = hotspot.transitionArrive;
+                }
+
+                // Function to toggle visibility of main fields based on hotspot type
+                const toggle = type => {
+                    pFields.classList.toggle('hidden-field', type !== 'passage');
+                    sFields.classList.toggle('hidden-field', type !== 'setter');
+                    dFields.classList.toggle('hidden-field', type !== 'dialog');
+                    // After toggling the main sections, update the inner field visibility for the active section
+                    updateInnerFieldVisibility(hotspot, item);
+                };
+
+                toggle(hotspot.type); // Initial toggle based on current type
+
+                const deleteConfigButton = item.querySelector('.delete-config-button');
+
+                // Listener for Dialog Character Name
+                const charNameInput = dFields.querySelector('input[data-field="characterName"]');
+                if (charNameInput) {
+                    charNameInput.addEventListener('input', e => {
+                        // Keep it readonly in UI but update if code changes manually?
+                        // Actually it's readonly so this listener won't fire from UI interaction
+                        hotspot.characterName = e.target.value;
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                // Listener for JSON Upload Button
+                const jsonBtn = dFields.querySelector('.json-upload-btn');
+                const jsonInput = dFields.querySelector('.json-file-input');
+                const jsonStatus = dFields.querySelector('.json-file-status');
+
+                if (jsonBtn && jsonInput) {
+                    jsonBtn.addEventListener('click', () => {
+                        jsonInput.click();
+                    });
+
+                    jsonInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                const content = ev.target.result;
+                                try {
+                                    // Parse JSON to find id_dialogue
+                                    const json = JSON.parse(content);
+                                    if (json && json.id_dialogue) {
+                                        hotspot.characterName = json.id_dialogue;
+                                        // Update the input field visibly immediately
+                                        const charInput = dFields.querySelector('input[data-field="characterName"]');
+                                        if (charInput) charInput.value = hotspot.characterName;
+                                    }
+                                    
+                                    hotspot.jsonContent = content;
+                                    hotspot.jsonFileName = file.name;
+                                    jsonStatus.textContent = file.name;
+                                    generateTwineCode();
+                                    hideCopyFeedback();
+                                } catch (err) {
+                                    alert("Error al llegir el fitxer JSON. Assegura't que és un format vàlid.");
+                                    console.error(err);
+                                }
+                            };
+                            reader.readAsText(file);
+                        }
+                    });
+                }
+
+                // Listener for Generate Dialog Button
+                const generateDialogBtn = dFields.querySelector('.generate-dialog-btn');
+                if (generateDialogBtn) {
+                    generateDialogBtn.addEventListener('click', () => {
+                        window.open('dialegs.html', '_blank');
+                    });
+                }
+
+                // Event listeners for updating hotspot properties
+                item.querySelector('input[data-field="name"]').addEventListener('input', e => {
+                    hotspot.name = e.target.value;
+                    generateTwineCode();
+                    hideCopyFeedback();
+                    const hotspotElement = document.querySelector(`.hotspot-area[data-hotspot-id="${hotspot.id}"] .hotspot-name-display`);
+                    if (hotspotElement) {
+                        hotspotElement.textContent = e.target.value;
+                    }
+                    // Update the delete button text in the config panel as well
+                    deleteConfigButton.textContent = `Eliminar ${e.target.value || `Hotspot ${hotspot.id}`}`;
+                });
+                item.querySelector('select[data-field="type"]').addEventListener('change', e => {
+                    hotspot.type = e.target.value;
+                    toggle(hotspot.type); // This call will now also update inner field visibility
+                    generateTwineCode();
+                    hideCopyFeedback();
+                });
+                
+                // Update event listeners for 'value' (passage) and 'variable', 'valor' (setter)
+                ['value','sound','soundClick', 'titleText'].forEach(f => { // titleText is now at the end
+                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                // Textarea fields need to be handled separately if we want to ensure escapeHtml is not applied to their content
+                // as they are parsed by Twine later, not directly as HTML attributes of the editor.
+                ['infoText', 'infoText2'].forEach(f => {
+                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+
+                // Specific listener for 'transition' select element
+                const passageTransitionSelect = item.querySelector('.passage-specific-fields [data-field="transition"]');
+                if (passageTransitionSelect) {
+                    passageTransitionSelect.addEventListener('change', e => {
+                        hotspot.transition = e.target.value;
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                // Specific listener for NEW 'transitionArrive' select element
+                const passageTransitionArriveSelect = item.querySelector('.passage-specific-fields [data-field="transitionArrive"]');
+                if (passageTransitionArriveSelect) {
+                    passageTransitionArriveSelect.addEventListener('change', e => {
+                        hotspot.transitionArrive = e.target.value;
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+
+                ['variable', 'valor', 'soundSetter','soundClickSetter', 'titleTextSetter'].forEach(f => { // titleTextSetter is now at the end
+                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                // Textarea fields for setter
+                ['infoTextSetter','infoTextSetter2'].forEach(f => {
+                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                // Event listeners for secondary variable fields (common to both types)
+                // Attach to the checkbox within the passage section
+                const pEnableSecondaryVariableCheckbox = pFields.querySelector('[data-field="enableSecondaryVariable"]');
+                if (pEnableSecondaryVariableCheckbox) {
+                    pEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableSecondaryVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+                // Attach to the checkbox within the setter section
+                const sEnableSecondaryVariableCheckbox = sFields.querySelector('[data-field="enableSecondaryVariable"]');
+                if (sEnableSecondaryVariableCheckbox) {
+                    sEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableSecondaryVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                // Also attach listeners for the secondary fields themselves (variable2, valor2)
+                // These are common, so we need to find them in both sections
+                const pVariable2Input = pFields.querySelector('[data-field="variable2"]');
+                const pValor2Input = pFields.querySelector('[data-field="valor2"]');
+                const sVariable2Input = sFields.querySelector('[data-field="variable2"]');
+                const sValor2Input = sFields.querySelector('[data-field="valor2"]');
+
+                if (pVariable2Input) pVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (pValor2Input) pValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (sVariable2Input) sVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (sValor2Input) sValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+
+
+                // Passage-specific condition fields listeners
+                ['passageConditionVariable', 'passageConditionValue', 'passageSoundFail', 'passageSoundClickFail'].forEach(f => {
+                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+                // Textarea fields for passage condition
+                ['passageFailInfo', 'passageFailInfoEnter'].forEach(f => {
+                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+
+                // Setter-specific condition fields listeners
+                ['setterConditionVariable', 'setterConditionValue', 'setterSoundFail', 'setterSoundClickFail'].forEach(f => {
+                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+                // Textarea fields for setter condition
+                ['setterFailInfo', 'setterFailInfoEnter'].forEach(f => {
+                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+                
+                // Visit Limit checkbox listener
+                const pEnableVisitLimitCheckbox = pFields.querySelector('[data-field="enableVisitLimit"]');
+                if (pEnableVisitLimitCheckbox) {
+                    pEnableVisitLimitCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableVisitLimit = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+                const sEnableVisitLimitCheckbox = sFields.querySelector('[data-field="enableVisitLimit"]');
+                if (sEnableVisitLimitCheckbox) {
+                    sEnableVisitLimitCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableVisitLimit = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                // Visit Limit text fields listeners (common for both types)
+                const pVisitLimitInput = pFields.querySelector('[data-field="visitLimit"]');
+                if (pVisitLimitInput) {
+                    pVisitLimitInput.addEventListener('input', (e) => {
+                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+                const sVisitLimitInput = sFields.querySelector('[data-field="visitLimit"]');
+                if (sVisitLimitInput) {
+                    sVisitLimitInput.addEventListener('input', (e) => {
+                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                const pVisitLimitTextEnter = pFields.querySelector('[data-field="visitLimitTextEnter"]');
+                const pVisitLimitTextClic = pFields.querySelector('[data-field="visitLimitTextClic"]');
+                const sVisitLimitTextEnter = sFields.querySelector('[data-field="visitLimitTextEnter"]');
+                const sVisitLimitTextClic = sFields.querySelector('[data-field="visitLimitTextClic"]');
+
+                if (pVisitLimitTextEnter) pVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (pVisitLimitTextClic) pVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (sVisitLimitTextEnter) sVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (sVisitLimitTextClic) sVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+
+
+                // Event listener for the NEW "enableConditionVariable" checkbox
+                // Attach to the checkbox within the passage section
+                const pEnableConditionVariableCheckbox = pFields.querySelector('[data-field="enableConditionVariable"]');
+                if (pEnableConditionVariableCheckbox) {
+                    pEnableConditionVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableConditionVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+                // Attach to the checkbox within the setter section
+                const sEnableConditionVariableCheckbox = sFields.querySelector('[data-field="enableConditionVariable"]');
+                if (sEnableConditionVariableCheckbox) {
+                    sEnableConditionVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableConditionVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+
+                // Modified delete button listener to show confirmation modal
+                item.querySelector('.delete-config-button').addEventListener('click', () => { 
+                    showConfirmationModal(hotspot.id, hotspot.name || `Hotspot ${hotspot.id}`);
+                    hideCopyFeedback();
+                });
+
+                // Add event listener for the new scroll-to-top button
+                item.querySelector('.scroll-to-top-button').addEventListener('click', () => {
+                    imageEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+        }
+
+        // Function to remove a hotspot
+        function removeHotspot(id) {
+            hotspots = hotspots.filter(h => h.id !== id);
+            renderHotspots();
+            generateTwineCode();
+        }
+
+        // Helper function to ensure variable names start with '$'
+        function formatVariable(varName) {
+            if (varName && typeof varName === 'string' && !varName.startsWith('$')) {
+                return '$' + varName;
+            }
+            return varName;
+        }
+
+        // Function to generate Twine (Harlowe) code
+        function generateTwineCode() {
+            if (!imageDisplay.src || !imageDisplay.naturalWidth || !imageUpload.files || imageUpload.files.length === 0) {
+                outputCode.value = "<p>Carga una imagen para generar el código.</p>";
+                return;
+            }
+            const originalFileName = imageUpload.files[0].name;
+            let twineCode = '';
+            
+            twineCode += `<div class="twine-image-wrapper" style="min-width:${imageDisplay.naturalWidth}px;">\n`;
+            twineCode += `    <img src="imatges/${originalFileName.replace(/"/g, '&quot;')}" usemap="#hotspotmap" alt="Imatge amb hotspots">\n`;
+            twineCode += '    <map name="hotspotmap">\n';
+            hotspots.forEach(hotspot => {
+                const coords = hotspot.coords;
+
+                const altText = escapeHtml(hotspot.name || `Hotspot ${hotspot.id}`);
+                
+                // Add comment for each hotspot in HTML comment format
+                twineCode += `    <!-- ${escapeHtml(hotspot.name) || `Hotspot ${hotspot.id}`} -->\n`; // FIX: Apply escapeHtml to hotspot.name here
+                let areaTag = `        <area shape="rect"\n`;
+                areaTag += `            coords="${coords}"\n`;
+                areaTag += `            alt="${altText}"\n`;
+                areaTag += `            class="hotspot-item"\n`;
+
+                if (hotspot.type === 'dialog') {
+                     areaTag += `            data-action="dialog"\n`;
+                     if (hotspot.characterName) areaTag += `            data-character="${escapeHtml(hotspot.characterName)}"\n`;
+                     areaTag += `            data-dialog-id="${hotspot.id}"\n`; // Link to the appended JSON script
+                }
+                
+                // Condition attributes are now type-specific
+                if (hotspot.type === 'passage') {
+                    // Only include condition attributes if enabled or has values
+                    if (hotspot.enableConditionVariable || (hotspot.passageConditionVariable && hotspot.passageConditionValue)) {
+                        if (hotspot.passageConditionVariable && hotspot.passageConditionValue) {
+                            areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.passageConditionVariable))}"\n`;
+                            areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
+                            if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
+                            if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
+                            if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`; // mouse enter
+                            if (hotspot.passageSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.passageSoundClickFail)}"\n`; // click
+                        }
+                    }
+                    // Only include data-sound if it has a value
+                    if (hotspot.sound) areaTag += `            data-sound="${escapeHtml(hotspot.sound)}"\n`; // mouse enter
+                    if (hotspot.soundClick) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClick)}"\n`; // click
+                    if (hotspot.value) areaTag += `            data-passage="${escapeHtml(hotspot.value)}"\n`;
+                    if (hotspot.infoText) areaTag += `            data_info="${escapeHtml(hotspot.infoText)}"\n`;
+                    if (hotspot.infoText2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoText2)}"\n`;
+                    if (hotspot.transition) areaTag += `            data-transition-depart="${escapeHtml(hotspot.transition)}"\n`; 
+                    if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`; // NEW ARRIVE TRANSITION
+                    if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`; // Moved to end
+
+                    // Secondary Setter attributes for passage type (only if enabled or has values)
+                    if (hotspot.enableSecondaryVariable || (hotspot.variable2 && hotspot.valor2)) {
+                        if (hotspot.variable2) areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
+                        if (hotspot.valor2) areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
+                    }
+
+                } else if (hotspot.type === 'setter') {
+                    // Only include condition attributes if enabled or has values
+                    if (hotspot.enableConditionVariable || (hotspot.setterConditionVariable && hotspot.setterConditionValue)) {
+                        if (hotspot.setterConditionVariable && hotspot.setterConditionValue) {
+                            areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.setterConditionVariable))}"\n`;
+                            areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
+                            if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
+                            if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
+                            if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`; // mouse enter
+                            if (hotspot.setterSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.setterSoundClickFail)}"\n`; // click
+                        }
+                    }
+                    // Only include data-sound if it has a value
+                    if (hotspot.soundSetter) areaTag += `            data-sound="${escapeHtml(hotspot.soundSetter)}"\n`; // mouse enter
+                    if (hotspot.soundClickSetter) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClickSetter)}"\n`; // click
+                    let setMacroContent = '';
+                    const valorRaw = hotspot.valor;
+                    const valorTrimmed = valorRaw.trim();
+                    const arithmeticOperators = ['+', '-', '*', '/', '%'];
+                    const startsWithArithmeticOperator = arithmeticOperators.some(op => valorTrimmed.startsWith(op));
+                    const hasOtherOperator = ['>', '<', 'is', '=', 'to'].some(op => valorTrimmed.startsWith(op));
+
+                    const formattedVariableName = formatVariable(hotspot.variable); // Format variable name here
+
+                    if (formattedVariableName) {
+                        let formattedValorForMacro = valorTrimmed;
+                        
+                        if (startsWithArithmeticOperator) {
+                            setMacroContent = `${formattedVariableName} ${valorTrimmed}`;
+                        } else if (!isNaN(valorTrimmed) && valorTrimmed !== '') {
+                            formattedValorForMacro = !hasOtherOperator ? `"${valorTrimmed.replace(/"/g, '\\"')}"` : formattedValorForMacro;
+                            setMacroContent = `${formattedVariableName} = ${formattedValorForMacro}`;
+                        } else {
+                            // If it's not a number and not an arithmetic operation, treat as string.
+                            // Ensure it's quoted unless it contains operators that make it a valid Harlowe expression.
+                            if (!hasOtherOperator) {
+                                formattedValorForMacro = `"${valorTrimmed.replace(/"/g, '\\"')}"`;
+                            }
+                            setMacroContent = `${formattedVariableName} = ${formattedValorForMacro}`;
+                        }
+                    }
+                    
+                    if (setMacroContent) areaTag += `            data-setter="${escapeHtml(setMacroContent)}"\n`;
+                    if (hotspot.infoTextSetter) areaTag += `            data_info="${escapeHtml(hotspot.infoTextSetter)}"\n`;
+                    if (hotspot.infoTextSetter2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoTextSetter2)}"\n`;
+                    if (hotspot.titleTextSetter) areaTag += `            title="${escapeHtml(hotspot.titleTextSetter)}"\n`; // Moved to end
+                    
+                    if (formattedVariableName) areaTag += `            data_variable="${escapeHtml(formattedVariableName)}"\n`;
+                    if (hotspot.valor) areaTag += `            data_valor="${escapeHtml(hotspot.valor)}"\n`;
+
+                    // Secondary Setter attributes (only if enabled or has values)
+                    if (hotspot.enableSecondaryVariable || (hotspot.variable2 && hotspot.valor2)) {
+                        if (hotspot.variable2) areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
+                        if (hotspot.valor2) areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
+                    }
+                }
+
+                // Visit Limit attributes (common for both types), only if enabled
+                if (hotspot.enableVisitLimit) {
+                    if (hotspot.visitLimit) areaTag += `            data-visit-limit="${escapeHtml(hotspot.visitLimit)}"\n`;
+                    if (hotspot.visitLimitTextEnter) areaTag += `            data-visit-limit-enter="${escapeHtml(hotspot.visitLimitTextEnter)}"\n`;
+                    if (hotspot.visitLimitTextClic) areaTag += `            data-visit-limit-clic="${escapeHtml(hotspot.visitLimitTextClic)}"\n`;
+                }
+
+                areaTag += `        >\n`; // Close the area tag
+                twineCode += areaTag;
+                twineCode += `\n`; // Add an extra newline for separation
+            });
+            twineCode += '    </map>\n';
+            twineCode += `    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>\n`;
+            twineCode += '</div>\n\n';
+
+            // Generate Harlowe links for passages
+            twineCode += '(live: 0.1s)[\n';
+            twineCode += '    <span id="Ocult" style="display:none;">\n';
+            hotspots.forEach(hotspot => {
+                if (hotspot.type === 'passage' && hotspot.value) {
+                    const passageNameForLink = hotspot.value.replace(/"/g, '\\"');
+                    const transitionParts = [];
+
+                    // Add (t8n-arrive: ...) if applicable
+                    if (hotspot.transitionArrive && hotspot.transitionArrive !== 'Cap' && hotspot.transitionArrive !== 'instant') {
+                        transitionParts.push(`(t8n-arrive: "${hotspot.transitionArrive.replace(/"/g, '\\"')}")`);
+                    }
+                    // Add (t8n-depart: ...) if applicable
+                    if (hotspot.transition && hotspot.transition !== 'Cap' && hotspot.transition !== 'instant') {
+                        transitionParts.push(`(t8n-depart: "${hotspot.transition.replace(/"/g, '\\"')}")`);
+                    }
+                    
+                    let harloweLinkContent = '';
+                    if (transitionParts.length > 0) {
+                        harloweLinkContent = transitionParts.join('+') + `(goto: "${passageNameForLink}")`;
+                    } else {
+                        harloweLinkContent = `(goto: "${passageNameForLink}")`;
+                    }
+
+                    let harloweLink = '';
+                    // Only generate conditional link if enabled or has values
+                    if (hotspot.enableConditionVariable || (hotspot.passageConditionVariable && hotspot.passageConditionValue)) {
+                        if (hotspot.passageConditionVariable && hotspot.passageConditionValue) { // Use passage-specific condition
+                            let conditionValueFormatted = hotspot.passageConditionValue;
+                            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => conditionValueFormatted.trim().startsWith(op));
+                            if (!isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
+                                conditionValueFormatted = `is ${conditionValueFormatted}`;
+                            } else if (isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
+                                conditionValueFormatted = `is "${conditionValueFormatted.replace(/"/g, '\\"')}"`;
+                            }
+                            harloweLink = `    (if: ${formatVariable(hotspot.passageConditionVariable)} ${conditionValueFormatted})[(link: "${passageNameForLink}")[${harloweLinkContent}]]`;
+                        } else {
+                            harloweLink = `    (link: "${passageNameForLink}")[${harloweLinkContent}]`;
+                        }
+                    } else {
+                        harloweLink = `    (link: "${passageNameForLink}")[${harloweLinkContent}]`;
+                    }
+                    twineCode += `${harloweLink}\n`;
+                }
+            });
+            twineCode += '    </span>\n';
+            twineCode += ']\n';
+
+            // APPEND DIALOG JSON DATA AT THE END
+            let hasJson = false;
+            hotspots.forEach(h => {
+                if (h.type === 'dialog' && h.jsonContent) {
+                    hasJson = true;
+                    // Updated comment as requested: uses the hotspot name, not character name
+                    twineCode += `\n<!-- Dades de diàleg per al hotspot ${h.id} (${escapeHtml(h.name)}) -->\n`;
+                    // Use a script tag to embed JSON safely so it can be parsed later or used by engine
+                    twineCode += `<script type="application/json" id="dialogue-data-${h.id}">\n`;
+                    
+                    try {
+                        const jsonRaw = JSON.parse(h.jsonContent);
+                        
+                        const removeLayoutProps = (obj) => {
+                            if (Array.isArray(obj)) {
+                                return obj.map(removeLayoutProps);
+                            } else if (typeof obj === 'object' && obj !== null) {
+                                const newObj = {};
+                                Object.keys(obj).forEach(key => {
+                                    if (key !== 'x' && key !== 'y' && key !== 'width' && key !== 'height') {
+                                        newObj[key] = removeLayoutProps(obj[key]);
+                                    }
+                                });
+                                return newObj;
+                            }
+                            return obj;
+                        };
+
+                        const jsonClean = removeLayoutProps(jsonRaw);
+                        twineCode += JSON.stringify(jsonClean, null, 4); // Indented for readability
+                    } catch (e) {
+                        // If parsing fails (shouldn't if validated on load), fallback to raw content
+                        console.warn("Could not clean JSON for export, using raw content", e);
+                        twineCode += h.jsonContent;
+                    }
+
+                    twineCode += `\n<\/script>\n`;
+                }
+            });
+
+            outputCode.value = twineCode;
+        }
+
+        // Event listener for copy code button
+        copyCodeButton.addEventListener('click', () => {
+            outputCode.select(); // Select the text in the textarea
+            document.execCommand('copy'); // Copy to clipboard
+            copyFeedback.style.display = 'inline-block'; // Show feedback message
+            setTimeout(() => {
+                copyFeedback.style.display = 'none'; // Hide feedback message after 2 seconds
+            }, 2000);
+        });
+
+        // Event listener for load code button
+        loadCodeButton.addEventListener('click', () => {
+            hideCopyFeedback(); // Hide feedback on load
+            const codeToParse = outputCode.value;
+            if (codeToParse.trim() === "") {
+                alert("El campo de código está vacío. Pega el código HTML/Harlowe para cargar.");
+                return;
+            }
+            parseTwineCode(codeToParse);
+        });
+
+        // Function to parse existing Twine code and populate the editor
+        function parseTwineCode(code) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(code, 'text/html'); // Parse into a full document
+
+            const imgElement = doc.querySelector('.twine-image-wrapper img[usemap]'); // Be more specific
+            if (!imgElement) {
+                alert("No se ha encontrado ninguna etiqueta <img> con usemap dentro de .twine-image-wrapper.");
+                return;
+            }
+
+            const mapName = imgElement.getAttribute('usemap').substring(1); // Get map name without '#'
+            const mapElement = doc.querySelector(`map[name="${mapName}"]`);
+
+            if (!mapElement) {
+                alert(`No se ha encontrado la etiqueta <map name="${mapName}"> asociada a la imagen.`);
+                return;
+            }
+
+            // Reset hotspots and counter
+            hotspots = [];
+            let maxHotspotId = 0;
+            const areaElements = mapElement.querySelectorAll('area'); // Query areas directly from the map
+            areaElements.forEach(area => {
+                const coords = area.getAttribute('coords');
+                const altText = area.getAttribute('alt');
+                const dataPassage = area.getAttribute('data-passage');
+                const dataSetter = area.getAttribute('data-setter'); // This will be the combined string
+                const title = area.getAttribute('title');
+                const dataSound = area.getAttribute('data-sound'); // mouse enter
+                const dataSoundClick = area.getAttribute('data-sound-click'); // click
+                const dataInfo = area.getAttribute('data_info');
+                const dataInfo2 = area.getAttribute('data_info_2');
+                const dataAction = area.getAttribute('data-action'); // Detect Action type explicitly
+                
+                // Dialog specific attributes
+                const dataCharacter = area.getAttribute('data-character');
+                const dataDialogId = area.getAttribute('data-dialog-id');
+
+                // Common condition attributes from HTML
+                const dataConditionVar = area.getAttribute('data-condition-var');
+                const dataConditionVal = area.getAttribute('data-condition-val');
+                const dataFailInfoClic = area.getAttribute('text_fail_clic');
+                const dataFailInfoEnter = area.getAttribute('text_fail_enter');
+                const dataSoundFail = area.getAttribute('data-sound-fail'); // mouse enter
+                const dataSoundClickFail = area.getAttribute('data-sound-click-fail'); // click
+                
+                const dataTransition = area.getAttribute('data-transition-depart'); 
+                const dataTransitionArrive = area.getAttribute('data-transition-arrive'); // NEW: Get data-transition-arrive
+
+                // Retrieve visit limit attributes
+                const visitLimit = area.getAttribute('data-visit-limit');
+                const visitLimitTextEnter = area.getAttribute('data-visit-limit-enter');
+                const visitLimitTextClic = area.getAttribute('data-visit-limit-clic');
+
+                // Declare dataVariable, dataValor, dataVariable2, dataValor2 here to ensure they are always in scope
+                const dataVariable = area.getAttribute('data_variable');
+                const dataValor = area.getAttribute('data_valor');
+                const dataVariable2 = area.getAttribute('data-variable-2');
+                const dataValor2 = area.getAttribute('data-valor-2');
+
+                hotspotIdCounter++;
+                maxHotspotId = Math.max(maxHotspotId, hotspotIdCounter);
+
+                let newHotspot = {
+                    id: hotspotIdCounter,
+                    coords: coords,
+                    name: altText || `Hotspot ${hotspotIdCounter}`,
+                    type: 'passage', // Default type
+                    value: '',
+                    titleText: '',
+                    sound: '',
+                    soundClick: '', // Initialized
+                    infoText: '',
+                    infoText2: '',
+                    transition: '',
+                    transitionArrive: '', // NEW: Initialize transitionArrive
+                    variable: '', // Will be assigned below
+                    valor: '',    // Will be assigned below
+                    titleTextSetter: '',
+                    soundSetter: '',
+                    soundClickSetter: '', // Initialized
+                    infoTextSetter: '',
+                    infoTextSetter2: '',
+
+                    // Dialog Fields
+                    characterName: '',
+                    jsonContent: '',
+                    jsonFileName: '',
+                    
+                    // Passage specific condition fields
+                    passageConditionVariable: '',
+                    passageConditionValue: '',
+                    passageFailInfo: '',
+                    passageFailInfoEnter: '',
+                    passageSoundFail: '',
+                    passageSoundClickFail: '', // Initialized
+
+                    // Setter specific condition fields
+                    setterConditionVariable: '',
+                    setterConditionValue: '',
+                    setterFailInfo: '',
+                    setterFailInfoEnter: '',
+                    setterSoundFail: '',
+                    setterSoundClickFail: '', // Initialized
+
+                    // Visit Limit fields (common for both types)
+                    visitLimit: visitLimit || '',
+                    visitLimitTextEnter: visitLimitTextEnter || '',
+                    visitLimitTextClic: visitLimitTextClic || '',
+                    enableVisitLimit: (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false, // Set based on loaded data
+
+                    // Secondary Setter fields
+                    variable2: dataVariable2 || '',
+                    valor2: dataValor2 || '',
+                    enableSecondaryVariable: (dataVariable2 || dataValor2) ? true : false, // Set based on loaded data
+                    enableConditionVariable: (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false // Set based on loaded condition data
+                };
+                
+                if (dataAction === 'dialog') {
+                    newHotspot.type = 'dialog';
+                    newHotspot.characterName = dataCharacter || '';
+                    if (dataDialogId) {
+                         // Try to find the associated script tag
+                         const scriptTag = doc.querySelector(`#dialogue-data-${dataDialogId}`);
+                         if (scriptTag) {
+                             newHotspot.jsonContent = scriptTag.textContent.trim();
+                             newHotspot.jsonFileName = 'Dades carregades del codi';
+                         }
+                    }
+                } else if (dataPassage) {
+                    newHotspot.type = 'passage';
+                    newHotspot.value = dataPassage;
+                    newHotspot.titleText = title || '';
+                    newHotspot.sound = dataSound || ''; // Assign dataSound for passage
+                    newHotspot.soundClick = dataSoundClick || ''; // Assign new soundClick for passage
+                    newHotspot.infoText = dataInfo || '';
+                    newHotspot.infoText2 = dataInfo2 || '';
+                    newHotspot.transition = dataTransition || '';
+                    newHotspot.transitionArrive = dataTransitionArrive || ''; // NEW: Assign transitionArrive
+                    // Assign passage-specific condition fields
+                    newHotspot.passageConditionVariable = dataConditionVar || '';
+                    newHotspot.passageConditionValue = dataConditionVal || '';
+                    newHotspot.passageFailInfo = dataFailInfoClic || '';
+                    newHotspot.passageFailInfoEnter = dataFailInfoEnter || '';
+                    newHotspot.passageSoundFail = dataSoundFail || '';
+                    newHotspot.passageSoundClickFail = dataSoundClickFail || ''; // Assign new soundClickFail for passage
+                    // Assign secondary setter fields for passage type
+                    newHotspot.variable2 = dataVariable2 || '';
+                    newHotspot.valor2 = dataValor2 || '';
+                } else if (dataSetter) {
+                    newHotspot.type = 'setter';
+                    newHotspot.variable = dataVariable || ''; // Now dataVariable is defined
+                    newHotspot.valor = dataValor || '';       // Now dataValor is defined
+                    newHotspot.titleTextSetter = title || '';
+                    newHotspot.soundSetter = dataSound || ''; // Assign dataSound for setter
+                    newHotspot.soundClickSetter = dataSoundClick || ''; // Assign new soundClickSetter for setter
+                    newHotspot.infoTextSetter = dataInfo || '';
+                    newHotspot.infoTextSetter2 = dataInfo2 || '';
+                    // Assign setter-specific condition fields
+                    newHotspot.setterConditionVariable = dataConditionVar || '';
+                    newHotspot.setterConditionValue = dataConditionVal || '';
+                    newHotspot.setterFailInfo = dataFailInfoClic || '';
+                    newHotspot.setterFailInfoEnter = dataFailInfoEnter || '';
+                    newHotspot.setterSoundFail = dataSoundFail || '';
+                    newHotspot.setterSoundClickFail = dataSoundClickFail || ''; // Assign new soundClickFail for setter
+                }
+                hotspots.push(newHotspot);
+            });
+            hotspotIdCounter = maxHotspotId;
+
+            renderHotspots();
+            generateTwineCode();
+        }
+
+        // Initial rendering and code generation on page load
+        renderHotspots();
+        generateTwineCode();
+        // Add event listener for window resize to re-render hotspots
+        window.addEventListener('resize', renderHotspots);
+        
+        // --- JAVASCRIPT PER A LA INTERACCIÓ DEL HOTSPOT ---
+        // Global modal elements for confirmation
+        let confirmationModal = null;
+        let confirmDeleteButton = null;
+        let cancelDeleteButton = null;
+        let confirmMessage = null;
+        let currentHotspotToDeleteId = null;
+
+        // Initialize modal elements once when the script loads
+        function setupConfirmationModal() {
+            confirmationModal = document.createElement('div');
+            confirmationModal.id = 'confirmationModal';
+            confirmationModal.style.display = 'none'; // Hidden by default
+
+            const modalContent = document.createElement('div');
+            confirmMessage = document.createElement('p');
+            confirmMessage.style.marginBottom = '20px';
+            modalContent.appendChild(confirmMessage);
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'space-around';
+
+            cancelDeleteButton = document.createElement('button');
+            cancelDeleteButton.id = 'cancelDeleteButton';
+            cancelDeleteButton.textContent = 'No!';
+            cancelDeleteButton.addEventListener('click', hideConfirmationModal);
+            buttonContainer.appendChild(cancelDeleteButton);
+
+            confirmDeleteButton = document.createElement('button');
+            confirmDeleteButton.id = 'confirmDeleteButton';
+            confirmDeleteButton.textContent = 'Eliminar';
+            confirmDeleteButton.addEventListener('click', () => {
+                if (currentHotspotToDeleteId !== null) {
+                    removeHotspot(currentHotspotToDeleteId);
+                }
+                hideConfirmationModal();
+            });
+            buttonContainer.appendChild(confirmDeleteButton);
+
+            modalContent.appendChild(buttonContainer);
+            confirmationModal.appendChild(modalContent);
+            document.body.appendChild(confirmationModal);
+        }
+
+        function showConfirmationModal(hotspotId, hotspotName) {
+            currentHotspotToDeleteId = hotspotId;
+            confirmMessage.textContent = `Segur que vols eliminar el hotspot ${hotspotName}?`;
+            confirmationModal.style.display = 'flex';
+        }
+
+        function hideConfirmationModal() {
+            confirmationModal.style.display = 'none';
+            currentHotspotToDeleteId = null;
+        }
+
+        // Call setupConfirmationModal on page load
+        document.addEventListener('DOMContentLoaded', setupConfirmationModal);
+        // --- FI DEL JAVASCRIPT ---
+    </script>
+</body>
+</html>
