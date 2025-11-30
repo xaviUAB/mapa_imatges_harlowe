@@ -1,98 +1,217 @@
-html, body {
-  background-color: black; /* O #000000 */
-  overflow-x: hidden; /* Evita barres de desplaçament horitzontals durant les animacions */
-  position: relative; /* Assegura que les transformacions funcionin correctament */
-}
+    html, body {
+        background-color: black; /* O #000000 */
+        overflow-x: hidden; /* Evita barres de desplaçament horitzontals */
+        position: relative;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: sans-serif;
+    }
 
-/* Amaga completament la barra lateral, incloent el botó de "tornar enrere" */
-tw-sidebar {
-    display: none;
-}
+    /* Amaga completament la barra lateral de Twine */
+    tw-sidebar {
+        display: none;
+    }
 
-/* Assegura't que el cos del Twine no tingui marges ni padding */
-tw-story {
-    max-width: 100%;
-  	margin-top: 15px !important;
-  	margin-left: 40px !important;
-    padding: 0 !important;
-    box-sizing: border-box;
+    /* Cos del Twine sense marges */
+    tw-story {
+        max-width: 100%;
+        margin-top: 0 !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box;
+    }
 
-}
+    /* Passatge ocupa 100% */
+    .tw-passage {
+        min-height: 100vh !important;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 
-/* Fes que el passatge ocupi el 100% de l'altura i l'ample
-   i centra el seu contingut (imatge i text) */
-.tw-passage {
-    min-height: 100vh !important;
-    width: 100%;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box;
-    overflow: hidden; /* Assegura que el contingut del passatge no desborda */
+    /* Contenidor de la imatge i mapa */
+    .twine-image-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        flex-grow: 1;
+        position: relative; /* Necessari per als elements absoluts interns */
+    }
 
-    /* Aquestes regles centren el contingut del passatge (el twine-image-wrapper) */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Centra verticalment el contingut del passatge */
-    align-items: center;     /* Centra horitzontalment el contingut del passatge */
-}
+    .twine-image-wrapper img {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 100vh; /* Ajustat perquè no superi l'alçada de la pantalla */
+        margin: 0 auto;
+    }
 
-/* Contenidor que centra la imatge i el text */
-.twine-image-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;     /* Centra elements fills (com la imatge) horitzontalment */
-    justify-content: center; /* Centra elements fills verticalment (si hi ha espai) */
+    /* =========================================
+       MOTOR DE DIÀLEG (Estils fusionats)
+       ========================================= */
+    
+    #dialogue-container { 
+        /* Mantinc 'fixed' perquè floti sobre el joc, combinat amb els teus estils visuals */
+        position: fixed; 
+        bottom: 20px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        width: 90%; 
+        
+        max-width: 800px; 
+        margin: 0 auto; 
+        font-family: sans-serif; 
+        color: #fff; 
+        pointer-events: auto !important; 
+        z-index: 10000; 
+    }
 
-    line-height: 0;
-    text-align: center; /* Afegeix text-align per si hi ha text simple directament aquí */
+    .adv-dialogue-box { 
+        background-color: #1e293b; 
+        border: 2px solid #475569; 
+        border-top-width: 6px; 
+        border-radius: 12px; 
+        padding: 20px; 
+        display: flex; 
+        gap: 20px; 
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
+    }
 
-    width: 100%; /* Ocupa tot l'ample del pare */
-    height: 100%; /* Ocupa tota l'altura del pare per permetre un bon centrat vertical */
-    flex-grow: 1; /* Permet que s'expandeixi si el pare és un flex-container */
-}
+    .adv-portrait { 
+        width: 80px; 
+        height: 80px; 
+        flex-shrink: 0; 
+        border-radius: 8px; 
+        border: 3px solid rgba(255,255,255,0.2); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        overflow: hidden; 
+        font-size: 32px; 
+        font-weight: bold; 
+        color: white; 
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5); 
+        background-color: #334155; /* Color de fons per defecte si no hi ha img */
+    }
 
-/* Imatge que manté la mida original i es centra */
-.twine-image-wrapper img {
-    display: block; /* Important perquè margin: auto funcioni */
-    width: auto;
-    max-width: 100%; /* Assegura que no es desbordi en pantalles petites */
-    height: auto;
-    max-height: 100%; /* Assegura que no es desbordi verticalment */
-    margin: 0 auto; /* Aquesta és la clau per centrar la imatge horitzontalment */
-}
+    .adv-portrait img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
 
-/* Element de text sota la imatge */
-#twineImageInfoDisplay {
-		display: none;
+    .adv-content { 
+        flex: 1; 
+        display: flex; 
+        flex-direction: column; 
+    }
+
+    .adv-name { 
+        margin: 0 0 10px 0; 
+        font-size: 1.1em; 
+        font-weight: bold; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+    }
+
+    .adv-text { 
+        margin: 0 0 20px 0; 
+        font-size: 1.1em; 
+        line-height: 1.5; 
+        color: #e2e8f0; 
+    }
+
+    .adv-options { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 8px; 
+    }
+
+    .adv-options button { 
+        background-color: #334155; 
+        border: 1px solid #475569; 
+        color: #f1f5f9; 
+        padding: 12px 16px; 
+        text-align: left; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        font-size: 0.95em; 
+        font-weight: 600;
+    }
+
+    .adv-options button:hover { 
+        background-color: #475569; 
+        border-color: #94a3b8; 
+        transform: translateX(5px); 
+    }
+
+    .adv-msg { 
+        font-style: italic; 
+        color: #94a3b8; 
+        text-align: center; 
+        margin-top: 10px; 
+    }
+
+    /* BLOQUEIG MAPA QUAN HI HA DIÀLEG */
+    html.adv-dialogue-active .twine-image-wrapper img,
+    html.adv-dialogue-active map,
+    html.adv-dialogue-active area,
+    html.adv-dialogue-active .hotspot-item {
+        pointer-events: none !important;
+        cursor: default !important;
+    }
+
+    /* =========================================
+       DISPLAY D'INFORMACIÓ (Overlay text)
+       ========================================= */
+    #twineImageInfoDisplay {
+        display: none;
         position: absolute;
-        top: 30px; /* Ajusta aquest valor per moure el text amunt/avall */
+        top: 30px;
         left: 50%;
-        transform: translateX(-50%); /* Centra l'element horitzontalment */
-        background-color: rgba(0, 0, 0, 0.7); /* Fons semi-transparent fosc */
-        color: white; /* Text blanc */
-        padding: 20px 20px; /* Espaiat intern */
-        border-radius: 18px; /* Cantonades arrodonides */
-        z-index: 1000; /* Assegura que estigui per sobre d'altres elements */
-        white-space: nowrap; /* Evita que el text es talli en diverses línies */
-        max-width: 80%; /* Limita l'amplada màxima del quadre */
-        box-sizing: border-box; /* Inclou el padding en l'amplada/alçada */
-        text-align: center; /* Centra el text dins del quadre */
-}
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px 20px;
+        border-radius: 18px;
+        z-index: 1000;
+        white-space: nowrap;
+        max-width: 80%;
+        box-sizing: border-box;
+        text-align: center;
+        font-size: 1.1em;
+    }
 
-
-/* Les regles de hotspots les deixem tal qual, no influeixen en el centrat general */
-.hotspot-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-}
-.hotspot-item[data-passage]:hover, .hotspot-item[data-setter]:hover {
-    cursor: pointer;
-
-}
+    /* =========================================
+       HOTSPOTS
+       ========================================= */
+    .hotspot-item {
+        cursor: pointer !important; /* Força la mà a tots els hotspots */
+    }
+    
+    .hotspot-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none; /* Deixa passar els clics al mapa */
+    }
 
 
 
