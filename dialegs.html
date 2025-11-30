@@ -27,7 +27,6 @@
         .node-card {
             transition: box-shadow 0.2s, border-color 0.2s; 
             position: absolute;
-            /* Width & Height set inline by JS */
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -65,7 +64,7 @@
             border-left: 8px solid transparent;
         }
         .node-card:hover .resize-handle::after {
-            border-bottom-color: #3b82f6; /* Blue on hover */
+            border-bottom-color: #3b82f6;
         }
 
         /* --- Connexions --- */
@@ -141,7 +140,7 @@
     <header class="bg-slate-800 text-white h-14 px-4 flex justify-between items-center shadow-lg z-50">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-diagram-project text-xl text-blue-400"></i>
-            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v3.0</span></h1>
+            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v3.1 (Fix)</span></h1>
         </div>
         
         <div class="flex gap-2 bg-slate-700 p-1 rounded-lg">
@@ -157,25 +156,24 @@
         <div class="flex gap-2 relative">
             <label class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition cursor-pointer flex items-center gap-2">
                 <i class="fa-solid fa-upload"></i> Carregar
-                <input type="file" class="hidden" onchange="ioSystem.loadJSON(this)">
+                <input type="file" class="hidden" accept=".json,.csv" onchange="ioSystem.loadFile(this)">
             </label>
             <button onclick="editor.addNode()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i> Node</button>
             <div class="h-6 w-px bg-slate-600 mx-1 self-center"></div>
             <button onclick="editor.togglePreview()" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-play"></i> Provar</button>
             
-            <!-- BOTÓ RECUPERAT: DESAR JSON -->
-            <button onclick="ioSystem.exportJSON()" class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Desar projecte (JSON) per seguir editant"><i class="fa-solid fa-download"></i> JSON</button>
+            <button onclick="ioSystem.exportJSON()" class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Desar JSON"><i class="fa-solid fa-download"></i> JSON</button>
+            <button onclick="ioSystem.exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Desar CSV (Excel)"><i class="fa-solid fa-file-csv"></i> CSV</button>
             
-            <button onclick="ioSystem.copyTwine()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Copiar codi diàleg"><i class="fa-solid fa-copy"></i> Copiar per Twine</button>
+            <button onclick="ioSystem.copyTwine()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Copiar codi diàleg"><i class="fa-solid fa-copy"></i> Twine</button>
             
             <!-- Botó Menú Configuració -->
             <div class="relative">
-                <button onclick="ui.toggleConfigMenu()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-2" title="Configuració Twine"><i class="fa-solid fa-gear"></i></button>
+                <button onclick="ui.toggleConfigMenu()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-2" title="Configuració"><i class="fa-solid fa-gear"></i></button>
                 <div id="config-menu" class="dropdown-menu text-slate-800 p-2">
                     <div class="text-xs font-bold text-gray-400 uppercase mb-2 px-2">Recursos Twine</div>
                     <button onclick="ioSystem.copyEngineJS()" class="w-full text-left px-2 py-2 text-sm hover:bg-blue-50 rounded flex items-center gap-2"><i class="fa-brands fa-js text-yellow-500"></i> Copiar Motor JS</button>
                     <button onclick="ioSystem.copyEngineCSS()" class="w-full text-left px-2 py-2 text-sm hover:bg-blue-50 rounded flex items-center gap-2"><i class="fa-brands fa-css3 text-blue-500"></i> Copiar Estils CSS</button>
-                    <button onclick="ioSystem.exportJSON()" class="w-full text-left px-2 py-2 text-sm hover:bg-blue-50 rounded flex items-center gap-2 border-t mt-1"><i class="fa-solid fa-download text-gray-500"></i> Descarregar JSON</button>
                 </div>
             </div>
         </div>
@@ -245,552 +243,314 @@
 
     <script>
         // --- CONSTANTS PLANTILLES TWINE ---
-        // Motor JS Actualitzat amb Bloqueig de Mapa (Vanilla JS per robustesa)
         const TWINE_ENGINE_JS = `window.AdventureEngine = (function() {
     let state = { nodes: [], characters: [], vars: {}, visited: new Set(), currentNodeId: null, containerId: 'dialogue-container' };
-
     function getCharacter(id) { return state.characters.find(c => c.id === id) || { name: '?', color: '#ccc' }; }
     function evaluate(code) { if (!code || !code.trim()) return true; try { const keys = Object.keys(state.vars); const values = Object.values(state.vars); const fn = new Function(...keys, \`return \${code};\`); return fn(...values); } catch (e) { console.error("Error condició:", code, e); return false; } }
     function execute(code) { if (!code || !code.trim()) return; try { const keys = Object.keys(state.vars); const values = Object.values(state.vars); const fn = new Function(...keys, \`\${code}; return {\${keys.join(',')}};\`); const newVars = fn(...values); state.vars = { ...state.vars, ...newVars }; } catch (e) { console.error("Error efecte:", code, e); } }
-
     function renderNode() {
-        const container = document.getElementById(state.containerId);
-        if (!container) return;
-        const node = state.nodes.find(n => n.id === state.currentNodeId);
-        if (!node) { container.innerHTML = ""; toggleActive(false); return; }
-
+        const container = document.getElementById(state.containerId); if (!container) return;
+        const node = state.nodes.find(n => n.id === state.currentNodeId); if (!node) { container.innerHTML = ""; toggleActive(false); return; }
         const char = getCharacter(node.characterId);
         const textOpts = Array.isArray(node.textOptions) ? node.textOptions : [{ text: node.text || "", condition: "" }];
         let validTexts = textOpts.filter(t => evaluate(t.condition));
         if (validTexts.some(t => t.condition && t.condition.trim() !== "")) validTexts = validTexts.filter(t => t.condition && t.condition.trim() !== "");
         const chosenTextObj = validTexts.length > 0 ? validTexts[Math.floor(Math.random() * validTexts.length)] : { text: "..." };
         let finalText = chosenTextObj.text.replace(/\\{(\\w+)\\}/g, (_, v) => state.vars[v] ?? '?').replace(/\\$(\\w+)/g, (_, v) => state.vars[v] ?? ('$' + v));
-
         let html = \`<div class="adv-dialogue-box" style="border-top-color: \${char.color}"><div class="adv-portrait" style="background-color: \${char.color}">\${char.avatarUrl ? \`<img src="\${char.avatarUrl}">\` : \`<span>\${char.name[0]}</span>\`}</div><div class="adv-content"><h3 class="adv-name" style="color: \${char.color}">\${char.name}</h3><p class="adv-text">\${finalText}</p><div class="adv-options">\`;
-
-        const availableOptions = node.options.filter((opt, idx) => {
-            const visitedKey = node.id + '_' + idx;
-            if (opt.once && state.visited.has(visitedKey)) return false;
-            if (opt.condition && !evaluate(opt.condition)) return false;
-            return true;
-        });
-
-        if (availableOptions.length === 0 && node.options.length > 0) { html += \`<div class="adv-msg">No hi ha més opcions.</div>\`; }
-        else if (node.options.length === 0) { html += \`<div class="adv-msg">Fi del diàleg.</div>\`; }
-        else { availableOptions.forEach((opt) => { const idx = node.options.indexOf(opt); html += \`<button onclick="AdventureEngine.selectOption('\${node.id}', \${idx})">\${opt.text}</button>\`; }); }
+        const availableOptions = node.options.filter((opt, idx) => { const visitedKey = node.id + '_' + idx; if (opt.once && state.visited.has(visitedKey)) return false; if (opt.condition && !evaluate(opt.condition)) return false; return true; });
+        if (availableOptions.length === 0 && node.options.length > 0) { html += \`<div class="adv-msg">No hi ha més opcions.</div>\`; } else if (node.options.length === 0) { html += \`<div class="adv-msg">Fi del diàleg.</div>\`; } else { availableOptions.forEach((opt) => { const idx = node.options.indexOf(opt); html += \`<button onclick="AdventureEngine.selectOption('\${node.id}', \${idx})">\${opt.text}</button>\`; }); }
         html += \`</div></div></div>\`; container.innerHTML = html;
     }
-
-    function toggleActive(isActive) {
-        // Usem documentElement (html) directament per assegurar compatibilitat sense jQuery
-        if(isActive) document.documentElement.classList.add('adv-dialogue-active');
-        else document.documentElement.classList.remove('adv-dialogue-active');
-    }
-
+    function toggleActive(isActive) { if(isActive) document.documentElement.classList.add('adv-dialogue-active'); else document.documentElement.classList.remove('adv-dialogue-active'); }
     return {
-        init: function(jsonData, containerId = 'dialogue-container') {
-            try {
-                const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
-                const coreData = data.appState || data; 
-                state.nodes = coreData.nodes || []; state.characters = coreData.characters || []; state.vars = coreData.globalVariables || {}; state.visited = new Set(); state.containerId = containerId;
-                if (state.nodes.length === 0) return;
-                state.currentNodeId = state.nodes[0].id;
-                toggleActive(true); // BLOQUEJA EL MAPA IMMEDIATAMENT
-                setTimeout(renderNode, 10);
-            } catch (e) { console.error("Init Error:", e); }
-        },
-        selectOption: function(nodeId, optionIndex) {
-            const node = state.nodes.find(n => n.id === nodeId); const opt = node.options[optionIndex];
-            if (opt.once) state.visited.add(nodeId + '_' + optionIndex);
-            if (opt.effect) execute(opt.effect);
-            let nextId = opt.targetNodeId;
-            if (opt.altTargetNodeId && opt.targetCondition && evaluate(opt.targetCondition)) nextId = opt.altTargetNodeId;
-            
-            if (nextId) { state.currentNodeId = nextId; renderNode(); } 
-            else { 
-                const container = document.getElementById(state.containerId); 
-                container.innerHTML = ""; 
-                if (window.jQuery) jQuery(container).hide(); else container.style.display = 'none';
-                toggleActive(false); // DESBLOQUEJA EL MAPA
-            }
-        }
+        init: function(jsonData, containerId = 'dialogue-container') { try { const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData; const coreData = data.appState || data; state.nodes = coreData.nodes || []; state.characters = coreData.characters || []; state.vars = coreData.globalVariables || {}; state.visited = new Set(); state.containerId = containerId; if (state.nodes.length === 0) return; state.currentNodeId = state.nodes[0].id; toggleActive(true); setTimeout(renderNode, 10); } catch (e) { console.error("Init Error:", e); } },
+        selectOption: function(nodeId, optionIndex) { const node = state.nodes.find(n => n.id === nodeId); const opt = node.options[optionIndex]; if (opt.once) state.visited.add(nodeId + '_' + optionIndex); if (opt.effect) execute(opt.effect); let nextId = opt.targetNodeId; if (opt.altTargetNodeId && opt.targetCondition && evaluate(opt.targetCondition)) nextId = opt.altTargetNodeId; if (nextId) { state.currentNodeId = nextId; renderNode(); } else { const container = document.getElementById(state.containerId); container.innerHTML = ""; if (window.jQuery) jQuery(container).hide(); else container.style.display = 'none'; toggleActive(false); } }
     };
 })();`;
+        const TWINE_ENGINE_CSS = `#dialogue-container { max-width: 800px; margin: 0 auto; font-family: sans-serif; color: #fff; pointer-events: auto !important; position: relative; z-index: 10000; } .adv-dialogue-box { background-color: #1e293b; border: 2px solid #475569; border-top-width: 6px; border-radius: 12px; padding: 20px; display: flex; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); } .adv-portrait { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; border: 3px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 32px; font-weight: bold; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); } .adv-portrait img { width: 100%; height: 100%; object-fit: cover; } .adv-content { flex: 1; display: flex; flex-direction: column; } .adv-name { margin: 0 0 10px 0; font-size: 1.1em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; } .adv-text { margin: 0 0 20px 0; font-size: 1.1em; line-height: 1.5; color: #e2e8f0; } .adv-options { display: flex; flex-direction: column; gap: 8px; } .adv-options button { background-color: #334155; border: 1px solid #475569; color: #f1f5f9; padding: 12px 16px; text-align: left; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 0.95em; } .adv-options button:hover { background-color: #475569; border-color: #94a3b8; transform: translateX(5px); } .adv-msg { font-style: italic; color: #94a3b8; text-align: center; margin-top: 10px; } html.adv-dialogue-active .twine-image-wrapper img, html.adv-dialogue-active map, html.adv-dialogue-active area, html.adv-dialogue-active .hotspot-item { pointer-events: none !important; cursor: default !important; }`;
 
-        // CSS Actualitzat amb Bloqueig Específic i Robust
-        const TWINE_ENGINE_CSS = `#dialogue-container { max-width: 800px; margin: 0 auto; font-family: sans-serif; color: #fff; pointer-events: auto !important; position: relative; z-index: 10000; }
-.adv-dialogue-box { background-color: #1e293b; border: 2px solid #475569; border-top-width: 6px; border-radius: 12px; padding: 20px; display: flex; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-.adv-portrait { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; border: 3px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 32px; font-weight: bold; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
-.adv-portrait img { width: 100%; height: 100%; object-fit: cover; }
-.adv-content { flex: 1; display: flex; flex-direction: column; }
-.adv-name { margin: 0 0 10px 0; font-size: 1.1em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-.adv-text { margin: 0 0 20px 0; font-size: 1.1em; line-height: 1.5; color: #e2e8f0; }
-.adv-options { display: flex; flex-direction: column; gap: 8px; }
-.adv-options button { background-color: #334155; border: 1px solid #475569; color: #f1f5f9; padding: 12px 16px; text-align: left; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 0.95em; }
-.adv-options button:hover { background-color: #475569; border-color: #94a3b8; transform: translateX(5px); }
-.adv-msg { font-style: italic; color: #94a3b8; text-align: center; margin-top: 10px; }
-
-/* BLOQUEIG MAPA QUAN HI HA DIÀLEG */
-/* Quan la classe adv-dialogue-active està al html, desactivem el punter als elements del mapa */
-html.adv-dialogue-active .twine-image-wrapper img,
-html.adv-dialogue-active map,
-html.adv-dialogue-active area,
-html.adv-dialogue-active .hotspot-item {
-    pointer-events: none !important;
-    cursor: default !important;
-}`;
-
-        // --- ESTAT DE L'APLICACIÓ ---
+        // --- ESTAT ---
         const appState = {
             characters: [{ id: 'char_1', name: 'Personatge', color: '#3b82f6', avatarUrl: '' }],
             globalVariables: {},
             nodes: [{
                 id: 'node_start', title: "Inici", characterId: 'char_1', x: 2200, y: 2200, width: 450, height: null, bgImage: '',
-                textOptions: [ { text: "", condition: "" } ],
-                options: []
+                textOptions: [ { text: "", condition: "" } ], options: []
             }],
             scale: 1, panOffset: { x: -2000, y: -2000 },
             interactionMode: 'default', draggingNodeId: null, resizingNodeId: null, dragOffset: { x: 0, y: 0 }, connectionStart: { nodeId: null, optionIndex: null, x: 0, y: 0 }
         };
 
-        // --- UNDO/REDO ---
+        // --- SISTEMES ---
         const historySystem = {
             past: [], future: [], maxDepth: 50, ignoreChange: false,
-            pushState() {
-                if (this.ignoreChange) return;
-                const snap = JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables });
-                if (this.past.length > 0 && this.past[this.past.length - 1] === snap) return;
-                this.past.push(snap); if (this.past.length > this.maxDepth) this.past.shift(); this.future = []; ioSystem.autosave();
-            },
+            pushState() { if (this.ignoreChange) return; const snap = JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables }); if (this.past.length > 0 && this.past[this.past.length - 1] === snap) return; this.past.push(snap); if (this.past.length > this.maxDepth) this.past.shift(); this.future = []; ioSystem.autosave(); },
             undo() { if (this.past.length === 0) return; this.future.push(JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables })); this.loadState(JSON.parse(this.past.pop())); },
             redo() { if (this.future.length === 0) return; this.past.push(JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables })); this.loadState(JSON.parse(this.future.pop())); },
             loadState(state) { this.ignoreChange = true; appState.characters = state.characters; appState.nodes = state.nodes; appState.globalVariables = state.globalVariables; characterManager.renderList(); variableManager.renderList(); editor.renderNodes(); this.ignoreChange = false; }
         };
 
-        // --- UI HELPERS ---
         const ui = {
             switchTab(tab) { document.getElementById('panel-chars').classList.toggle('hidden', tab !== 'chars'); document.getElementById('panel-vars').classList.toggle('hidden', tab !== 'vars'); document.getElementById('tab-chars').className = tab === 'chars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; document.getElementById('tab-vars').className = tab === 'vars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; },
-            itemToDeleteId: null, itemToDeleteType: null,
-            showDeleteModal(id, type) {
-                this.itemToDeleteId = id; this.itemToDeleteType = type;
-                const modal = document.getElementById('delete-modal');
-                document.getElementById('modal-title').innerText = type === 'node' ? "Esborrar Node?" : type === 'character' ? "Esborrar Personatge?" : "Esborrar Variable?";
-                document.getElementById('modal-desc').innerText = type === 'node' ? "Es perdran connexions." : type === 'character' ? "Reassignat al per defecte." : "Es perdrà valor i lògica.";
-                modal.classList.remove('hidden');
-                document.getElementById('confirm-delete-btn').onclick = () => { historySystem.pushState(); if(type==='node') editor.deleteNodeConfirmed(this.itemToDeleteId); else if(type==='character') characterManager.deleteCharacterConfirmed(this.itemToDeleteId); else variableManager.deleteVariableConfirmed(this.itemToDeleteId); this.closeDeleteModal(); };
-            },
+            showDeleteModal(id, type) { this.itemToDeleteId = id; this.itemToDeleteType = type; document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('modal-title').innerText = type==='node'?"Esborrar Node?":type==='character'?"Esborrar Personatge?":"Esborrar Variable?"; document.getElementById('modal-desc').innerText = type==='node'?"Es perdran connexions.":type==='character'?"Reassignat al defecte.":"Es pot trencar la lògica."; document.getElementById('confirm-delete-btn').onclick = () => { historySystem.pushState(); if(type==='node') editor.deleteNodeConfirmed(this.itemToDeleteId); else if(type==='character') characterManager.deleteCharacterConfirmed(this.itemToDeleteId); else variableManager.deleteVariableConfirmed(this.itemToDeleteId); this.closeDeleteModal(); }; },
             closeDeleteModal() { document.getElementById('delete-modal').classList.add('hidden'); },
             toggleLogic(btn) { btn.closest('.option-row').querySelector('.logic-row').classList.toggle('open'); btn.classList.toggle('text-blue-600'); },
-            toggleConfigMenu() {
-                document.getElementById('config-menu').classList.toggle('show');
-            }
+            toggleConfigMenu() { document.getElementById('config-menu').classList.toggle('show'); }
         };
+        window.onclick = function(e) { if (!e.target.matches('.fa-gear') && !e.target.closest('button[onclick*="toggleConfigMenu"]')) document.querySelectorAll('.dropdown-menu.show').forEach(d => d.classList.remove('show')); }
 
-        // Click outside closes menu
-        window.onclick = function(event) {
-            if (!event.target.matches('.fa-gear') && !event.target.closest('button[onclick*="toggleConfigMenu"]')) {
-                var dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-
-        // --- MANAGERS ---
         const variableManager = {
             init() { this.renderList(); },
-            addVariable() {
-                const name = document.getElementById('new-var-name').value.trim().replace(/[^a-zA-Z0-9_$]/g, '_').replace(/^\d/, '_$&');
-                if (!name || appState.globalVariables.hasOwnProperty(name)) return alert("Nom invàlid/existent");
-                let val = document.getElementById('new-var-val').value, type = document.getElementById('new-var-type').value;
-                if (type === 'number') val = Number(val) || 0; if (type === 'boolean') val = (val === 'true');
-                historySystem.pushState(); appState.globalVariables[name] = val; this.renderList();
-                document.getElementById('new-var-name').value = ''; document.getElementById('new-var-val').value = '';
-            },
-            updateVariable(key, val) { historySystem.pushState(); const cur = appState.globalVariables[key]; appState.globalVariables[key] = typeof cur === 'number' ? Number(val) : typeof cur === 'boolean' ? (val === 'true') : val; },
-            deleteVariable(key) { ui.showDeleteModal(key, 'variable'); },
-            deleteVariableConfirmed(key) { delete appState.globalVariables[key]; this.renderList(); },
-            renderList() {
-                const c = document.getElementById('variable-list'); c.innerHTML = '';
-                for (const [k, v] of Object.entries(appState.globalVariables)) {
-                    const type = typeof v, input = type === 'boolean' ? `<select onchange="variableManager.updateVariable('${k}', this.value)" class="text-xs border rounded p-1 bg-white"><option value="true" ${v?'selected':''}>true</option><option value="false" ${!v?'selected':''}>false</option></select>` : `<input type="${type==='number'?'number':'text'}" value="${v}" onchange="variableManager.updateVariable('${k}', this.value)" class="w-16 text-xs border rounded p-1 text-right code-input text-blue-600">`;
-                    const div = document.createElement('div'); div.className = "flex items-center justify-between bg-white p-2 rounded border border-gray-200 shadow-sm";
-                    div.innerHTML = `<div class="flex items-center gap-2 overflow-hidden"><span class="text-xs font-mono font-bold text-slate-700 truncate" title="${k}">${k}</span><span class="text-[10px] text-gray-400 bg-gray-100 px-1 rounded">${type.substr(0,3)}</span></div><div class="flex items-center gap-2">${input}<button onclick="variableManager.deleteVariable('${k}')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button></div>`;
-                    c.appendChild(div);
-                }
-            }
+            addVariable() { const n=document.getElementById('new-var-name').value.trim().replace(/[^a-zA-Z0-9_$]/g,'_'); if(!n||appState.globalVariables.hasOwnProperty(n))return alert("Error"); let v=document.getElementById('new-var-val').value, t=document.getElementById('new-var-type').value; if(t==='number')v=Number(v)||0;if(t==='boolean')v=(v==='true'); historySystem.pushState(); appState.globalVariables[n]=v; this.renderList(); document.getElementById('new-var-name').value=''; },
+            updateVariable(k, v) { historySystem.pushState(); const c=appState.globalVariables[k]; appState.globalVariables[k]=typeof c==='number'?Number(v):typeof c==='boolean'?(v==='true'):v; },
+            deleteVariable(k) { ui.showDeleteModal(k, 'variable'); }, deleteVariableConfirmed(k) { delete appState.globalVariables[k]; this.renderList(); },
+            renderList() { const c=document.getElementById('variable-list'); c.innerHTML=''; for(const [k,v] of Object.entries(appState.globalVariables)){ const t=typeof v; const inp=t==='boolean'?`<select onchange="variableManager.updateVariable('${k}',this.value)" class="text-xs border rounded p-1 bg-white"><option value="true" ${v?'selected':''}>true</option><option value="false" ${!v?'selected':''}>false</option></select>`:`<input type="${t==='number'?'number':'text'}" value="${v}" onchange="variableManager.updateVariable('${k}',this.value)" class="w-16 text-xs border rounded p-1 text-right code-input text-blue-600">`; const d=document.createElement('div'); d.className="flex items-center justify-between bg-white p-2 rounded border border-gray-200 shadow-sm"; d.innerHTML=`<div class="flex items-center gap-2 overflow-hidden"><span class="text-xs font-mono font-bold text-slate-700 truncate" title="${k}">${k}</span><span class="text-[10px] text-gray-400 bg-gray-100 px-1 rounded">${t.substr(0,3)}</span></div><div class="flex items-center gap-2">${inp}<button onclick="variableManager.deleteVariable('${k}')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button></div>`; c.appendChild(d); } }
         };
 
         const characterManager = {
             init() { this.renderList(); },
-            addCharacter() { historySystem.pushState(); appState.characters.push({ id: 'char_' + Date.now(), name: 'Nou', color: '#8b5cf6', avatarUrl: '' }); this.renderList(); },
-            updateCharacter(id, f, v) { const c = appState.characters.find(x => x.id === id); if(c && c[f] !== v) { c[f] = v; if(f === 'color' || f === 'name') editor.renderNodes(); } },
+            addCharacter() { historySystem.pushState(); appState.characters.push({id:'char_'+Date.now(),name:'Nou',color:'#8b5cf6',avatarUrl:''}); this.renderList(); },
+            updateCharacter(id,f,v) { const c=appState.characters.find(x=>x.id===id); if(c&&c[f]!==v){ c[f]=v; if(f==='color'||f==='name') editor.renderNodes(); } },
             saveState() { historySystem.pushState(); },
-            deleteCharacter(id) { if (appState.characters.length <= 1) return alert("Mínim 1."); ui.showDeleteModal(id, 'character'); },
-            deleteCharacterConfirmed(id) { appState.characters = appState.characters.filter(c => c.id !== id); const fallback = appState.characters[0].id; appState.nodes.forEach(n => { if (n.characterId === id) n.characterId = fallback; }); this.renderList(); editor.renderNodes(); },
-            getCharacter(id) { return appState.characters.find(c => c.id === id) || appState.characters[0]; },
+            deleteCharacter(id) { if(appState.characters.length<=1)return alert("Mínim 1."); ui.showDeleteModal(id,'character'); },
+            deleteCharacterConfirmed(id) { appState.characters=appState.characters.filter(c=>c.id!==id); const f=appState.characters[0].id; appState.nodes.forEach(n=>{if(n.characterId===id)n.characterId=f;}); this.renderList(); editor.renderNodes(); },
+            getCharacter(id) { return appState.characters.find(c=>c.id===id)||appState.characters[0]; },
             draggedIndex: null,
-            handleDragStart(e, i) { this.draggedIndex = i; e.dataTransfer.effectAllowed = "move"; },
+            handleDragStart(e,i) { this.draggedIndex=i; e.dataTransfer.effectAllowed="move"; },
             handleDragOver(e) { e.preventDefault(); },
-            handleDrop(e, t) { e.stopPropagation(); if (this.draggedIndex !== null && this.draggedIndex !== t) { historySystem.pushState(); const it = appState.characters.splice(this.draggedIndex, 1)[0]; appState.characters.splice(t, 0, it); this.renderList(); } },
-            renderList() {
-                const c = document.getElementById('character-list'); c.innerHTML = '';
-                appState.characters.forEach((char, i) => {
-                    const d = document.createElement('div'); d.className = "draggable-item bg-white p-2 rounded border border-gray-200 shadow-sm group"; d.draggable = true;
-                    d.ondragstart = (e) => this.handleDragStart(e, i); d.ondragover = this.handleDragOver; d.ondrop = (e) => this.handleDrop(e, i);
-                    d.innerHTML = `<div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-grip-vertical text-gray-300 cursor-move hover:text-gray-500"></i><input type="color" value="${char.color}" onchange="characterManager.updateCharacter('${char.id}', 'color', this.value); characterManager.saveState()" class="w-6 h-6 rounded cursor-pointer border-none p-0"><input type="text" value="${char.name}" onchange="characterManager.updateCharacter('${char.id}', 'name', this.value); characterManager.saveState()" class="flex-1 text-sm font-bold border-none focus:ring-0 p-0" placeholder="Nom"><button onclick="characterManager.deleteCharacter('${char.id}')" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div><div class="flex items-center gap-2 bg-gray-50 p-1 rounded"><i class="fa-regular fa-image text-gray-400 text-xs"></i><input type="text" value="${char.avatarUrl || ''}" onchange="characterManager.updateCharacter('${char.id}', 'avatarUrl', this.value); characterManager.saveState()" class="flex-1 bg-transparent text-[10px] border-none focus:ring-0 p-0 text-gray-500" placeholder="URL Imatge"></div>`;
-                    c.appendChild(d);
-                });
-            }
+            handleDrop(e,t) { e.stopPropagation(); if(this.draggedIndex!==null&&this.draggedIndex!==t){ historySystem.pushState(); const it=appState.characters.splice(this.draggedIndex,1)[0]; appState.characters.splice(t,0,it); this.renderList(); } },
+            renderList() { const c=document.getElementById('character-list'); c.innerHTML=''; appState.characters.forEach((char,i)=>{ const d=document.createElement('div'); d.className="draggable-item bg-white p-2 rounded border border-gray-200 shadow-sm group"; d.draggable=true; d.ondragstart=(e)=>this.handleDragStart(e,i); d.ondragover=this.handleDragOver; d.ondrop=(e)=>this.handleDrop(e,i); d.innerHTML=`<div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-grip-vertical text-gray-300 cursor-move hover:text-gray-500"></i><input type="color" value="${char.color}" onchange="characterManager.updateCharacter('${char.id}','color',this.value);characterManager.saveState()" class="w-6 h-6 rounded cursor-pointer border-none p-0"><input type="text" value="${char.name}" onchange="characterManager.updateCharacter('${char.id}','name',this.value);characterManager.saveState()" class="flex-1 text-sm font-bold border-none focus:ring-0 p-0" placeholder="Nom"><button onclick="characterManager.deleteCharacter('${char.id}')" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div><div class="flex items-center gap-2 bg-gray-50 p-1 rounded"><i class="fa-regular fa-image text-gray-400 text-xs"></i><input type="text" value="${char.avatarUrl||''}" onchange="characterManager.updateCharacter('${char.id}','avatarUrl',this.value);characterManager.saveState()" class="flex-1 bg-transparent text-[10px] border-none focus:ring-0 p-0 text-gray-500" placeholder="URL Imatge"></div>`; c.appendChild(d); }); }
         };
 
-        // --- EDITOR VISUAL ---
         const editor = {
-            init() { this.renderNodes(); this.setupCanvasEvents(); this.applyTransform(); this.renderMinimap(); document.addEventListener('keydown', (e) => { if((e.ctrlKey||e.metaKey) && e.key==='z') {e.preventDefault(); historySystem.undo();} if((e.ctrlKey||e.metaKey) && e.key==='y') {e.preventDefault(); historySystem.redo();} }); },
-            addNode(x, y) {
-                if (x === undefined) { const c = document.getElementById('workspace-container'); x = (c.clientWidth/2 - appState.panOffset.x)/appState.scale; y = (c.clientHeight/2 - appState.panOffset.y)/appState.scale; }
-                historySystem.pushState();
-                const id = 'node_' + Date.now();
-                appState.nodes.push({ id, title: "Nou Node", characterId: appState.characters[0].id, textOptions: [{text:"", condition:""}], x, y, width: 450, height: null, bgImage: '', options: [] });
-                this.renderNodes(); return id;
-            },
-            deleteNodeConfirmed(id) {
-                appState.nodes = appState.nodes.filter(n => n.id !== id);
-                appState.nodes.forEach(n => { n.options.forEach(opt => { if (opt.targetNodeId === id) opt.targetNodeId = null; if (opt.altTargetNodeId === id) opt.altTargetNodeId = null; }); });
-                this.renderNodes();
-            },
-            updateNode(id, f, v) { const n = appState.nodes.find(x => x.id === id); if (n) { n[f] = v; if (f === 'title') this.updateTitleRefs(id, v); if (f === 'characterId') this.renderNodes(); } },
+            init() { this.renderNodes(); this.setupCanvasEvents(); this.applyTransform(); this.renderMinimap(); document.addEventListener('keydown',(e)=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();historySystem.undo();}if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();historySystem.redo();}}); },
+            addNode(x,y) { if(x===undefined){const c=document.getElementById('workspace-container');x=(c.clientWidth/2-appState.panOffset.x)/appState.scale;y=(c.clientHeight/2-appState.panOffset.y)/appState.scale;} historySystem.pushState(); const id='node_'+Date.now(); appState.nodes.push({id,title:"Nou Node",characterId:appState.characters[0].id,textOptions:[{text:"",condition:""}],x,y,width:450,height:null,bgImage:'',options:[]}); this.renderNodes(); return id; },
+            deleteNodeConfirmed(id) { appState.nodes=appState.nodes.filter(n=>n.id!==id); appState.nodes.forEach(n=>{n.options.forEach(opt=>{if(opt.targetNodeId===id)opt.targetNodeId=null;if(opt.altTargetNodeId===id)opt.altTargetNodeId=null;});}); this.renderNodes(); },
+            updateNode(id,f,v) { const n=appState.nodes.find(x=>x.id===id); if(n){ n[f]=v; if(f==='title')this.updateTitleRefs(id,v); if(f==='characterId')this.renderNodes(); } },
             saveState() { historySystem.pushState(); },
-            updateTitleRefs(id, t) { document.querySelectorAll(`.target-opt-${id}`).forEach(e => e.innerText = t || 'Sense Títol'); },
-            
-            // Text Variations
-            addTextVar(nid) { const n = appState.nodes.find(x => x.id === nid); historySystem.pushState(); n.textOptions.push({text:"", condition:""}); this.renderNodes(); },
-            deleteTextVar(nid, idx) { const n = appState.nodes.find(x => x.id === nid); if(n.textOptions.length <= 1) return; historySystem.pushState(); n.textOptions.splice(idx, 1); this.renderNodes(); },
-            updateTextVar(nid, idx, f, v) { const n = appState.nodes.find(x => x.id === nid); n.textOptions[idx][f] = v; },
-
-            // Options
-            addOption(id) { const n = appState.nodes.find(x => x.id === id); historySystem.pushState(); n.options.push({ text: "Opció...", targetNodeId: null, altTargetNodeId: null, targetCondition: "", once: false, condition: "", effect: "" }); this.renderNodes(); },
-            deleteOption(id, idx) { const n = appState.nodes.find(x => x.id === id); historySystem.pushState(); n.options.splice(idx, 1); this.renderNodes(); },
-            updateOption(id, idx, f, v) { const n = appState.nodes.find(x => x.id === id); n.options[idx][f] = v; if (['targetNodeId','altTargetNodeId','once'].includes(f)) this.drawConnections(); },
-            handleTargetSelect(nid, idx, val, alt=false) { historySystem.pushState(); const f = alt ? 'altTargetNodeId' : 'targetNodeId'; if (val === 'NEW') { const p = appState.nodes.find(x => x.id === nid); const nid2 = this.addNode(p.x + 450, p.y + (idx * 100)); this.updateOption(nid, idx, f, nid2); } else this.updateOption(nid, idx, f, val || null); },
-            handleSearch(q) { q = q.toLowerCase(); document.querySelectorAll('.node-card').forEach(el => { if(!q){el.classList.remove('node-search-highlight','opacity-25');return;} const n = appState.nodes.find(x=>x.id===el.id); const match = n.title.toLowerCase().includes(q) || n.textOptions.some(t=>t.text.toLowerCase().includes(q)); if(match){el.classList.add('node-search-highlight');el.classList.remove('opacity-25');}else{el.classList.remove('node-search-highlight');el.classList.add('opacity-25');} }); },
-            
+            updateTitleRefs(id,t) { document.querySelectorAll(`.target-opt-${id}`).forEach(e=>e.innerText=t||'Sense Títol'); },
+            addTextVar(nid) { const n=appState.nodes.find(x=>x.id===nid); historySystem.pushState(); n.textOptions.push({text:"",condition:""}); this.renderNodes(); },
+            deleteTextVar(nid,idx) { const n=appState.nodes.find(x=>x.id===nid); if(n.textOptions.length<=1)return; historySystem.pushState(); n.textOptions.splice(idx,1); this.renderNodes(); },
+            updateTextVar(nid,idx,f,v) { const n=appState.nodes.find(x=>x.id===nid); n.textOptions[idx][f]=v; },
+            addOption(id) { const n=appState.nodes.find(x=>x.id===id); historySystem.pushState(); n.options.push({text:"Opció...",targetNodeId:null,altTargetNodeId:null,targetCondition:"",once:false,condition:"",effect:""}); this.renderNodes(); },
+            deleteOption(id,idx) { const n=appState.nodes.find(x=>x.id===id); historySystem.pushState(); n.options.splice(idx,1); this.renderNodes(); },
+            updateOption(id,idx,f,v) { const n=appState.nodes.find(x=>x.id===id); n.options[idx][f]=v; if(['targetNodeId','altTargetNodeId','once'].includes(f))this.drawConnections(); },
+            handleTargetSelect(nid,idx,val,alt=false) { historySystem.pushState(); const f=alt?'altTargetNodeId':'targetNodeId'; if(val==='NEW'){ const p=appState.nodes.find(x=>x.id===nid); const nid2=this.addNode(p.x+450,p.y+(idx*100)); this.updateOption(nid,idx,f,nid2); } else this.updateOption(nid,idx,f,val||null); },
+            handleSearch(q) { q=q.toLowerCase(); document.querySelectorAll('.node-card').forEach(el=>{ if(!q){el.classList.remove('node-search-highlight','opacity-25');return;} const n=appState.nodes.find(x=>x.id===el.id); const match=n.title.toLowerCase().includes(q)||n.textOptions.some(t=>t.text.toLowerCase().includes(q)); if(match){el.classList.add('node-search-highlight');el.classList.remove('opacity-25');}else{el.classList.remove('node-search-highlight');el.classList.add('opacity-25');} }); },
             renderNodes() {
-                const canvas = document.getElementById('canvas-area'); document.querySelectorAll('.node-card').forEach(e => e.remove());
-                let optsHtml = `<option value="">(Fi / Res)</option>`; appState.nodes.forEach(n => optsHtml += `<option value="${n.id}" class="target-opt-${n.id}">${n.title || 'Sense Títol'}</option>`);
-                const newOpt = `<option value="NEW" class="text-blue-600 font-bold">[+ Nou Node]</option>`;
-
-                appState.nodes.forEach(node => {
-                    const char = characterManager.getCharacter(node.characterId);
-                    const isEnd = node.options.length === 0;
-                    const div = document.createElement('div'); div.id = node.id;
-                    div.className = `node-card bg-white rounded-lg shadow-lg flex flex-col border-2 ${isEnd ? 'border-red-400' : 'border-slate-200'}`;
-                    
-                    // APPLY CUSTOM SIZE
-                    div.style.left = node.x + 'px'; div.style.top = node.y + 'px';
-                    div.style.width = (node.width || 450) + 'px';
-                    if (node.height) div.style.height = node.height + 'px';
-
-                    // Text Variations
-                    const textVarsHtml = node.textOptions.map((t, i) => `
-                        <div class="flex flex-col gap-1 mb-2 bg-yellow-50 p-1.5 rounded border border-yellow-200">
-                            <div class="flex gap-1">
-                                <span class="text-[10px] font-bold text-yellow-600 mt-1">TXT</span>
-                                <textarea onchange="editor.updateTextVar('${node.id}', ${i}, 'text', this.value); editor.saveState()" class="w-full p-1 text-xs border rounded resize-y h-12 focus:outline-none focus:border-yellow-400" placeholder="Text...">${t.text}</textarea>
-                                <button onclick="editor.deleteTextVar('${node.id}', ${i})" class="text-gray-300 hover:text-red-500 self-start ${node.textOptions.length===1?'hidden':''}"><i class="fa-solid fa-times"></i></button>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-gray-400">IF</span>
-                                <input type="text" value="${t.condition || ''}" onchange="editor.updateTextVar('${node.id}', ${i}, 'condition', this.value); editor.saveState()" class="flex-1 bg-white border rounded px-1 py-0.5 text-[10px] code-input" placeholder="Condició (opcional)">
-                            </div>
-                        </div>
-                    `).join('');
-
-                    // Options
-                    const optionsContent = node.options.map((opt, i) => `
-                        <div class="relative group option-row mb-2 p-2 bg-slate-50 rounded border border-slate-200 transition hover:border-blue-300" data-idx="${i}">
-                            <div class="flex items-center gap-2 mb-1">
-                                <input type="checkbox" ${opt.once ? 'checked' : ''} onchange="editor.updateOption('${node.id}', ${i}, 'once', this.checked); editor.saveState()" class="accent-blue-600" title="Només un cop">
-                                <input type="text" value="${opt.text}" onchange="editor.updateOption('${node.id}', ${i}, 'text', this.value); editor.saveState()" class="flex-1 text-sm bg-transparent border-b border-transparent focus:border-blue-400 outline-none" placeholder="Text opció...">
-                                <button onclick="ui.toggleLogic(this)" class="text-gray-400 hover:text-blue-600 transition" title="Lògica"><i class="fa-solid fa-code"></i></button>
-                                <button onclick="editor.deleteOption('${node.id}', ${i})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                            <div class="logic-row bg-slate-100 rounded px-2 text-xs space-y-2 border-l-2 border-orange-400">
-                                <div class="pt-2 font-bold text-gray-400 border-b pb-1">VISIBILITAT & EFECTES</div>
-                                <div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">IF</span><input type="text" value="${opt.condition || ''}" onchange="editor.updateOption('${node.id}', ${i}, 'condition', this.value); editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or >= 10"></div>
-                                <div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">DO</span><input type="text" value="${opt.effect || ''}" onchange="editor.updateOption('${node.id}', ${i}, 'effect', this.value); editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or -= 10"></div>
-                                <div class="pt-2 font-bold text-purple-400 border-b pb-1">DESVIACIÓ CONDICIONAL</div>
-                                <div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">ELSE IF</span><input type="text" value="${opt.targetCondition || ''}" onchange="editor.updateOption('${node.id}', ${i}, 'targetCondition', this.value); editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or < 5"></div>
-                                <div class="flex items-center gap-2 pb-2"><span class="font-bold text-gray-500 w-8">GOTO</span><select onchange="editor.handleTargetSelect('${node.id}', ${i}, this.value, true)" class="flex-1 bg-white border rounded px-1 text-[10px]">${optsHtml.replace(`value="${opt.altTargetNodeId}"`, `value="${opt.altTargetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div>
-                            </div>
-                            <div class="mt-1 flex items-center gap-1"><i class="fa-solid fa-share-nodes text-gray-300 text-xs"></i><select onchange="editor.handleTargetSelect('${node.id}', ${i}, this.value)" class="w-full text-xs bg-transparent outline-none text-slate-600 cursor-pointer hover:text-blue-600">${optsHtml.replace(`value="${opt.targetNodeId}"`, `value="${opt.targetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div>
-                            <div class="port-out" onmousedown="editor.startConnection(event, '${node.id}', ${i})"></div>
-                        </div>
-                    `).join('');
-
-                    let charOpts = ''; appState.characters.forEach(c => charOpts += `<option value="${c.id}" ${c.id === node.characterId ? 'selected' : ''}>${c.name}</option>`);
-                    div.innerHTML = `
-                        <div class="drag-handle p-2 border-b flex items-center gap-2 rounded-t-md cursor-grab active:cursor-grabbing text-white" style="background-color: ${char.color}">
-                            <i class="fa-solid ${isEnd ? 'fa-flag-checkered' : 'fa-comment-dots'} opacity-75"></i>
-                            <input type="text" value="${node.title}" onchange="editor.updateNode('${node.id}', 'title', this.value); editor.saveState()" class="flex-1 bg-transparent font-bold text-sm focus:bg-black/20 rounded px-1 outline-none placeholder-white/50" placeholder="Títol">
-                            <button onclick="ui.showDeleteModal('${node.id}', 'node')" class="opacity-50 hover:opacity-100"><i class="fa-solid fa-times"></i></button>
-                        </div>
-                        
-                        <!-- NEW BODY STRUCTURE -->
-                        <div class="p-3 flex flex-col flex-1 min-h-0 gap-3">
-                            <div class="flex gap-2 shrink-0"><div class="w-8 h-8 rounded shadow flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden" style="background-color: ${char.color}">${char.avatarUrl ? `<img src="${char.avatarUrl}" class="w-full h-full object-cover">` : char.name[0]}</div><div class="flex-1 space-y-1"><select onchange="editor.updateNode('${node.id}', 'characterId', this.value)" class="w-full text-xs border rounded p-1 bg-gray-50">${charOpts}</select><input type="text" value="${node.bgImage || ''}" onchange="editor.updateNode('${node.id}', 'bgImage', this.value); editor.saveState()" class="w-full text-[10px] border rounded p-1 text-gray-500" placeholder="URL Fons (Opcional)"></div></div>
-                            
-                            <!-- Text Section (Adaptable) -->
-                            <!-- Canviat: shrink-0 i max-h-[50%] en lloc de flex-[1.5]. Així no creix buit, però fa scroll si n'hi ha massa. -->
-                            <div class="flex flex-col min-h-[80px] shrink-0 max-h-[50%]"> 
-                                <div class="flex justify-between items-center mb-1 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Variacions de Text</span><button onclick="editor.addTextVar('${node.id}')" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 rounded hover:bg-yellow-200"><i class="fa-solid fa-plus"></i></button></div>
-                                <div class="overflow-y-auto thin-scrollbar pr-1 h-full">${textVarsHtml}</div>
-                            </div>
-
-                            <!-- Answers Section (Fills remaining space) -->
-                            <!-- Canviat: flex-1 perquè ocupi tot l'espai restant -->
-                            <div class="flex flex-col min-h-[80px] border-t pt-2 flex-1"> 
-                                <div class="flex justify-between items-center mb-2 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Respostes</span><button onclick="editor.addOption('${node.id}')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded font-medium"><i class="fa-solid fa-plus"></i></button></div>
-                                <div class="overflow-y-auto thin-scrollbar h-full -mr-1 pr-1">${optionsContent}</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Resize Handle -->
-                        <div class="resize-handle" onmousedown="editor.startResize(event, '${node.id}')"></div>
-                    `;
-                    div.querySelector('.drag-handle').onmousedown = (e) => { if(e.target.tagName === 'INPUT') return; e.stopPropagation(); appState.interactionMode = 'dragging_node'; appState.draggingNodeId = node.id; const rect = document.getElementById('workspace-container').getBoundingClientRect(); const screenX = (node.x * appState.scale) + appState.panOffset.x; const screenY = (node.y * appState.scale) + appState.panOffset.y; appState.dragOffset = { x: (e.clientX - rect.left) - screenX, y: (e.clientY - rect.top) - screenY }; div.style.zIndex = 50; };
-                    canvas.appendChild(div);
+                const cv=document.getElementById('canvas-area'); document.querySelectorAll('.node-card').forEach(e=>e.remove());
+                let optsHtml='<option value="">(Fi / Res)</option>'; appState.nodes.forEach(n=>optsHtml+=`<option value="${n.id}" class="target-opt-${n.id}">${n.title||'Sense Títol'}</option>`); const newOpt=`<option value="NEW" class="text-blue-600 font-bold">[+ Nou Node]</option>`;
+                appState.nodes.forEach(node=>{
+                    const char=characterManager.getCharacter(node.characterId); const isEnd=node.options.length===0;
+                    const div=document.createElement('div'); div.id=node.id; div.className=`node-card bg-white rounded-lg shadow-lg flex flex-col border-2 ${isEnd?'border-red-400':'border-slate-200'}`;
+                    div.style.left=node.x+'px'; div.style.top=node.y+'px'; div.style.width=(node.width||450)+'px'; if(node.height)div.style.height=node.height+'px';
+                    const textVarsHtml=node.textOptions.map((t,i)=>`<div class="flex flex-col gap-1 mb-2 bg-yellow-50 p-1.5 rounded border border-yellow-200"><div class="flex gap-1"><span class="text-[10px] font-bold text-yellow-600 mt-1">TXT</span><textarea onchange="editor.updateTextVar('${node.id}',${i},'text',this.value);editor.saveState()" class="w-full p-1 text-xs border rounded resize-y h-12 focus:outline-none focus:border-yellow-400" placeholder="Text...">${t.text}</textarea><button onclick="editor.deleteTextVar('${node.id}',${i})" class="text-gray-300 hover:text-red-500 self-start ${node.textOptions.length===1?'hidden':''}"><i class="fa-solid fa-times"></i></button></div><div class="flex items-center gap-2"><span class="text-[10px] font-bold text-gray-400">IF</span><input type="text" value="${t.condition||''}" onchange="editor.updateTextVar('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 py-0.5 text-[10px] code-input" placeholder="Condició (opcional)"></div></div>`).join('');
+                    const optionsContent=node.options.map((opt,i)=>`<div class="relative group option-row mb-2 p-2 bg-slate-50 rounded border border-slate-200 transition hover:border-blue-300" data-idx="${i}"><div class="flex items-center gap-2 mb-1"><input type="checkbox" ${opt.once?'checked':''} onchange="editor.updateOption('${node.id}',${i},'once',this.checked);editor.saveState()" class="accent-blue-600" title="Només un cop"><input type="text" value="${opt.text}" onchange="editor.updateOption('${node.id}',${i},'text',this.value);editor.saveState()" class="flex-1 text-sm bg-transparent border-b border-transparent focus:border-blue-400 outline-none" placeholder="Text opció..."><button onclick="ui.toggleLogic(this)" class="text-gray-400 hover:text-blue-600 transition" title="Lògica"><i class="fa-solid fa-code"></i></button><button onclick="editor.deleteOption('${node.id}',${i})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button></div><div class="logic-row bg-slate-100 rounded px-2 text-xs space-y-2 border-l-2 border-orange-400"><div class="pt-2 font-bold text-gray-400 border-b pb-1">VISIBILITAT & EFECTES</div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">IF</span><input type="text" value="${opt.condition||''}" onchange="editor.updateOption('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or >= 10"></div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">DO</span><input type="text" value="${opt.effect||''}" onchange="editor.updateOption('${node.id}',${i},'effect',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or -= 10"></div><div class="pt-2 font-bold text-purple-400 border-b pb-1">DESVIACIÓ CONDICIONAL</div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">ELSE IF</span><input type="text" value="${opt.targetCondition||''}" onchange="editor.updateOption('${node.id}',${i},'targetCondition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or < 5"></div><div class="flex items-center gap-2 pb-2"><span class="font-bold text-gray-500 w-8">GOTO</span><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value,true)" class="flex-1 bg-white border rounded px-1 text-[10px]">${optsHtml.replace(`value="${opt.altTargetNodeId}"`,`value="${opt.altTargetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div></div><div class="mt-1 flex items-center gap-1"><i class="fa-solid fa-share-nodes text-gray-300 text-xs"></i><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value)" class="w-full text-xs bg-transparent outline-none text-slate-600 cursor-pointer hover:text-blue-600">${optsHtml.replace(`value="${opt.targetNodeId}"`,`value="${opt.targetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div><div class="port-out" onmousedown="editor.startConnection(event,'${node.id}',${i})"></div></div>`).join('');
+                    let charOpts=''; appState.characters.forEach(c=>charOpts+=`<option value="${c.id}" ${c.id===node.characterId?'selected':''}>${c.name}</option>`);
+                    div.innerHTML=`<div class="drag-handle p-2 border-b flex items-center gap-2 rounded-t-md cursor-grab active:cursor-grabbing text-white" style="background-color:${char.color}"><i class="fa-solid ${isEnd?'fa-flag-checkered':'fa-comment-dots'} opacity-75"></i><input type="text" value="${node.title}" onchange="editor.updateNode('${node.id}','title',this.value);editor.saveState()" class="flex-1 bg-transparent font-bold text-sm focus:bg-black/20 rounded px-1 outline-none placeholder-white/50" placeholder="Títol"><button onclick="ui.showDeleteModal('${node.id}','node')" class="opacity-50 hover:opacity-100"><i class="fa-solid fa-times"></i></button></div><div class="p-3 flex flex-col flex-1 min-h-0 gap-3"><div class="flex gap-2 shrink-0"><div class="w-8 h-8 rounded shadow flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden" style="background-color:${char.color}">${char.avatarUrl?`<img src="${char.avatarUrl}" class="w-full h-full object-cover">`:char.name[0]}</div><div class="flex-1 space-y-1"><select onchange="editor.updateNode('${node.id}','characterId',this.value)" class="w-full text-xs border rounded p-1 bg-gray-50">${charOpts}</select><input type="text" value="${node.bgImage||''}" onchange="editor.updateNode('${node.id}','bgImage',this.value);editor.saveState()" class="w-full text-[10px] border rounded p-1 text-gray-500" placeholder="URL Fons (Opcional)"></div></div><div class="flex flex-col min-h-[80px] shrink-0 max-h-[50%]"><div class="flex justify-between items-center mb-1 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Variacions de Text</span><button onclick="editor.addTextVar('${node.id}')" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 rounded hover:bg-yellow-200"><i class="fa-solid fa-plus"></i></button></div><div class="overflow-y-auto thin-scrollbar pr-1 h-full">${textVarsHtml}</div></div><div class="flex flex-col min-h-[80px] border-t pt-2 flex-1"><div class="flex justify-between items-center mb-2 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Respostes</span><button onclick="editor.addOption('${node.id}')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded font-medium"><i class="fa-solid fa-plus"></i></button></div><div class="overflow-y-auto thin-scrollbar h-full -mr-1 pr-1">${optionsContent}</div></div></div><div class="resize-handle" onmousedown="editor.startResize(event,'${node.id}')"></div>`;
+                    div.querySelector('.drag-handle').onmousedown=(e)=>{if(e.target.tagName==='INPUT')return;e.stopPropagation();appState.interactionMode='dragging_node';appState.draggingNodeId=node.id;const r=cv.getBoundingClientRect();const sx=(node.x*appState.scale)+appState.panOffset.x;const sy=(node.y*appState.scale)+appState.panOffset.y;appState.dragOffset={x:(e.clientX-r.left)-sx,y:(e.clientY-r.top)-sy};div.style.zIndex=50;};
+                    cv.appendChild(div);
                 });
                 this.drawConnections(); this.renderMinimap();
             },
-            startResize(e, nodeId) {
-                e.stopPropagation();
-                appState.interactionMode = 'resizing_node';
-                appState.resizingNodeId = nodeId;
-                const node = appState.nodes.find(n => n.id === nodeId);
-                appState.resizeStart = { x: e.clientX, y: e.clientY };
-                appState.resizeInitialDim = { w: node.width || 450, h: node.height || 0 }; 
-                if (!node.height) {
-                    const el = document.getElementById(nodeId);
-                    appState.resizeInitialDim.h = el.clientHeight;
-                } else {
-                    appState.resizeInitialDim.h = node.height;
-                }
+            startResize(e,nid){e.stopPropagation();appState.interactionMode='resizing_node';appState.resizingNodeId=nid;const n=appState.nodes.find(x=>x.id===nid);appState.resizeStart={x:e.clientX,y:e.clientY};appState.resizeInitialDim={w:n.width||450,h:n.height||(document.getElementById(nid).clientHeight)};},
+            drawConnections(){const svg=document.getElementById('connections-layer');Array.from(svg.children).forEach(c=>{if(c.id!=='temp-connection')c.remove()});appState.nodes.forEach(n=>{const el=document.getElementById(n.id);if(!el)return;n.options.forEach((o,i)=>{const r=el.querySelectorAll('.option-row');if(!r[i])return;const p=r[i].querySelector('.port-out');const pr=p.getBoundingClientRect();const nr=el.getBoundingClientRect();const rx=(pr.left-nr.left)/appState.scale;const ry=(pr.top-nr.top)/appState.scale;const x1=n.x+rx+8;const y1=n.y+ry+8;const dl=(tid,alt)=>{const t=appState.nodes.find(x=>x.id===tid);if(!t)return;const x2=t.x;const y2=t.y+20;const pt=document.createElementNS("http://www.w3.org/2000/svg","path");const d=Math.abs(x2-x1)*0.5;pt.setAttribute("d",`M ${x1} ${y1} C ${x1+d} ${y1}, ${x2-d} ${y2}, ${x2} ${y2}`);let c="connection-line";if(o.once)c+=" dashed";if(alt)c+=" alt";pt.setAttribute("class",c);svg.appendChild(pt);};if(o.targetNodeId)dl(o.targetNodeId,false);if(o.altTargetNodeId)dl(o.altTargetNodeId,true);});});},
+            renderMinimap(){const cv=document.getElementById('minimap-canvas');const ctx=cv.getContext('2d');const w=cv.width=cv.clientWidth;const h=cv.height=cv.clientHeight;ctx.clearRect(0,0,w,h);let mx=Infinity,my=Infinity,MX=-Infinity,MY=-Infinity;if(appState.nodes.length===0)return;appState.nodes.forEach(n=>{mx=Math.min(mx,n.x);my=Math.min(my,n.y);MX=Math.max(MX,n.x+(n.width||450));MY=Math.max(MY,n.y+300);});mx-=1000;my-=1000;MX+=1000;MY+=1000;const mw=MX-mx,mh=MY-my,r=Math.min(w/mw,h/mh);appState.nodes.forEach(n=>{const c=characterManager.getCharacter(n.characterId);ctx.fillStyle=c.color;ctx.fillRect((n.x-mx)*r,(n.y-my)*r,(n.width||450)*r,(n.height||200)*r);});const wc=document.getElementById('workspace-container');const vx=(-appState.panOffset.x/appState.scale),vy=(-appState.panOffset.y/appState.scale),vw=wc.clientWidth/appState.scale,vh=wc.clientHeight/appState.scale;const ve=document.getElementById('minimap-viewport');ve.style.left=((vx-mx)*r)+'px';ve.style.top=((vy-my)*r)+'px';ve.style.width=(vw*r)+'px';ve.style.height=(vh*r)+'px';},
+            setupCanvasEvents(){
+                const c=document.getElementById('workspace-container');
+                c.addEventListener('wheel',(e)=>{e.preventDefault();const i=0.1,d=-Math.sign(e.deltaY),os=appState.scale,ns=Math.min(Math.max(0.1,os+(d*i)),2);const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,lx=(mx-appState.panOffset.x)/os,ly=(my-appState.panOffset.y)/os;appState.panOffset.x=mx-(lx*ns);appState.panOffset.y=my-(ly*ns);appState.scale=ns;this.applyTransform();},{passive:false});
+                c.addEventListener('mousedown',(e)=>{if(e.target===c||e.target.id==='canvas-area'||e.target.tagName==='svg'){appState.interactionMode='panning';appState.panStart={x:e.clientX,y:e.clientY};document.body.style.cursor='grabbing';}});
+                this.startConnection=(e,nid,idx)=>{e.stopPropagation();appState.interactionMode='connecting';const r=c.getBoundingClientRect(),lx=(e.clientX-r.left-appState.panOffset.x)/appState.scale,ly=(e.clientY-r.top-appState.panOffset.y)/appState.scale;appState.connectionStart={nodeId:nid,optionIndex:idx,x:lx,y:ly};document.getElementById('temp-connection').classList.remove('hidden');};
+                window.addEventListener('mousemove',(e)=>{const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;if(appState.interactionMode==='resizing_node'&&appState.resizingNodeId){const n=appState.nodes.find(x=>x.id===appState.resizingNodeId),dx=(e.clientX-appState.resizeStart.x)/appState.scale,dy=(e.clientY-appState.resizeStart.y)/appState.scale;n.width=Math.max(300,appState.resizeInitialDim.w+dx);n.height=Math.max(200,appState.resizeInitialDim.h+dy);const el=document.getElementById(n.id);el.style.width=n.width+'px';el.style.height=n.height+'px';editor.drawConnections();}else if(appState.interactionMode==='dragging_node'&&appState.draggingNodeId){const n=appState.nodes.find(x=>x.id===appState.draggingNodeId),nx=(mx-appState.dragOffset.x-appState.panOffset.x)/appState.scale,ny=(my-appState.dragOffset.y-appState.panOffset.y)/appState.scale;n.x=Math.round(nx/20)*20;n.y=Math.round(ny/20)*20;const el=document.getElementById(n.id);el.style.left=n.x+'px';el.style.top=n.y+'px';this.drawConnections();}else if(appState.interactionMode==='panning'){const dx=e.clientX-appState.panStart.x,dy=e.clientY-appState.panStart.y;appState.panOffset.x+=dx;appState.panOffset.y+=dy;appState.panStart={x:e.clientX,y:e.clientY};this.applyTransform();}else if(appState.interactionMode==='connecting'){const lx=(mx-appState.panOffset.x)/appState.scale,ly=(my-appState.panOffset.y)/appState.scale,sx=appState.connectionStart.x,sy=appState.connectionStart.y;document.getElementById('temp-connection').setAttribute("d",`M ${sx} ${sy} C ${sx+50} ${sy}, ${lx-50} ${ly}, ${lx} ${ly}`);}});
+                window.addEventListener('mouseup',(e)=>{if(appState.interactionMode==='resizing_node'){historySystem.pushState();}else if(appState.interactionMode==='connecting'){const t=document.elementFromPoint(e.clientX,e.clientY),tn=t?t.closest('.node-card'):null,{nodeId,optionIndex}=appState.connectionStart;historySystem.pushState();if(tn&&tn.id!==nodeId){editor.updateOption(nodeId,optionIndex,'targetNodeId',tn.id);}else if(!tn){const r=c.getBoundingClientRect(),lx=(e.clientX-r.left-appState.panOffset.x)/appState.scale,ly=(e.clientY-r.top-appState.panOffset.y)/appState.scale,nid=editor.addNode(lx,ly-20);editor.updateOption(nodeId,optionIndex,'targetNodeId',nid);}document.getElementById('temp-connection').classList.add('hidden');this.renderNodes();}else if(appState.interactionMode==='dragging_node'){historySystem.pushState();editor.renderMinimap();}appState.interactionMode='default';appState.draggingNodeId=null;appState.resizingNodeId=null;document.body.style.cursor='';});
             },
-            drawConnections() {
-                const svg = document.getElementById('connections-layer'); Array.from(svg.children).forEach(c => { if (c.id !== 'temp-connection') c.remove() });
-                appState.nodes.forEach(node => {
-                    const nodeEl = document.getElementById(node.id); if (!nodeEl) return;
-                    node.options.forEach((opt, i) => {
-                        const rows = nodeEl.querySelectorAll('.option-row'); if (!rows[i]) return;
-                        const port = rows[i].querySelector('.port-out'); const portRect = port.getBoundingClientRect(); const nodeRect = nodeEl.getBoundingClientRect();
-                        const relX = (portRect.left - nodeRect.left) / appState.scale; const relY = (portRect.top - nodeRect.top) / appState.scale;
-                        const x1 = node.x + relX + 8; const y1 = node.y + relY + 8;
-                        const drawLine = (tid, alt) => {
-                            const t = appState.nodes.find(n => n.id === tid); if (!t) return;
-                            const x2 = t.x; const y2 = t.y + 20; const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                            const dist = Math.abs(x2 - x1) * 0.5; path.setAttribute("d", `M ${x1} ${y1} C ${x1 + dist} ${y1}, ${x2 - dist} ${y2}, ${x2} ${y2}`);
-                            let cls = "connection-line"; if(opt.once) cls += " dashed"; if(alt) cls += " alt"; path.setAttribute("class", cls); svg.appendChild(path);
-                        };
-                        if (opt.targetNodeId) drawLine(opt.targetNodeId, false);
-                        if (opt.altTargetNodeId) drawLine(opt.altTargetNodeId, true);
-                    });
-                });
-            },
-            renderMinimap() {
-                const canvas = document.getElementById('minimap-canvas'); const ctx = canvas.getContext('2d'); const width = canvas.width = canvas.clientWidth; const height = canvas.height = canvas.clientHeight; ctx.clearRect(0, 0, width, height);
-                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity; if (appState.nodes.length === 0) return;
-                appState.nodes.forEach(n => { minX = Math.min(minX, n.x); minY = Math.min(minY, n.y); maxX = Math.max(maxX, n.x + (n.width||450)); maxY = Math.max(maxY, n.y + 300); });
-                minX -= 1000; minY -= 1000; maxX += 1000; maxY += 1000; const mapW = maxX - minX; const mapH = maxY - minY; const ratio = Math.min(width / mapW, height / mapH);
-                appState.nodes.forEach(n => { const char = characterManager.getCharacter(n.characterId); ctx.fillStyle = char.color; ctx.fillRect((n.x - minX) * ratio, (n.y - minY) * ratio, (n.width||450) * ratio, (n.height||200) * ratio); });
-                const c = document.getElementById('workspace-container'); const vpX = (-appState.panOffset.x / appState.scale); const vpY = (-appState.panOffset.y / appState.scale); const vpW = c.clientWidth / appState.scale; const vpH = c.clientHeight / appState.scale;
-                const viewEl = document.getElementById('minimap-viewport'); viewEl.style.left = ((vpX - minX) * ratio) + 'px'; viewEl.style.top = ((vpY - minY) * ratio) + 'px'; viewEl.style.width = (vpW * ratio) + 'px'; viewEl.style.height = (vpH * ratio) + 'px';
-            },
-            setupCanvasEvents() {
-                const c = document.getElementById('workspace-container');
-                c.addEventListener('wheel', (e) => { e.preventDefault(); const i = 0.1; const d = -Math.sign(e.deltaY); const oldS = appState.scale; const newS = Math.min(Math.max(0.1, oldS + (d * i)), 2); const r = c.getBoundingClientRect(); const mx = e.clientX - r.left; const my = e.clientY - r.top; const lx = (mx - appState.panOffset.x) / oldS; const ly = (my - appState.panOffset.y) / oldS; appState.panOffset.x = mx - (lx * newS); appState.panOffset.y = my - (ly * newS); appState.scale = newS; this.applyTransform(); }, { passive: false });
-                c.addEventListener('mousedown', (e) => { if (e.target === c || e.target.id === 'canvas-area' || e.target.tagName === 'svg') { appState.interactionMode = 'panning'; appState.panStart = { x: e.clientX, y: e.clientY }; document.body.style.cursor = 'grabbing'; } });
-                this.startConnection = (e, nodeId, idx) => { e.stopPropagation(); appState.interactionMode = 'connecting'; const rect = c.getBoundingClientRect(); const logicX = (e.clientX - rect.left - appState.panOffset.x) / appState.scale; const logicY = (e.clientY - rect.top - appState.panOffset.y) / appState.scale; appState.connectionStart = { nodeId, optionIndex: idx, x: logicX, y: logicY }; document.getElementById('temp-connection').classList.remove('hidden'); };
-                window.addEventListener('mousemove', (e) => {
-                    const r = c.getBoundingClientRect(); const mx = e.clientX - r.left; const my = e.clientY - r.top;
-                    
-                    if (appState.interactionMode === 'resizing_node' && appState.resizingNodeId) {
-                        const node = appState.nodes.find(n => n.id === appState.resizingNodeId);
-                        const deltaX = (e.clientX - appState.resizeStart.x) / appState.scale;
-                        const deltaY = (e.clientY - appState.resizeStart.y) / appState.scale;
-                        
-                        node.width = Math.max(300, appState.resizeInitialDim.w + deltaX); // Min width 300
-                        node.height = Math.max(200, appState.resizeInitialDim.h + deltaY); // Min height 200
-                        
-                        const el = document.getElementById(node.id);
-                        el.style.width = node.width + 'px';
-                        el.style.height = node.height + 'px';
-                        editor.drawConnections();
-                    }
-                    else if (appState.interactionMode === 'dragging_node' && appState.draggingNodeId) { const n = appState.nodes.find(x => x.id === appState.draggingNodeId); let nx = (mx - appState.dragOffset.x - appState.panOffset.x) / appState.scale; let ny = (my - appState.dragOffset.y - appState.panOffset.y) / appState.scale; n.x = Math.round(nx / 20) * 20; n.y = Math.round(ny / 20) * 20; const el = document.getElementById(n.id); el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; this.drawConnections(); } else if (appState.interactionMode === 'panning') { const dx = e.clientX - appState.panStart.x; const dy = e.clientY - appState.panStart.y; appState.panOffset.x += dx; appState.panOffset.y += dy; appState.panStart = { x: e.clientX, y: e.clientY }; this.applyTransform(); } else if (appState.interactionMode === 'connecting') { const lx = (mx - appState.panOffset.x) / appState.scale; const ly = (my - appState.panOffset.y) / appState.scale; const sx = appState.connectionStart.x; const sy = appState.connectionStart.y; document.getElementById('temp-connection').setAttribute("d", `M ${sx} ${sy} C ${sx + 50} ${sy}, ${lx - 50} ${ly}, ${lx} ${ly}`); } });
-                window.addEventListener('mouseup', (e) => {
-                    if (appState.interactionMode === 'resizing_node') {
-                        historySystem.pushState();
-                    }
-                    else if (appState.interactionMode === 'connecting') { const t = document.elementFromPoint(e.clientX, e.clientY); const tn = t ? t.closest('.node-card') : null; const { nodeId, optionIndex } = appState.connectionStart; historySystem.pushState(); if (tn && tn.id !== nodeId) { editor.updateOption(nodeId, optionIndex, 'targetNodeId', tn.id); } else if (!tn) { const r = c.getBoundingClientRect(); const lx = (e.clientX - r.left - appState.panOffset.x) / appState.scale; const ly = (e.clientY - r.top - appState.panOffset.y) / appState.scale; const nid = editor.addNode(lx, ly - 20); editor.updateOption(nodeId, optionIndex, 'targetNodeId', nid); } document.getElementById('temp-connection').classList.add('hidden'); this.renderNodes(); } else if (appState.interactionMode === 'dragging_node') { historySystem.pushState(); editor.renderMinimap(); } appState.interactionMode = 'default'; appState.draggingNodeId = null; appState.resizingNodeId = null; document.body.style.cursor = ''; });
-            },
-            applyTransform() { const el = document.getElementById('canvas-area'); el.style.transform = `translate(${appState.panOffset.x}px, ${appState.panOffset.y}px) scale(${appState.scale})`; document.getElementById('zoom-level').innerText = Math.round(appState.scale * 100) + '%'; this.renderMinimap(); },
-            resetView() { appState.scale = 1; appState.panOffset = { x: -2000, y: -2000 }; this.applyTransform(); },
-            togglePreview() { const m = document.getElementById('preview-modal'); if (m.classList.contains('hidden')) { m.classList.remove('hidden'); previewEngine.start(); } else { m.classList.add('hidden'); } }
+            applyTransform(){const el=document.getElementById('canvas-area');el.style.transform=`translate(${appState.panOffset.x}px,${appState.panOffset.y}px) scale(${appState.scale})`;document.getElementById('zoom-level').innerText=Math.round(appState.scale*100)+'%';this.renderMinimap();},
+            resetView(){appState.scale=1;appState.panOffset={x:-2000,y:-2000};this.applyTransform();},
+            togglePreview(){const m=document.getElementById('preview-modal');if(m.classList.contains('hidden')){m.classList.remove('hidden');previewEngine.start();}else{m.classList.add('hidden');}}
         };
 
-        // --- PREVIEW ---
         const previewEngine = {
             currentId: null, visited: new Set(), runtimeVars: {},
-            start(keepState = false) { if (appState.nodes.length === 0) return alert("Buit!"); this.currentId = appState.nodes[0].id; if (!keepState) { this.visited.clear(); this.runtimeVars = JSON.parse(JSON.stringify(appState.globalVariables)); } this.render(); },
-            evaluate(code) { if (!code || !code.trim()) return true; try { const safeKeys = Object.keys(this.runtimeVars).filter(k => /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)); const values = safeKeys.map(k => this.runtimeVars[k]); return new Function(...safeKeys, `return ${code};`)(...values); } catch (e) { console.error("Error Logic:", e); return false; } },
-            execute(code) { if (!code || !code.trim()) return; try { const safeKeys = Object.keys(this.runtimeVars).filter(k => /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)); const values = safeKeys.map(k => this.runtimeVars[k]); const newVars = new Function(...safeKeys, `${code}\n; return {${safeKeys.join(',')}};`)(...values); this.runtimeVars = { ...this.runtimeVars, ...newVars }; } catch (e) { console.error("Error Effect:", e); } },
-            render() {
-                const node = appState.nodes.find(n => n.id === this.currentId); const char = characterManager.getCharacter(node.characterId);
-                const bgArea = document.getElementById('preview-game-area'); const portraitBox = document.getElementById('preview-portrait'); const portraitTxt = document.getElementById('preview-portrait-initial'); const portraitImg = document.getElementById('preview-portrait-img'); const textArea = document.getElementById('preview-text'); const nameArea = document.getElementById('preview-char-name'); const optContainer = document.getElementById('preview-options'); const debugArea = document.getElementById('preview-debug-vars');
-                portraitBox.style.display = 'flex'; document.getElementById('preview-text-container').style.display = 'block';
-                if (node.bgImage) { bgArea.style.backgroundImage = `url('${node.bgImage}')`; document.getElementById('preview-default-bg').style.display = 'none'; } else { bgArea.style.backgroundImage = 'none'; document.getElementById('preview-default-bg').style.display = 'block'; }
-                portraitBox.style.backgroundColor = char.color; if (char.avatarUrl) { portraitTxt.classList.add('hidden'); portraitImg.src = char.avatarUrl; portraitImg.classList.remove('hidden'); } else { portraitTxt.innerText = char.name[0]; portraitTxt.classList.remove('hidden'); portraitImg.classList.add('hidden'); }
-                nameArea.innerText = char.name; nameArea.style.color = char.color; debugArea.innerHTML = Object.entries(this.runtimeVars).map(([k, v]) => `<div>${k}: <span class="text-white">${v}</span></div>`).join('');
-                
-                // Logic Text Selection
-                let validTexts = node.textOptions.filter(t => this.evaluate(t.condition));
-                const hasSpecific = validTexts.some(t => t.condition && t.condition.trim() !== "");
-                if (hasSpecific) { validTexts = validTexts.filter(t => t.condition && t.condition.trim() !== ""); }
-                const chosenText = validTexts.length > 0 ? validTexts[Math.floor(Math.random() * validTexts.length)].text : "(Sense text vàlid)";
-                
-                // INTERPOLACIÓ VARIABLES: Reconeix tant {var} com $var
-                textArea.innerText = chosenText
-                    .replace(/\{(\w+)\}/g, (_, v) => this.runtimeVars[v] ?? '?')
-                    .replace(/\$(\w+)/g, (_, v) => this.runtimeVars[v] ?? ('$' + v));
-
-                optContainer.innerHTML = '';
-                const availableOpts = node.options.filter((opt, idx) => { const visitedKey = node.id + '_' + idx; if (opt.once && this.visited.has(visitedKey)) return false; if (opt.condition && !this.evaluate(opt.condition)) return false; return true; });
-                if (availableOpts.length === 0 && node.options.length > 0) this.showEnd("No hi ha més opcions disponibles."); else if (node.options.length === 0) this.showEnd("Fi de l'aventura."); else {
-                    node.options.forEach((opt, idx) => {
-                        const visitedKey = node.id + '_' + idx; if (opt.once && this.visited.has(visitedKey)) return; if (opt.condition && !this.evaluate(opt.condition)) return;
-                        const btn = document.createElement('button'); btn.className = "w-full text-left bg-slate-800/80 hover:bg-slate-700 border border-slate-600 p-3 rounded text-slate-200 hover:text-white transition flex gap-2"; btn.innerHTML = `<span class="text-yellow-500">➤</span> ${opt.text}`;
-                        btn.onclick = () => {
-                            if (opt.once) this.visited.add(visitedKey); if (opt.effect) this.execute(opt.effect);
-                            let nextId = opt.targetNodeId; if (opt.altTargetNodeId && opt.targetCondition && this.evaluate(opt.targetCondition)) nextId = opt.altTargetNodeId;
-                            if (nextId) { this.currentId = nextId; this.render(); } else { portraitBox.style.display = 'none'; document.getElementById('preview-text-container').style.display = 'none'; this.showEnd("Has acabat la conversa."); }
+            start(keepState=false){if(appState.nodes.length===0)return alert("Buit!");this.currentId=appState.nodes[0].id;if(!keepState){this.visited.clear();this.runtimeVars=JSON.parse(JSON.stringify(appState.globalVariables));}this.render();},
+            evaluate(code){if(!code||!code.trim())return true;try{const k=Object.keys(this.runtimeVars),v=k.map(x=>this.runtimeVars[x]);return new Function(...k,`return ${code};`)(...v);}catch(e){console.error("Logic err",e);return false;}},
+            execute(code){if(!code||!code.trim())return;try{const k=Object.keys(this.runtimeVars),v=k.map(x=>this.runtimeVars[x]),nv=new Function(...k,`${code}\n;return {${k.join(',')}};`)(...v);this.runtimeVars={...this.runtimeVars,...nv};}catch(e){console.error("Eff err",e);}},
+            render(){
+                const n=appState.nodes.find(x=>x.id===this.currentId),c=characterManager.getCharacter(n.characterId);
+                const bg=document.getElementById('preview-game-area'),pb=document.getElementById('preview-portrait'),pt=document.getElementById('preview-portrait-initial'),pi=document.getElementById('preview-portrait-img'),ta=document.getElementById('preview-text'),na=document.getElementById('preview-char-name'),oc=document.getElementById('preview-options'),da=document.getElementById('preview-debug-vars');
+                pb.style.display='flex';document.getElementById('preview-text-container').style.display='block';
+                if(n.bgImage){bg.style.backgroundImage=`url('${n.bgImage}')`;document.getElementById('preview-default-bg').style.display='none';}else{bg.style.backgroundImage='none';document.getElementById('preview-default-bg').style.display='block';}
+                pb.style.backgroundColor=c.color;if(c.avatarUrl){pt.classList.add('hidden');pi.src=c.avatarUrl;pi.classList.remove('hidden');}else{pt.innerText=c.name[0];pt.classList.remove('hidden');pi.classList.add('hidden');}
+                na.innerText=c.name;na.style.color=c.color;da.innerHTML=Object.entries(this.runtimeVars).map(([k,v])=>`<div>${k}: <span class="text-white">${v}</span></div>`).join('');
+                let vts=n.textOptions.filter(t=>this.evaluate(t.condition));const hasSpec=vts.some(t=>t.condition&&t.condition.trim()!=="");if(hasSpec)vts=vts.filter(t=>t.condition&&t.condition.trim()!=="");
+                const txt=vts.length>0?vts[Math.floor(Math.random()*vts.length)].text:"(Sense text)";
+                ta.innerText=txt.replace(/\{(\w+)\}/g,(_,v)=>this.runtimeVars[v]??'?').replace(/\$(\w+)/g,(_,v)=>this.runtimeVars[v]??('$'+v));
+                oc.innerHTML='';
+                const avo=n.options.filter((o,i)=>{const k=n.id+'_'+i;if(o.once&&this.visited.has(k))return false;if(o.condition&&!this.evaluate(o.condition))return false;return true;});
+                if(avo.length===0&&n.options.length>0)this.showEnd("No hi ha més opcions.");else if(n.options.length===0)this.showEnd("Fi.");else{
+                    n.options.forEach((o,i)=>{
+                        const k=n.id+'_'+i;if(o.once&&this.visited.has(k))return;if(o.condition&&!this.evaluate(o.condition))return;
+                        const b=document.createElement('button');b.className="w-full text-left bg-slate-800/80 hover:bg-slate-700 border border-slate-600 p-3 rounded text-slate-200 hover:text-white transition flex gap-2";b.innerHTML=`<span class="text-yellow-500">➤</span> ${o.text}`;
+                        b.onclick=()=>{
+                            if(o.once)this.visited.add(k);if(o.effect)this.execute(o.effect);
+                            let nid=o.targetNodeId;if(o.altTargetNodeId&&o.targetCondition&&this.evaluate(o.targetCondition))nid=o.altTargetNodeId;
+                            if(nid){this.currentId=nid;this.render();}else{pb.style.display='none';document.getElementById('preview-text-container').style.display='none';this.showEnd("Fi.");}
                         };
-                        optContainer.appendChild(btn);
+                        oc.appendChild(b);
                     });
                 }
             },
-            showEnd(msg) { const c = document.getElementById('preview-options'); c.innerHTML = `<div class="text-center text-yellow-500 text-xl font-bold mb-4 mt-4">${msg}</div><div class="flex justify-center gap-4"><button onclick="previewEngine.start(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-rotate-left"></i> Nova conversa (Manté Estat)</button><button onclick="previewEngine.start(false)" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-power-off"></i> Reiniciar Tot</button></div>`; }
+            showEnd(m){const c=document.getElementById('preview-options');c.innerHTML=`<div class="text-center text-yellow-500 text-xl font-bold mb-4 mt-4">${m}</div><div class="flex justify-center gap-4"><button onclick="previewEngine.start(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-rotate-left"></i> Nova</button><button onclick="previewEngine.start(false)" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-power-off"></i> Reiniciar</button></div>`;}
         };
 
-        // --- IO ---
         const ioSystem = {
             autosave() { localStorage.setItem('adv_editor_data', JSON.stringify(appState)); const ind = document.getElementById('autosave-indicator'); ind.classList.remove('opacity-0'); setTimeout(() => ind.classList.add('opacity-0'), 2000); },
             autoload() { const data = localStorage.getItem('adv_editor_data'); if (data) { try { const p = JSON.parse(data); appState.nodes = p.nodes||[]; appState.characters = p.characters||[]; appState.globalVariables = p.globalVariables||{}; this.migrate(); historySystem.pushState(); } catch(e) { console.error("Autoload error", e); } } },
             migrate() { appState.nodes.forEach(n => { if (!n.textOptions) { n.textOptions = [{ text: n.text || "", condition: "" }]; delete n.text; } if (!n.width) n.width = 450; }); },
-            
-            exportJSON() { 
-                // Obtenir nom del personatge inicial
-                const startNode = appState.nodes.find(n => n.id === 'node_start') || appState.nodes[0];
-                const charName = startNode ? characterManager.getCharacter(startNode.characterId).name : "Unknown";
+            exportJSON() { const s=appState.nodes.find(n=>n.id==='node_start')||appState.nodes[0];const cn=s?characterManager.getCharacter(s.characterId).name:"Unknown";const o={id_dialogue:cn,...appState};const u="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(o,null,2));const a=document.createElement('a');a.href=u;a.download=`adventure_${Date.now()}.json`;a.click();},
+            exportCSV(){
+                // Generar CSV amb capçaleres descriptives
+                // L'estructura és polimòrfica (les columnes signifiquen coses diferents segons el TYPE), però ara els noms ajuden a identificar-ho.
+                let csv = "\uFEFFTYPE;ID;PARENT_ID;TEXT_NAME_TITLE;TARGET_COLOR_COND;AVATAR_X_ALTTARGET;Y_TARGETCOND;WIDTH_ONCE;HEIGHT_LOGIC;BGIMAGE_EFFECT\n";
+                
+                // 1. Characters
+                // TEXT_NAME_TITLE -> Name
+                // TARGET_COLOR_COND -> Color
+                // AVATAR_X_ALTTARGET -> AvatarUrl
+                appState.characters.forEach(c => {
+                    csv += `CHAR;${c.id};;${c.name};${c.color};${c.avatarUrl};;;;\n`;
+                });
 
-                // Crear objecte amb id_dialogue al principi
-                const exportObj = {
-                    id_dialogue: charName,
-                    ...appState
-                };
+                // 2. Variables
+                // TEXT_NAME_TITLE -> Value
+                // TARGET_COLOR_COND -> Type
+                for(const [k,v] of Object.entries(appState.globalVariables)) {
+                    csv += `VAR;${k};;${v};${typeof v};;;;;\n`;
+                }
 
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2)); 
-                const a = document.createElement('a'); a.href = dataStr; a.download = `adventure_${Date.now()}.json`; a.click(); 
+                // 3. Nodes & contents
+                appState.nodes.forEach(n => {
+                    // NODE ROW
+                    // TEXT_NAME_TITLE -> Title
+                    // TARGET_COLOR_COND -> CharId
+                    // AVATAR_X_ALTTARGET -> X
+                    // Y_TARGETCOND -> Y
+                    // WIDTH_ONCE -> Width
+                    // HEIGHT_LOGIC -> Height
+                    // BGIMAGE_EFFECT -> BgImage
+                    csv += `NODE;${n.id};;${n.title};${n.characterId};${n.x};${n.y};${n.width || 450};${n.height || 0};${n.bgImage}\n`;
+                    
+                    // TEXT ROWS
+                    // TEXT_NAME_TITLE -> Text
+                    // TARGET_COLOR_COND -> Condition
+                    n.textOptions.forEach(t => {
+                        const safeText = t.text.replace(/;/g, '[,]').replace(/\n/g, '[NL]');
+                        csv += `TEXT;;${n.id};${safeText};${t.condition};;;;;\n`;
+                    });
+
+                    // OPTION ROWS
+                    // TEXT_NAME_TITLE -> Text
+                    // TARGET_COLOR_COND -> TargetNodeId
+                    // AVATAR_X_ALTTARGET -> AltTargetNodeId
+                    // Y_TARGETCOND -> TargetCondition (Logic per anar a Alt)
+                    // WIDTH_ONCE -> Once (true/false)
+                    // HEIGHT_LOGIC -> Condition (Logic per mostrar opció)
+                    // BGIMAGE_EFFECT -> Effect (JS)
+                    n.options.forEach(o => {
+                        const safeText = o.text.replace(/;/g, '[,]').replace(/\n/g, '[NL]');
+                        csv += `OPT;;${n.id};${safeText};${o.targetNodeId};${o.altTargetNodeId};${o.targetCondition};${o.once};${o.condition};${o.effect}\n`;
+                    });
+                });
+
+                const u="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+                const a=document.createElement('a');a.href=u;a.download=`adventure_${Date.now()}.csv`;a.click();
             },
-            
-            loadJSON(input) { const reader = new FileReader(); reader.onload = (e) => { try { const json = JSON.parse(e.target.result); const data = json.appState || json; appState.nodes = data.nodes||[]; appState.characters = data.characters||[]; appState.globalVariables = data.globalVariables||{}; this.migrate(); historySystem.pushState(); characterManager.renderList(); variableManager.renderList(); editor.renderNodes(); editor.resetView(); } catch (err) { alert("Error JSON: " + err.message); } }; if (input.files[0]) reader.readAsText(input.files[0]); input.value = ''; },
-            
-            // COPIAR CODI DE DIÀLEG (PASSATGE)
-            copyTwine() {
-                const clean = (obj) => {
-                    if (Array.isArray(obj)) return obj.map(clean);
-                    if (obj && typeof obj === 'object') {
-                        const newObj = {};
-                        for (const key in obj) {
-                            if (['x', 'y', 'width', 'height', 'interactionMode', 'draggingNodeId', 'resizingNodeId', 'dragOffset', 'connectionStart', 'scale', 'panOffset'].includes(key)) continue; 
-                            const val = obj[key];
-                            if (val === null || val === "" || val === undefined) continue;
-                            newObj[key] = clean(val);
-                        }
-                        return newObj;
+            loadFile(input) {
+                const file = input.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    if (file.name.endsWith('.csv')) {
+                        this.importCSV(content);
+                    } else {
+                        try {
+                            const json = JSON.parse(content);
+                            const d = json.appState || json;
+                            appState.nodes=d.nodes||[]; appState.characters=d.characters||[]; appState.globalVariables=d.globalVariables||{};
+                            this.postLoad();
+                        } catch(err) { alert("Error JSON: "+err.message); }
                     }
-                    return obj;
                 };
-
-                // Obtenir nom del personatge inicial
-                const startNode = appState.nodes.find(n => n.id === 'node_start') || appState.nodes[0];
-                const charName = startNode ? characterManager.getCharacter(startNode.characterId).name : "Unknown";
-
-                const exportData = {
-                    id_dialogue: charName, // Afegeix id_dialogue al principi
-                    characters: clean(appState.characters),
-                    globalVariables: appState.globalVariables,
-                    nodes: clean(appState.nodes)
-                };
-                
-                let jsonStr = JSON.stringify(exportData, null, 2).replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
-
-                const template = `<!-- CODI DIÀLEG PER ENGANXAR AL PASSATGE -->
-<script>
-    // 1. Dades
-    var jsonDiàleg = \`
-${jsonStr}
-    \`;
-
-    // 2. Contenidor (adaptat al teu projecte)
-    var containerId = 'twineImageInfoDisplay';
-    var container = document.getElementById(containerId);
-
-    // 3. Inicialització
-    if (container && window.AdventureEngine) {
-        container.style.display = 'block'; // Mostrar contenidor
-        AdventureEngine.init(jsonDiàleg, containerId);
-    } else {
-        console.error("Error: Falta AdventureEngine o el contenidor '" + containerId + "'");
-    }
-<\/script>
-<!-- Recorda: AdventureEngine gestiona la classe .adv-dialogue-active automàticament -->`;
-
-                this.copyToClipboard(template);
+                reader.readAsText(file);
+                input.value = '';
             },
+            importCSV(csvText) {
+                try {
+                    const lines = csvText.split(/\r?\n/);
+                    const newChars = [];
+                    const newVars = {};
+                    const newNodes = [];
 
-            // COPIAR MOTOR JS
-            copyEngineJS() { this.copyToClipboard(TWINE_ENGINE_JS); },
+                    // Helper to restore text
+                    const restore = (t) => t ? t.replace(/\[,\]/g, ';').replace(/\[NL\]/g, '\n') : "";
 
-            // COPIAR CSS
-            copyEngineCSS() { this.copyToClipboard(TWINE_ENGINE_CSS); },
+                    lines.forEach(line => {
+                        if(!line.trim() || line.startsWith('TYPE')) return;
+                        const cols = line.split(';');
+                        const type = cols[0];
 
-            // Helper Copiar
-            copyToClipboard(text) {
-                const el = document.createElement('textarea');
-                el.value = text;
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                
-                const ind = document.getElementById('autosave-indicator');
-                const originalText = ind.innerHTML;
-                ind.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copiat al portapapers!';
-                ind.classList.remove('opacity-0', 'text-gray-500');
-                ind.classList.add('text-green-600');
-                
-                setTimeout(() => {
-                    ind.classList.add('opacity-0');
-                    setTimeout(() => {
-                        ind.innerHTML = originalText;
-                        ind.classList.replace('text-green-600', 'text-gray-500');
-                    }, 500);
-                }, 2000);
-            }
+                        if (type === 'CHAR') {
+                            newChars.push({ id: cols[1], name: cols[3], color: cols[4], avatarUrl: cols[5] });
+                        } else if (type === 'VAR') {
+                            let val = cols[3];
+                            if (cols[4] === 'number') val = Number(val);
+                            if (cols[4] === 'boolean') val = (val === 'true');
+                            newVars[cols[1]] = val;
+                        } else if (type === 'NODE') {
+                            newNodes.push({
+                                id: cols[1], title: cols[3], characterId: cols[4],
+                                x: Number(cols[5]), y: Number(cols[6]), width: Number(cols[7]), height: (cols[8] === '0' ? null : Number(cols[8])),
+                                bgImage: cols[9], textOptions: [], options: []
+                            });
+                        } else if (type === 'TEXT') {
+                            const parent = newNodes.find(n => n.id === cols[2]);
+                            if (parent) parent.textOptions.push({ text: restore(cols[3]), condition: cols[4] });
+                        } else if (type === 'OPT') {
+                            const parent = newNodes.find(n => n.id === cols[2]);
+                            if (parent) {
+                                parent.options.push({
+                                    text: restore(cols[3]),
+                                    targetNodeId: cols[4] === 'null' ? null : cols[4],
+                                    altTargetNodeId: cols[5] === 'null' ? null : cols[5],
+                                    targetCondition: cols[6],
+                                    once: cols[7] === 'true',
+                                    condition: cols[8],
+                                    effect: cols[9]
+                                });
+                            }
+                        }
+                    });
+
+                    appState.characters = newChars;
+                    appState.globalVariables = newVars;
+                    appState.nodes = newNodes;
+                    this.postLoad();
+
+                } catch (e) { alert("Error CSV: " + e.message); }
+            },
+            postLoad() {
+                this.migrate();
+                historySystem.pushState();
+                characterManager.renderList();
+                variableManager.renderList();
+                editor.renderNodes();
+                editor.resetView();
+            },
+            copyTwine(){const clean=(o)=>{if(Array.isArray(o))return o.map(clean);if(o&&typeof o==='object'){const n={};for(const k in o){if(['x','y','width','height','interactionMode','draggingNodeId','resizingNodeId','dragOffset','connectionStart','scale','panOffset'].includes(k))continue;const v=o[k];if(v===null||v===""||v===undefined)continue;n[k]=clean(v);}return n;}return o;};const sn=appState.nodes.find(n=>n.id==='node_start')||appState.nodes[0];const cn=sn?characterManager.getCharacter(sn.characterId).name:"Unknown";const exp={id_dialogue:cn,characters:clean(appState.characters),globalVariables:appState.globalVariables,nodes:clean(appState.nodes)};let js=JSON.stringify(exp,null,2).replace(/`/g,'\\`').replace(/\$\{/g,'\\${');const t=`<!-- CODI TWINE -->\n<script>\nvar jsonDiàleg=\`\n${js}\n\`;\nvar containerId='twineImageInfoDisplay';var container=document.getElementById(containerId);\nif(container&&window.AdventureEngine){container.style.display='block';AdventureEngine.init(jsonDiàleg,containerId);}else{console.error("Error Motor");}\n<\/script>`;this.copyToClipboard(t);},
+            copyEngineJS(){this.copyToClipboard(TWINE_ENGINE_JS);},
+            copyEngineCSS(){this.copyToClipboard(TWINE_ENGINE_CSS);},
+            copyToClipboard(t){const e=document.createElement('textarea');e.value=t;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);const i=document.getElementById('autosave-indicator');const o=i.innerHTML;i.innerHTML='<i class="fa-solid fa-check mr-1"></i> Copiat!';i.classList.remove('opacity-0','text-gray-500');i.classList.add('text-green-600');setTimeout(()=>{i.classList.add('opacity-0');setTimeout(()=>{i.innerHTML=o;i.classList.replace('text-green-600','text-gray-500');},500);},2000);}
         };
 
         window.onload = () => { ioSystem.autoload(); characterManager.init(); variableManager.init(); editor.init(); if (appState.nodes.length === 0) editor.addNode(); editor.resetView(); };
