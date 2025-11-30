@@ -1,154 +1,290 @@
-jQuery(document).ready(function () {
+window.AdventureGlobalVars = window.AdventureGlobalVars || {}; // Memòria persistent
 
-    // Inicialitza els comptadors de clics per a hotspots si no existeixen
-    if (typeof State !== 'undefined' && typeof State.variables !== 'undefined') {
-        if (State.variables.hotspotClicks === undefined) {
-            State.variables.hotspotClicks = {};
-        }
-        // NOU: Inicialitza la variable de transició temporal
-        if (State.variables.tempPassageTransition === undefined) {
-            State.variables.tempPassageTransition = "";
-        }
-    } else {
-        console.error("ERROR: State.variables no està definit. Els comptadors de hotspot i les transicions no funcionaran.");
+window.AdventureEngine = (function() {
+    let state = { nodes: [], characters: [], vars: {}, visited: new Set(), currentNodeId: null, containerId: 'dialogue-container' };
+
+    // NOTA: La funció injectStyles() ha estat eliminada perquè el CSS ja és al <head>
+
+    function getCharacter(id) { return state.characters.find(c => c.id === id) || { name: '?', color: '#ccc' }; }
+    
+    // Funció per interpolar variables dins de textos (Ex: "Tens $diners €")
+    function interpolateText(text) {
+        if (!text) return "";
+        return text
+            .replace(/\{(\w+)\}/g, (_, v) => (state.vars[v] !== undefined && state.vars[v] !== null) ? state.vars[v] : '')
+            .replace(/\$(\w+)/g, (_, v) => (state.vars[v] !== undefined && state.vars[v] !== null) ? state.vars[v] : '');
     }
 
+    function evaluate(code) { 
+        if (!code || !code.trim()) return true; 
+        try { 
+            const keys = Object.keys(state.vars); 
+            const values = Object.values(state.vars); 
+            const safeCode = code.replace(/([^=])=([^=])/g, '$1==$2');
+            const fn = new Function(...keys, `return ${safeCode};`); 
+            return fn(...values); 
+        } catch (e) { 
+            console.error("AdventureEngine: Error condició:", code, e); 
+            return false; 
+        } 
+    }
+    
+    function execute(code) { 
+        if (!code || !code.trim()) return; 
+        try { 
+            const keys = Object.keys(state.vars); 
+            const values = Object.values(state.vars); 
+            const fn = new Function(...keys, `${code}; return {${keys.join(',')}};`); 
+            const newVars = fn(...values); 
+            
+            state.vars = { ...state.vars, ...newVars }; 
+            Object.assign(window.AdventureGlobalVars, state.vars);
+            
+            if (typeof window.State !== 'undefined' && window.State.variables) {
+                Object.assign(window.State.variables, state.vars);
+                console.log("AdventureEngine: Sincronitzat amb Hotspots:", window.State.variables);
+            }
 
-    // Funció auxiliar per avaluar les condicions
-    function evaluateCondition(conditionVarName, conditionVal) {
-        if (typeof State === 'undefined' || typeof State.variables === 'undefined') {
-            console.error("ERROR: State.variables no està definit per avaluar la condició.");
-            return false;
-        }
-        if (!conditionVarName || conditionVal === undefined || conditionVal === null) {
-            return true; 
+        } catch (e) { 
+            console.error("AdventureEngine: Error efecte:", code, e); 
+        } 
+    }
+
+    function renderNode() {
+        const container = document.getElementById(state.containerId);
+        if (!container) return;
+
+        const node = state.nodes.find(n => n.id === state.currentNodeId);
+        if (!node) { 
+            container.innerHTML = ""; 
+            container.style.display = 'none'; 
+            toggleActive(false); 
+            return; 
         }
 
-        const varName = conditionVarName.substring(1); 
-        const currentValue = State.variables[varName];
-        let expression = ''; 
+        const char = getCharacter(node.characterId);
         
-        conditionVal = String(conditionVal); 
+        const textOpts = Array.isArray(node.textOptions) ? node.textOptions : [{ text: node.text || "", condition: "" }];
+        let validTexts = textOpts.filter(t => evaluate(t.condition));
+        if (validTexts.length === 0 && textOpts.length > 0) validTexts = [textOpts[0]]; 
+        const chosenTextObj = validTexts.length > 0 ? validTexts[Math.floor(Math.random() * validTexts.length)] : { text: "..." };
+        
+        let finalText = interpolateText(chosenTextObj.text);
 
-        let operatorUsed = '';
-        let valuePart = conditionVal;
+        // Estructura HTML usant les classes definides al CSS del <head>
+        let html = `
+        <div class="adv-dialogue-box" style="border-top-color: ${char.color}">
+            <div class="adv-portrait" style="background-color: ${char.color}">
+                ${char.avatarUrl ? `<img src="${char.avatarUrl}">` : `<span>${char.name[0]}</span>`}
+            </div>
+            <div class="adv-content">
+                <h3 class="adv-name" style="color: ${char.color}">${char.name}</h3>
+                <p class="adv-text">${finalText}</p>
+                <div class="adv-options">`;
 
+        const availableOptions = node.options.filter((opt, idx) => {
+            const visitedKey = node.id + '_' + idx;
+            if (opt.once && state.visited.has(visitedKey)) return false;
+            if (opt.condition && !evaluate(opt.condition)) return false;
+            return true;
+        });
+
+        if (availableOptions.length === 0 && node.options.length > 0) { 
+            html += `<div class="adv-msg">(No hi ha opcions disponibles)</div>`; 
+            html += `<button onclick="AdventureEngine.close()">Tancar</button>`;
+        }
+        else if (node.options.length === 0) { 
+             html += `<button onclick="AdventureEngine.close()">Fi</button>`; 
+        }
+        else { 
+            availableOptions.forEach((opt) => { 
+                const idx = node.options.indexOf(opt); 
+                html += `<button onclick="AdventureEngine.selectOption('${node.id}', ${idx})">${opt.text}</button>`; 
+            }); 
+        }
+        html += `</div></div></div>`; 
+        container.innerHTML = html;
+        container.style.display = 'block';
+    }
+
+    function toggleActive(isActive) {
+        if(isActive) document.documentElement.classList.add('adv-dialogue-active');
+        else document.documentElement.classList.remove('adv-dialogue-active');
+    }
+
+    return {
+        interpolateText: interpolateText,
+        init: function(jsonData, containerId = 'dialogue-container') {
+            // Ja no cridem injectStyles()
+            try {
+                const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+                const coreData = data.appState || data; 
+                state.nodes = coreData.nodes || []; 
+                state.characters = coreData.characters || []; 
+                state.visited = new Set(); 
+                state.containerId = containerId;
+                
+                const defaultVars = coreData.globalVariables || {};
+                let currentHotspotVars = {};
+                if (typeof window.State !== 'undefined' && window.State.variables) {
+                    currentHotspotVars = window.State.variables;
+                }
+                state.vars = Object.assign({}, defaultVars, window.AdventureGlobalVars, currentHotspotVars);
+                Object.assign(window.AdventureGlobalVars, state.vars);
+
+                let container = document.getElementById(containerId);
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = containerId;
+                    document.body.appendChild(container);
+                }
+                
+                container.style.display = 'block';
+                if (window.jQuery) jQuery(container).show();
+
+                if (state.nodes.length === 0) return;
+                
+                state.currentNodeId = state.nodes[0].id;
+                toggleActive(true); 
+                setTimeout(renderNode, 10);
+            } catch (e) { console.error("AdventureEngine Init Error:", e); }
+        },
+        selectOption: function(nodeId, optionIndex) {
+            const node = state.nodes.find(n => n.id === nodeId); const opt = node.options[optionIndex];
+            if (opt.once) state.visited.add(nodeId + '_' + optionIndex);
+            if (opt.effect) execute(opt.effect);
+            
+            let nextId = opt.targetNodeId;
+            if (opt.altTargetNodeId && opt.targetCondition && evaluate(opt.targetCondition)) nextId = opt.altTargetNodeId;
+            
+            if (nextId) { 
+                state.currentNodeId = nextId; 
+                renderNode(); 
+            } else { 
+                this.close();
+            }
+        },
+        close: function() {
+            const container = document.getElementById(state.containerId); 
+            if (container) {
+                container.innerHTML = ""; 
+                container.style.display = 'none';
+                if (window.jQuery) jQuery(container).hide();
+            }
+            toggleActive(false); 
+        }
+    };
+})();
+
+// =================================================================
+// GESTIÓ D'ESDEVENIMENTS (JQUERY)
+// =================================================================
+
+jQuery(document).ready(function () {
+
+    if (typeof State !== 'undefined' && typeof State.variables !== 'undefined') {
+        if (State.variables.hotspotClicks === undefined) State.variables.hotspotClicks = {};
+        if (State.variables.tempPassageTransition === undefined) State.variables.tempPassageTransition = "";
+        
+        if (window.AdventureGlobalVars) {
+            Object.assign(State.variables, window.AdventureGlobalVars);
+        }
+    } else {
+        if (typeof State === 'undefined') window.State = { variables: { hotspotClicks: {}, tempPassageTransition: {}, ...window.AdventureGlobalVars } };
+    }
+
+    function evaluateCondition(conditionVarName, conditionVal) {
+        if (typeof State === 'undefined' || !State.variables) return false;
+        if (!conditionVarName || conditionVal === undefined || conditionVal === null) return true; 
+
+        const varName = conditionVarName.startsWith('$') ? conditionVarName.substring(1) : conditionVarName;
+        
+        // Cerca robusta: State > Global
+        let currentValue = State.variables[varName];
+        if (currentValue === undefined && window.AdventureGlobalVars && window.AdventureGlobalVars[varName] !== undefined) {
+             currentValue = window.AdventureGlobalVars[varName];
+        }
+        
+        let operatorUsed = '==';
+        let valuePart = String(conditionVal).trim();
         const operators = ['===', '==', '!==', '!=', '>=', '<=', '>', '<'];
         for (const op of operators) {
-            if (conditionVal.startsWith(op)) {
+            if (valuePart.startsWith(op)) {
                 operatorUsed = op;
-                valuePart = conditionVal.substring(op.length).trim();
+                valuePart = valuePart.substring(op.length).trim();
                 break;
             }
         }
-
-        if (!operatorUsed) { 
-            operatorUsed = '==';
-        }
+        let parsedVal = valuePart;
+        if (valuePart === 'true') parsedVal = true;
+        else if (valuePart === 'false') parsedVal = false;
+        else if (!isNaN(Number(valuePart)) && valuePart !== '') parsedVal = Number(valuePart);
         
-        let parsedValuePart;
-        // Try to parse as boolean first
-        if (valuePart === 'true') parsedValuePart = true;
-        else if (valuePart === 'false') parsedValuePart = false;
-        // Then try to parse as number
-        else if (!isNaN(Number(valuePart)) && valuePart !== '') parsedValuePart = Number(valuePart);
-        // Otherwise, keep as string (and ensure it's quoted for eval)
-        else parsedValuePart = valuePart; 
-        
-        expression = `${JSON.stringify(currentValue)} ${operatorUsed} ${JSON.stringify(parsedValuePart)}`;
-
-        try {
-            const result = eval(expression); 
-            return result;
-        } catch (e) {
-            console.error("ERROR: Error avaluant la condició:", expression, e);
-            return false;
-        }
+        try { return eval(`${JSON.stringify(currentValue)} ${operatorUsed} ${JSON.stringify(parsedVal)}`); } 
+        catch (e) { return false; }
     }
 
-    // Funció auxiliar per reproduir un so amb HAL
-    function playHotspotSound(soundId) {
-        if (soundId && typeof Chapel !== 'undefined' && typeof Chapel.Audio !== 'undefined' && typeof Chapel.Audio.track === 'function') {
-            try {
-                const track = Chapel.Audio.track(soundId);
-                track.stop(); 
-                track.playWhenPossible();
-                // console.log("DEBUG: 🔊 So reproduït via HAL:", soundId); 
-            } catch (e) {
-                console.error("ERROR: Error en reproduir el so amb HAL:", soundId, e.message);
+    function interpolateHotspotText(text) {
+        if (!text) return "";
+        return text.replace(/\$(\w+)/g, function(_, varName) {
+            let val = undefined;
+            if (typeof State !== 'undefined' && State.variables && State.variables[varName] !== undefined) {
+                val = State.variables[varName];
+            } else if (window.AdventureGlobalVars && window.AdventureGlobalVars[varName] !== undefined) {
+                val = window.AdventureGlobalVars[varName];
             }
-        } else if (soundId) {
-            console.warn("ADVERTENCIA: L'API de HAL no està disponible per al so:", soundId);
-        }
-    }
-
-    // Funció auxiliar per aturar un so amb HAL
-    function stopHotspotSound(soundId) {
-        if (soundId && typeof Chapel !== 'undefined' && typeof Chapel.Audio !== 'undefined' && typeof Chapel.Audio.track === 'function') {
-            try {
-                const track = Chapel.Audio.track(soundId);
-                track.stop(); 
-            } catch (e) {
-                // console.warn("ADVERTENCIA: No s'ha pogut aturar el so amb HAL:", soundId, e.message); 
-            }
-        }
-    }
-    
-    // Funció per aturar tots els sons de hotspots actius (útil en canvis de passatge)
-    function stopAllHotspotSounds() {
-        jQuery('.hotspot-item').each(function() {
-            const soundId = jQuery(this).data('sound');
-            const soundFailId = jQuery(this).data('sound-fail');
-            const soundClickId = jQuery(this).data('sound-click');
-            const soundClickFailId = jQuery(this).data('sound-click-fail');
-
-            stopHotspotSound(soundId);
-            stopHotspotSound(soundFailId);
-            stopHotspotSound(soundClickId);
-            stopHotspotSound(soundClickFailId);
+            // Si és null/undefined retorna buit
+            return (val !== undefined && val !== null) ? val : '';
         });
     }
 
-
-    var TWINE_IMAGE_INFO_DISPLAY_ID = 'twineImageInfoDisplay'; 
-
-    // Funció per assignar el text a $tempInfoDisplay i fer que Harlowe el processi
-    function toggleImageInfo(text) {
-        console.log("DEBUG: toggleImageInfo cridada amb text:", text);
-        if (typeof State !== 'undefined' && State.variables) {
-            State.variables.tempInfoDisplay = text; 
-            console.log("DEBUG: $tempInfoDisplay set a:", State.variables.tempInfoDisplay);
-            
-            if (text === undefined || text === null || String(text).trim() === '') {
-                 jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).hide();
-                 console.log("DEBUG: #twineImageInfoDisplay amagat (text buit).");
-            } else {
-                jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).show();
-                console.log("DEBUG: #twineImageInfoDisplay mostrat.");
-            }
-        } else {
-            console.error("ERROR: State.variables no està definit. No es pot actualitzar $tempInfoDisplay.");
+    function playHotspotSound(soundId) {
+        if (!soundId) return;
+        const idStr = String(soundId).trim();
+        if (!idStr) return;
+        if (typeof Chapel !== 'undefined' && Chapel.Audio && Chapel.Audio.track) {
+            try { const t = Chapel.Audio.track(idStr); if(t) { t.stop(); t.playWhenPossible(); } } catch(e){}
         }
     }
 
+    function stopHotspotSound(soundId) {
+        if (!soundId) return;
+        const idStr = String(soundId).trim();
+        if (typeof Chapel !== 'undefined' && Chapel.Audio && Chapel.Audio.track) {
+            try { const t = Chapel.Audio.track(idStr); if(t) t.stop(); } catch(e){}
+        }
+    }
 
-    // Funció per executar les operacions de setter d'un hotspot
-    function executeHotspotSetters(hotspotElement) {
-        const setterRaw = jQuery(hotspotElement).get(0).dataset.setter;
-        const dataVariable2 = jQuery(hotspotElement).data('variable-2');
-        const dataValor2 = jQuery(hotspotElement).data('valor-2');
-
-        let combinedSetterStatements = setterRaw || '';
-
-        if (dataVariable2 && dataValor2) {
-            const secondSetterStatement = `${dataVariable2} ${dataValor2}`;
-            console.log("DEBUG: Second Setter Statement Constructed:", secondSetterStatement);
-            if (combinedSetterStatements) {
-                combinedSetterStatements += `; ${secondSetterStatement}`;
-            } else {
-                combinedSetterStatements = secondSetterStatement;
+    function toggleImageInfo(text) {
+        const finalText = interpolateHotspotText(text);
+        if (typeof State !== 'undefined' && State.variables) State.variables.tempInfoDisplay = finalText;
+        const container = document.getElementById('twineImageInfoDisplay');
+        if (container) {
+            if (!finalText) { jQuery(container).hide(); }
+            else {
+                // Utilitzem l'HTML simple perquè el CSS ja s'encarrega de l'estil
+                container.innerHTML = finalText;
+                jQuery(container).show();
             }
-            console.log("DEBUG: Combined Setter Statements for execution:", combinedSetterStatements);
+        }
+    }
+
+    function executeHotspotSetters(hotspotElement) {
+        const el = jQuery(hotspotElement);
+        let combinedSetterStatements = el.attr('data-setter') || '';
+
+        const var1 = el.attr('data-variable') || el.attr('data_variable');
+        const val1 = el.attr('data-valor') || el.attr('data_valor');
+        if (var1 && val1) {
+             const stmt = `${var1} ${val1}`;
+             combinedSetterStatements = combinedSetterStatements ? `${combinedSetterStatements}; ${stmt}` : stmt;
+        }
+
+        const var2 = el.data('variable-2');
+        const val2 = el.data('valor-2');
+        if (var2 && val2) {
+            const stmt = `${var2} ${val2}`;
+            combinedSetterStatements = combinedSetterStatements ? `${combinedSetterStatements}; ${stmt}` : stmt;
         }
 
         if (!combinedSetterStatements || typeof State === 'undefined' || typeof State.variables === 'undefined') return;
@@ -159,282 +295,159 @@ jQuery(document).ready(function () {
             const trimmedStmt = stmt.trim();
             if (!trimmedStmt) return;
             const match = trimmedStmt.match(/^\s*(\$\w+)\s*(=|\+=|-=|\*=|\/=)\s*(.*)\s*$/);
-            if (!match) {
-                console.warn("ADVERTENCIA: Setter no reconegut o mal formatat:", trimmedStmt);
-                return;
-            }
+            if (!match) return;
 
             const varName = match[1].substring(1);
             const operator = match[2];
             let valueStr = match[3];
 
             let value;
-            if (!isNaN(Number(valueStr))) {
-                value = Number(valueStr);
-            } else if (valueStr === 'true') {
-                value = true;
-            } else if (valueStr === 'false') {
-                value = false;
-            } else if (valueStr.startsWith('$')) {
+            if (!isNaN(Number(valueStr))) value = Number(valueStr);
+            else if (valueStr === 'true') value = true;
+            else if (valueStr === 'false') value = false;
+            else if (valueStr.startsWith('$')) {
                 const targetVarName = valueStr.substring(1);
                 value = vars[targetVarName];
-            } else {
-                value = valueStr.replace(/^['"]|['"]$/g, '');
-            }
+            } else value = valueStr.replace(/^['"]|['"]$/g, '');
 
-            if (vars[varName] === undefined) {
-                vars[varName] = (typeof value === 'number') ? 0 : "";
-            }
+            if (vars[varName] === undefined) vars[varName] = (typeof value === 'number') ? 0 : "";
 
             switch (operator) {
-                case '=':
-                    vars[varName] = value;
-                    break;
-                case '+=':
-                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] += value;
-                    else vars[varName] += String(value);
-                    break;
-                case '-=':
-                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] -= value;
-                    else console.warn(`ADVERTENCIA: Intent de restar un valor no numèric de ${varName} o ${value}.`);
-                    break;
-                case '*=':
-                    if (typeof value === 'number' && typeof vars[varName] === 'number') vars[varName] *= value;
-                    else console.warn(`ADVERTENCIA: Intent de multiplicar amb un valor no numèric de ${varName} o ${value}.`);
-                    break;
-                case '/=':
-                    if (typeof value === 'number' && typeof vars[varName] === 'number') {
-                        if (value !== 0) vars[varName] /= value;
-                        else console.error(`ERROR: Divisió per zero en ${varName} /= ${value}.`);
-                    } else {
-                        console.warn(`ADVERTENCIA: Intent de dividir amb un valor no numèric de ${varName} o ${value}.`);
-                    }
-                    break;
-                default:
-                    console.warn("ADVERTENCIA: Operador no suportat pel setter:", operator);
+                case '=': vars[varName] = value; break;
+                case '+=': vars[varName] += value; break;
+                case '-=': vars[varName] -= value; break;
+                case '*=': vars[varName] *= value; break;
+                case '/=': if (value !== 0) vars[varName] /= value; break;
             }
         });
+        
+        Object.assign(window.AdventureGlobalVars, vars);
+        console.log("Hotspot: Variables sincronitzades:", window.AdventureGlobalVars);
     }
 
-    // Gestió de 'mouseenter' per mostrar informació i reproduir so
+    // --- ESDEVENIMENTS MOUSE/CLICK ---
+
     jQuery(document).on('mouseenter', '.hotspot-item', function () { 
-        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
-        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
-        const limitVisitEnter = jQuery(this).attr('data-visit-limit-enter'); 
-        const soundFailId = jQuery(this).data('sound-fail'); 
-
-        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
-        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
-            console.log(`DEBUG: Mouseenter - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text d'entrada:`, limitVisitEnter);
-            toggleImageInfo(limitVisitEnter);
-            playHotspotSound(soundFailId); 
-            return; 
+        const el = jQuery(this);
+        const limit = parseInt(el.data('visit-limit'));
+        const id = el.attr('alt');
+        
+        if (!isNaN(limit) && State.variables.hotspotClicks[id] >= limit) {
+            toggleImageInfo(el.attr('data-visit-limit-enter'));
+            playHotspotSound(el.data('sound-fail'));
+            return;
         }
 
-        const conditionVarName = jQuery(this).data('condition-var');
-        const conditionVal = jQuery(this).data('condition-val');
-        const infoText = jQuery(this).attr('data_info');
-        const failEnterInfo = jQuery(this).attr('text_fail_enter');
-        const soundId = jQuery(this).data('sound'); 
-
-        const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
-
-        if (isConditionMet) {
-            if (infoText) {
-                toggleImageInfo(infoText);
-            } else {
-                toggleImageInfo(''); 
-            }
-            playHotspotSound(soundId); // So normal de mouseenter
+        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+            toggleImageInfo(el.attr('data_info'));
+            playHotspotSound(el.data('sound'));
         } else {
-            if (failEnterInfo) {
-                toggleImageInfo(failEnterInfo);
-            } else {
-                toggleImageInfo(''); 
-            }
-            playHotspotSound(soundFailId); // So de fallada de mouseenter
+            toggleImageInfo(el.attr('text_fail_enter'));
+            playHotspotSound(el.data('sound-fail'));
         }
     });
 
-    // Gestió de 'mouseleave' per amagar informació i aturar sons (només sons d'hover)
     jQuery(document).on('mouseleave', '.hotspot-item', function () { 
-        toggleImageInfo(''); 
-
-        const soundId = jQuery(this).data('sound');
-        const soundFailId = jQuery(this).data('sound-fail');
-
-        // Atura només els sons de mouseenter
-        if (soundId) { 
-            stopHotspotSound(soundId);
-        }
-        if (soundFailId) { 
-            stopHotspotSound(soundFailId);
-        }
+        toggleImageInfo('');
+        stopHotspotSound(jQuery(this).data('sound'));
+        stopHotspotSound(jQuery(this).data('sound-fail'));
     });
 
-
-    // Gestió de clics en hotspots amb data-passage
-    jQuery(document).on('click', 'area.hotspot-item[data-passage]', function () {
-        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
-        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
-        const limitVisitClic = jQuery(this).attr('data-visit-limit-clic'); 
+    jQuery(document).on('click', 'area.hotspot-item[data-action="dialog"]', function (e) {
+        e.preventDefault(); 
+        const el = jQuery(this);
+        const id = el.attr('alt');
         
-        const soundId = jQuery(this).data('sound'); // So de mouseenter exitós
-        const soundFailId = jQuery(this).data('sound-fail'); // So de mouseenter fallat
-        const soundClickId = jQuery(this).data('sound-click'); // NOU: So de clic exitós
-        const soundClickFailId = jQuery(this).data('sound-click-fail'); // NOU: So de clic fallat
-        const transitionArrive = jQuery(this).data('transition-arrive'); // NOU: Transició d'arribada
+        let targetId = el.data('target');
+        const dialogId = el.data('dialog-id');
+        const charId = el.data('character');
 
-        // ATURA ELS SONS DE HOVER (mouse enter/fail) abans de qualsevol altra cosa en aquest hotspot
-        stopHotspotSound(soundId);
-        stopHotspotSound(soundFailId);
-
-        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
-        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
-            console.log(`DEBUG: Clic - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text de clic:`, limitVisitClic, ". No es navega.");
-            toggleImageInfo(limitVisitClic);
-            // Si hi ha so de clic fallat, sona. Si no, no sona res.
-            if (soundClickFailId) { 
-                playHotspotSound(soundClickFailId); 
+        if (!targetId) {
+            const searchId = dialogId || charId;
+            if (searchId) {
+                if (document.getElementById(searchId)) targetId = searchId;
+                else targetId = 'dialogue-data-' + searchId;
             }
-            return; 
         }
 
-        const passageName = jQuery(this).data('passage');
-        const conditionVarName = jQuery(this).data('condition-var');
-        const conditionVal = jQuery(this).data('condition-val');
-        const failClickInfo = jQuery(this).attr('text_fail_clic');
+        const limit = parseInt(el.data('visit-limit'));
+        if (!isNaN(limit) && State.variables.hotspotClicks[id] >= limit) {
+            toggleImageInfo(el.attr('data-visit-limit-clic'));
+            playHotspotSound(el.data('sound-click-fail'));
+            return;
+        }
+
+        if (!evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+            toggleImageInfo(el.attr('text_fail_clic'));
+            playHotspotSound(el.data('sound-click-fail'));
+            return;
+        }
+
+        executeHotspotSetters(this);
+        if (!isNaN(limit)) State.variables.hotspotClicks[id] = (State.variables.hotspotClicks[id] || 0) + 1;
+        playHotspotSound(el.data('sound-click'));
         
+        const info2 = el.attr('data_info_2');
+        if (info2) toggleImageInfo(info2);
 
-        if (passageName && typeof State !== 'undefined' && State.variables) {
-            const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
-
-            if (isConditionMet) {
-                // Executem els setters abans de la navegació si la condició es compleix
-                executeHotspotSetters(this); // 'this' es refereix a l'element 'area' clicat
-
-                if (!isNaN(visitLimit)) { 
-                    State.variables.hotspotClicks[hotspotId] = (State.variables.hotspotClicks[hotspotId] || 0) + 1;
-                }
-                // Si hi ha so de clic exitós, sona. Si no, no sona res.
-                if (soundClickId) {
-                    playHotspotSound(soundClickId); 
-                }
-                
-                // NOU: Estableix la transició d'arribada abans de navegar
-                State.variables.tempPassageTransition = transitionArrive || ""; 
-
-                State.variables.retornA = passageName; 
-                const link = jQuery("tw-link").filter(function () {
-                    const text = jQuery(this).text().trim();
-                    return text.toLowerCase() === passageName.trim().toLowerCase();
-                });
-                if (link.length > 0) {
-                    link.click(); 
-                } else {
-                    console.warn("ADVERTENCIA: No s'ha trobat <tw-link> per a la navegació Harlowe:", passageName);
-                }
-            } else {
-                // Si hi ha so de clic fallat, sona. Si no, no sona res.
-                if (soundClickFailId) {
-                    playHotspotSound(soundClickFailId);
-                }
-                if (failClickInfo) {
-                    toggleImageInfo(failClickInfo); 
-                } else {
-                    toggleImageInfo(''); 
+        if (targetId) {
+            const scriptEl = document.getElementById(targetId);
+            if (scriptEl && scriptEl.innerHTML) {
+                if (window.AdventureEngine) {
+                    window.AdventureEngine.init(scriptEl.innerHTML);
                 }
             }
         }
     });
 
-    // Gestió de clics en hotspots amb data-setter
-    jQuery(document).on('click', 'area.hotspot-item[data-setter]', function () {
-        const hotspotId = jQuery(this).attr('alt'); // Utilitzem l'alt com a ID únic
-        const visitLimit = parseInt(jQuery(this).data('visit-limit'));
-        const limitVisitClic = jQuery(this).attr('data-visit-limit-clic'); 
+    jQuery(document).on('click', 'area.hotspot-item[data-passage]', function (e) {
+        e.preventDefault();
+        const el = jQuery(this);
+        const passage = el.data('passage');
         
-        const soundId = jQuery(this).data('sound'); // So de mouseenter exitós
-        const soundFailId = jQuery(this).data('sound-fail'); // So de mouseenter fallat
-        const soundClickId = jQuery(this).data('sound-click'); // NOU: So de clic exitós
-        const soundClickFailId = jQuery(this).data('sound-click-fail'); // NOU: So de clic fallat
-
-        // ATURA ELS SONS DE HOVER (mouse enter/fail) abans de qualsevol altra cosa en aquest hotspot
-        stopHotspotSound(soundId);
-        stopHotspotSound(soundFailId);
-
-        // Comprovem si el hotspot té un límit de visites i si aquest s'ha superat
-        if (!isNaN(visitLimit) && State.variables.hotspotClicks[hotspotId] >= visitLimit) {
-            console.log(`DEBUG: Clic - Límit de visites (${hotspotId}) assolit: ${State.variables.hotspotClicks[hotspotId]}/${visitLimit}. Text de clic:`, limitVisitClic, ". No s'executa setter.");
-            toggleImageInfo(limitVisitClic);
-            // Si hi ha so de clic fallat, sona. Si no, no sona res.
-            if (soundClickFailId) {
-                playHotspotSound(soundClickFailId); 
-            }
-            return; 
-        }
-
-        const conditionVarName = jQuery(this).data('condition-var');
-        const conditionVal = jQuery(this).data('condition-val');
-        const failClickInfo = jQuery(this).attr('text_fail_clic'); 
-        const infoText2 = jQuery(this).attr('data_info_2');
-        const infoText = jQuery(this).attr('data_info'); 
-        
-
-        const isConditionMet = evaluateCondition(conditionVarName, conditionVal);
-
-        if (isConditionMet) {
-            // Executem els setters si la condició es compleix
-            executeHotspotSetters(this); // 'this' es refereix a l'element 'area' clicat
-
-            if (!isNaN(visitLimit)) { 
-                State.variables.hotspotClicks[hotspotId] = (State.variables.hotspotClicks[hotspotId] || 0) + 1;
-            }
-
-            // Si hi ha so de clic exitós, sona. Si no, no sona res.
-            if (soundClickId) {
-                playHotspotSound(soundClickId); 
-            }
-            // El display d'informació s'actualitza després d'executar els setters, per si les variables canvien els textos
-            if (infoText2) {
-                 toggleImageInfo(infoText2);
-            } else {
-                toggleImageInfo(infoText);
-            }
+        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+            executeHotspotSetters(this);
+            playHotspotSound(el.data('sound-click'));
+            
+            const info2 = el.attr('data_info_2');
+            if (info2) toggleImageInfo(info2);
+            
+            const link = jQuery("tw-link").filter((i,e) => jQuery(e).text().trim().toLowerCase() === passage.trim().toLowerCase());
+            if (link.length) link.click();
         } else {
-            // Si hi ha so de clic fallat, sona. Si no, no sona res.
-            if (soundClickFailId) {
-                playHotspotSound(soundClickFailId);
-            }
-            if (failClickInfo) {
-                toggleImageInfo(failClickInfo); 
-            } else {
-                toggleImageInfo('');
-            }
+            toggleImageInfo(el.attr('text_fail_clic'));
+            playHotspotSound(el.data('sound-click-fail'));
         }
     });
+    
+    jQuery(document).on('click', 'area.hotspot-item[data-setter]:not([data-passage]):not([data-action="dialog"])', function (e) {
+        e.preventDefault();
+        const el = jQuery(this);
+        const id = el.attr('alt');
+        const limit = parseInt(el.data('visit-limit'));
 
-    // Esdeveniments de passatge
-    // NOU: Atura tots els sons dels hotspots i neteja la variable de transició quan un passatge s'inicia o es mostra
-    jQuery(document).on(':passagedisplay', function() {
-        stopAllHotspotSounds(); // Atura tots els sons en el display del passatge
-        if (typeof State !== 'undefined' && State.variables) {
-            State.variables.tempInfoDisplay = '';
+        if (!isNaN(limit) && State.variables.hotspotClicks[id] >= limit) {
+             toggleImageInfo(el.attr('data-visit-limit-clic'));
+             playHotspotSound(el.data('sound-click-fail'));
+             return;
         }
-        jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).empty().hide();
-    });
 
-    jQuery(document).on(':passageinit', function() {
-        stopAllHotspotSounds(); // Atura tots els sons en la inicialització del passatge (aquesta és més robusta)
-        if (typeof State !== 'undefined' && State.variables) {
-            State.variables.tempInfoDisplay = '';
-            // NOU: Neteja la variable de transició en la inicialització del passatge
-            // Aquesta és una segona línia de defensa per si la de Harlowe no es crida per alguna raó.
-            State.variables.tempPassageTransition = ""; 
+        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+            executeHotspotSetters(this);
+            if (!isNaN(limit)) State.variables.hotspotClicks[id] = (State.variables.hotspotClicks[id] || 0) + 1;
+            
+            playHotspotSound(el.data('sound-click'));
+            
+            const info2 = el.attr('data_info_2');
+            toggleImageInfo(info2 ? info2 : el.attr('data_info'));
+        } else {
+            toggleImageInfo(el.attr('text_fail_clic'));
+            playHotspotSound(el.data('sound-click-fail'));
         }
-        jQuery('#' + TWINE_IMAGE_INFO_DISPLAY_ID).empty().hide(); 
     });
 });
+
+
 
 
 
