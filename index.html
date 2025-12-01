@@ -758,6 +758,9 @@
                         characterName: '',
                         jsonContent: '',
                         jsonFileName: '',
+                        infoTextDialog: '', soundDialog: '', titleTextDialog: '',
+                        dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
+                        dialogSoundFail: '', dialogSoundClickFail: '',
                         
                         passageConditionVariable: '', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
                         passageSoundFail: '', passageSoundClickFail: '',
@@ -802,60 +805,40 @@
 
         // Function to update visibility of inner fields (secondary variable, condition, visit limit)
         function updateInnerFieldVisibility(hotspot, itemElement) {
-            // Get both sections
+            // Get all sections
             const passageSection = itemElement.querySelector('.passage-specific-fields');
             const setterSection = itemElement.querySelector('.setter-specific-fields');
             const dialogSection = itemElement.querySelector('.dialog-specific-fields');
 
-            // Process Passage section if it exists
-            if (passageSection) {
-                const secondaryFieldsContainer = passageSection.querySelector('.secondary-variable-fields');
-                const enableSecondaryCheckbox = passageSection.querySelector('[data-field="enableSecondaryVariable"]');
+            // Generic function to update visibility for any section
+            const updateSectionVisibility = (section) => {
+                if (!section) return;
+
+                const secondaryFieldsContainer = section.querySelector('.secondary-variable-fields');
+                const enableSecondaryCheckbox = section.querySelector('[data-field="enableSecondaryVariable"]');
                 if (secondaryFieldsContainer && enableSecondaryCheckbox) {
                     secondaryFieldsContainer.classList.toggle('hidden-field', !hotspot.enableSecondaryVariable);
-                    enableSecondaryCheckbox.checked = hotspot.enableSecondaryVariable; // Sync checkbox state
+                    enableSecondaryCheckbox.checked = hotspot.enableSecondaryVariable;
                 }
 
-                const conditionFieldsContainer = passageSection.querySelector('.condition-fields-container');
-                const enableConditionCheckbox = passageSection.querySelector('[data-field="enableConditionVariable"]');
+                const conditionFieldsContainer = section.querySelector('.condition-fields-container');
+                const enableConditionCheckbox = section.querySelector('[data-field="enableConditionVariable"]');
                 if (conditionFieldsContainer && enableConditionCheckbox) {
                     conditionFieldsContainer.classList.toggle('hidden-field', !hotspot.enableConditionVariable);
-                    enableConditionCheckbox.checked = hotspot.enableConditionVariable; // Sync checkbox state
+                    enableConditionCheckbox.checked = hotspot.enableConditionVariable;
                 }
                 
-                // New logic for visit limit section visibility (Passage)
-                const visitLimitSectionContainer = passageSection.querySelector('.visit-limit-section-container');
-                const enableVisitLimitCheckbox = passageSection.querySelector('[data-field="enableVisitLimit"]');
+                const visitLimitSectionContainer = section.querySelector('.visit-limit-section-container');
+                const enableVisitLimitCheckbox = section.querySelector('[data-field="enableVisitLimit"]');
                 if (visitLimitSectionContainer && enableVisitLimitCheckbox) {
                     visitLimitSectionContainer.classList.toggle('hidden-field', !hotspot.enableVisitLimit);
-                    enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit; // Sync checkbox state
+                    enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit;
                 }
-            }
+            };
 
-            // Process Setter section if it exists
-            if (setterSection) {
-                const secondaryFieldsContainer = setterSection.querySelector('.secondary-variable-fields');
-                const enableSecondaryCheckbox = setterSection.querySelector('[data-field="enableSecondaryVariable"]');
-                if (secondaryFieldsContainer && enableSecondaryCheckbox) {
-                    secondaryFieldsContainer.classList.toggle('hidden-field', !hotspot.enableSecondaryVariable);
-                    enableSecondaryCheckbox.checked = hotspot.enableSecondaryVariable; // Sync checkbox state
-                }
-
-                const conditionFieldsContainer = setterSection.querySelector('.condition-fields-container');
-                const enableConditionCheckbox = setterSection.querySelector('[data-field="enableConditionVariable"]');
-                if (conditionFieldsContainer && enableConditionCheckbox) {
-                    conditionFieldsContainer.classList.toggle('hidden-field', !hotspot.enableConditionVariable);
-                    enableConditionCheckbox.checked = hotspot.enableConditionVariable; // Sync checkbox state
-                }
-
-                // New logic for visit limit section visibility (Setter)
-                const visitLimitSectionContainer = setterSection.querySelector('.visit-limit-section-container');
-                const enableVisitLimitCheckbox = setterSection.querySelector('[data-field="enableVisitLimit"]');
-                if (visitLimitSectionContainer && enableVisitLimitCheckbox) {
-                    visitLimitSectionContainer.classList.toggle('hidden-field', !hotspot.enableVisitLimit);
-                    enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit; // Sync checkbox state
-                }
-            }
+            updateSectionVisibility(passageSection);
+            updateSectionVisibility(setterSection);
+            updateSectionVisibility(dialogSection);
         }
 
         // Function to render hotspots in the image editor and configuration panel
@@ -1000,6 +983,48 @@
                             <span class="json-file-status" style="margin-left: 10px; font-size: 0.9em; color: #666; font-style: italic;">${escapeHtml(hotspot.jsonFileName || 'Cap fitxer carregat')}</span>
                         </div>
                         <input type="text" data-field="characterName" value="${escapeHtml(hotspot.characterName || '')}" placeholder="S'omplirà automàticament (id_dialogue)" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                        
+                        <div class="two-column-layout">
+                            <div class="column">
+                                <label>Text (mouse enter):</label><textarea data-field="infoTextDialog">${escapeHtml(hotspot.infoTextDialog)}</textarea>
+                                <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="soundDialog" value="${escapeHtml(hotspot.soundDialog || '')}">
+                                <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleTextDialog" value="${escapeHtml(hotspot.titleTextDialog || '')}">
+                            </div>
+                            <div class="column condition-inputs-wrapper">
+                                <div class="condition-toggle-container">
+                                    <label class="strong-red-label">
+                                        <input type="checkbox" data-field="enableConditionVariable" ${hotspot.enableConditionVariable ? 'checked' : ''}> Activar Condició
+                                    </label>
+                                </div>
+                                <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
+                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="dialogConditionVariable" value="${escapeHtml(hotspot.dialogConditionVariable || '')}" placeholder="Ej: $clau">
+                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="dialogConditionValue" value="${escapeHtml(hotspot.dialogConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="dialogFailInfoEnter">${escapeHtml(hotspot.dialogFailInfoEnter)}</textarea>
+                                    <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="dialogFailInfo">${escapeHtml(hotspot.dialogFailInfo)}</textarea>
+                                    <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="dialogSoundClickFail" value="${escapeHtml(hotspot.dialogSoundClickFail || '')}">
+                                    <label class="condition-label">So (mouse enter - mentre no s'assoleix la condició):</label><input type="text" data-field="dialogSoundFail" value="${escapeHtml(hotspot.dialogSoundFail || '')}">
+                                </div>
+                                <div class="visit-limit-toggle-container">
+                                    <label class="darkyellow-label">
+                                        <input type="checkbox" data-field="enableVisitLimit" ${hotspot.enableVisitLimit ? 'checked' : ''}> Límit de visites
+                                    </label>
+                                </div>
+                                <div class="visit-limit-section-container ${hotspot.enableVisitLimit ? '' : 'hidden-field'}">
+                                    <label class="limit-label">Número de visites:</label><input type="number" data-field="visitLimit" value="${escapeHtml(hotspot.visitLimit || '')}" placeholder="">
+                                    <label class="limit-label">Text de límit de visites (mouse enter):</label><textarea data-field="visitLimitTextEnter">${escapeHtml(hotspot.visitLimitTextEnter)}</textarea>
+                                    <label class="limit-label">Text de límit de visites (clic):</label><textarea data-field="visitLimitTextClic">${escapeHtml(hotspot.visitLimitTextClic)}</textarea>
+                                </div>
+                                <div class="secondary-variable-toggle-container">
+                                    <label class="darkblue-label">
+                                        <input type="checkbox" data-field="enableSecondaryVariable" ${hotspot.enableSecondaryVariable ? 'checked' : ''}> Variable secundària
+                                    </label>
+                                </div>
+                                <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
+                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
+                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="hotspot-section passage-specific-fields ${hotspot.type==='passage'?'':'hidden-field'}">
@@ -1117,6 +1142,30 @@
                                 try {
                                     // Parse JSON to find id_dialogue
                                     const json = JSON.parse(content);
+
+                                    // Function to recursively find and update avatarURL based on avatarFilename
+                                    const updateAvatarURLs = (obj) => {
+                                        if (Array.isArray(obj)) {
+                                            obj.forEach(updateAvatarURLs);
+                                        } else if (typeof obj === 'object' && obj !== null) {
+                                            // If current object has avatarFileName (capital N), update avatarUrl (lower l)
+                                            if (obj.avatarFileName && typeof obj.avatarFileName === 'string') {
+                                                // Ensure avatarUrl exists or create it
+                                                obj.avatarUrl = `imatges/${obj.avatarFileName}`;
+                                            }
+                                            
+                                            // Recurse into properties
+                                            for (const key in obj) {
+                                                // Avoid infinite loops if circular reference, though JSON.parse usually prevents this
+                                                if (typeof obj[key] === 'object') {
+                                                    updateAvatarURLs(obj[key]);
+                                                }
+                                            }
+                                        }
+                                    };
+
+                                    updateAvatarURLs(json);
+
                                     if (json && json.id_dialogue) {
                                         hotspot.characterName = json.id_dialogue;
                                         // Update the input field visibly immediately
@@ -1124,7 +1173,7 @@
                                         if (charInput) charInput.value = hotspot.characterName;
                                     }
                                     
-                                    hotspot.jsonContent = content;
+                                    hotspot.jsonContent = JSON.stringify(json, null, 2); // Store modified JSON
                                     hotspot.jsonFileName = file.name;
                                     jsonStatus.textContent = file.name;
                                     generateTwineCode();
@@ -1236,6 +1285,41 @@
                     }
                 });
 
+                // Listeners for Dialog Specific Fields
+                ['infoTextDialog', 'soundDialog', 'titleTextDialog'].forEach(f => {
+                    const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                // Dialog-specific condition fields listeners
+                ['dialogConditionVariable', 'dialogConditionValue', 'dialogSoundFail', 'dialogSoundClickFail'].forEach(f => {
+                    const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+                // Textarea fields for dialog condition
+                ['dialogFailInfo', 'dialogFailInfoEnter'].forEach(f => {
+                    const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener('input', e => {
+                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
                 // Event listeners for secondary variable fields (common to both types)
                 // Attach to the checkbox within the passage section
                 const pEnableSecondaryVariableCheckbox = pFields.querySelector('[data-field="enableSecondaryVariable"]');
@@ -1257,6 +1341,16 @@
                         hideCopyFeedback();
                     });
                 }
+                // Attach to the checkbox within the dialog section
+                const dEnableSecondaryVariableCheckbox = dFields.querySelector('[data-field="enableSecondaryVariable"]');
+                if (dEnableSecondaryVariableCheckbox) {
+                    dEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableSecondaryVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
 
                 // Also attach listeners for the secondary fields themselves (variable2, valor2)
                 // These are common, so we need to find them in both sections
@@ -1264,11 +1358,15 @@
                 const pValor2Input = pFields.querySelector('[data-field="valor2"]');
                 const sVariable2Input = sFields.querySelector('[data-field="variable2"]');
                 const sValor2Input = sFields.querySelector('[data-field="valor2"]');
+                const dVariable2Input = dFields.querySelector('[data-field="variable2"]');
+                const dValor2Input = dFields.querySelector('[data-field="valor2"]');
 
                 if (pVariable2Input) pVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (pValor2Input) pValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (sVariable2Input) sVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (sValor2Input) sValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (dVariable2Input) dVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (dValor2Input) dValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
 
 
                 // Passage-specific condition fields listeners
@@ -1337,6 +1435,15 @@
                         hideCopyFeedback();
                     });
                 }
+                const dEnableVisitLimitCheckbox = dFields.querySelector('[data-field="enableVisitLimit"]');
+                if (dEnableVisitLimitCheckbox) {
+                    dEnableVisitLimitCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableVisitLimit = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
 
                 // Visit Limit text fields listeners (common for both types)
                 const pVisitLimitInput = pFields.querySelector('[data-field="visitLimit"]');
@@ -1355,16 +1462,28 @@
                         hideCopyFeedback();
                     });
                 }
+                const dVisitLimitInput = dFields.querySelector('[data-field="visitLimit"]');
+                if (dVisitLimitInput) {
+                    dVisitLimitInput.addEventListener('input', (e) => {
+                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
 
                 const pVisitLimitTextEnter = pFields.querySelector('[data-field="visitLimitTextEnter"]');
                 const pVisitLimitTextClic = pFields.querySelector('[data-field="visitLimitTextClic"]');
                 const sVisitLimitTextEnter = sFields.querySelector('[data-field="visitLimitTextEnter"]');
                 const sVisitLimitTextClic = sFields.querySelector('[data-field="visitLimitTextClic"]');
+                const dVisitLimitTextEnter = dFields.querySelector('[data-field="visitLimitTextEnter"]');
+                const dVisitLimitTextClic = dFields.querySelector('[data-field="visitLimitTextClic"]');
 
                 if (pVisitLimitTextEnter) pVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (pVisitLimitTextClic) pVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (sVisitLimitTextEnter) sVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (sVisitLimitTextClic) sVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (dVisitLimitTextEnter) dVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                if (dVisitLimitTextClic) dVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
 
 
                 // Event listener for the NEW "enableConditionVariable" checkbox
@@ -1382,6 +1501,16 @@
                 const sEnableConditionVariableCheckbox = sFields.querySelector('[data-field="enableConditionVariable"]');
                 if (sEnableConditionVariableCheckbox) {
                     sEnableConditionVariableCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableConditionVariable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item);
+                        generateTwineCode();
+                        hideCopyFeedback();
+                    });
+                }
+                // Attach to the checkbox within the dialog section
+                const dEnableConditionVariableCheckbox = dFields.querySelector('[data-field="enableConditionVariable"]');
+                if (dEnableConditionVariableCheckbox) {
+                    dEnableConditionVariableCheckbox.addEventListener('change', (e) => {
                         hotspot.enableConditionVariable = e.target.checked;
                         updateInnerFieldVisibility(hotspot, item);
                         generateTwineCode();
@@ -1444,21 +1573,39 @@
                 if (hotspot.type === 'dialog') {
                      areaTag += `            data-action="dialog"\n`;
                      if (hotspot.characterName) areaTag += `            data-character="${escapeHtml(hotspot.characterName)}"\n`;
-                     areaTag += `            data-dialog-id="${hotspot.id}"\n`; // Link to the appended JSON script
+                     
+                     // Dialog specific generic attributes
+                     if (hotspot.infoTextDialog) areaTag += `            data_info="${escapeHtml(hotspot.infoTextDialog)}"\n`;
+                     if (hotspot.soundDialog) areaTag += `            data-sound="${escapeHtml(hotspot.soundDialog)}"\n`; 
+                     if (hotspot.titleTextDialog) areaTag += `            title="${escapeHtml(hotspot.titleTextDialog)}"\n`;
+
+                     // Dialog specific conditions - STRICT CHECK
+                     if (hotspot.enableConditionVariable && hotspot.dialogConditionVariable && hotspot.dialogConditionValue) {
+                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.dialogConditionVariable))}"\n`;
+                        areaTag += `            data-condition-val="${escapeHtml(hotspot.dialogConditionValue)}"\n`;
+                        if (hotspot.dialogFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.dialogFailInfo)}"\n`;
+                        if (hotspot.dialogFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.dialogFailInfoEnter)}"\n`;
+                        if (hotspot.dialogSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.dialogSoundFail)}"\n`;
+                        if (hotspot.dialogSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.dialogSoundClickFail)}"\n`;
+                    }
+                    
+                    // Secondary Setter attributes for dialog type - STRICT CHECK
+                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
+                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
+                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
+                    }
                 }
                 
                 // Condition attributes are now type-specific
                 if (hotspot.type === 'passage') {
-                    // Only include condition attributes if enabled or has values
-                    if (hotspot.enableConditionVariable || (hotspot.passageConditionVariable && hotspot.passageConditionValue)) {
-                        if (hotspot.passageConditionVariable && hotspot.passageConditionValue) {
-                            areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.passageConditionVariable))}"\n`;
-                            areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
-                            if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
-                            if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
-                            if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`; // mouse enter
-                            if (hotspot.passageSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.passageSoundClickFail)}"\n`; // click
-                        }
+                    // Only include condition attributes if enabled AND has values - STRICT CHECK
+                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
+                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.passageConditionVariable))}"\n`;
+                        areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
+                        if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
+                        if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
+                        if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`; // mouse enter
+                        if (hotspot.passageSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.passageSoundClickFail)}"\n`; // click
                     }
                     // Only include data-sound if it has a value
                     if (hotspot.sound) areaTag += `            data-sound="${escapeHtml(hotspot.sound)}"\n`; // mouse enter
@@ -1470,23 +1617,21 @@
                     if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`; // NEW ARRIVE TRANSITION
                     if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`; // Moved to end
 
-                    // Secondary Setter attributes for passage type (only if enabled or has values)
-                    if (hotspot.enableSecondaryVariable || (hotspot.variable2 && hotspot.valor2)) {
-                        if (hotspot.variable2) areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
-                        if (hotspot.valor2) areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
+                    // Secondary Setter attributes for passage type (only if enabled AND has values) - STRICT CHECK
+                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
+                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
+                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
                     }
 
                 } else if (hotspot.type === 'setter') {
-                    // Only include condition attributes if enabled or has values
-                    if (hotspot.enableConditionVariable || (hotspot.setterConditionVariable && hotspot.setterConditionValue)) {
-                        if (hotspot.setterConditionVariable && hotspot.setterConditionValue) {
-                            areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.setterConditionVariable))}"\n`;
-                            areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
-                            if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
-                            if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
-                            if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`; // mouse enter
-                            if (hotspot.setterSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.setterSoundClickFail)}"\n`; // click
-                        }
+                    // Only include condition attributes if enabled AND has values - STRICT CHECK
+                    if (hotspot.enableConditionVariable && hotspot.setterConditionVariable && hotspot.setterConditionValue) {
+                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.setterConditionVariable))}"\n`;
+                        areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
+                        if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
+                        if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
+                        if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`; // mouse enter
+                        if (hotspot.setterSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.setterSoundClickFail)}"\n`; // click
                     }
                     // Only include data-sound if it has a value
                     if (hotspot.soundSetter) areaTag += `            data-sound="${escapeHtml(hotspot.soundSetter)}"\n`; // mouse enter
@@ -1526,14 +1671,14 @@
                     if (formattedVariableName) areaTag += `            data_variable="${escapeHtml(formattedVariableName)}"\n`;
                     if (hotspot.valor) areaTag += `            data_valor="${escapeHtml(hotspot.valor)}"\n`;
 
-                    // Secondary Setter attributes (only if enabled or has values)
-                    if (hotspot.enableSecondaryVariable || (hotspot.variable2 && hotspot.valor2)) {
-                        if (hotspot.variable2) areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
-                        if (hotspot.valor2) areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
+                    // Secondary Setter attributes (only if enabled AND has values) - STRICT CHECK
+                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
+                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
+                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
                     }
                 }
 
-                // Visit Limit attributes (common for both types), only if enabled
+                // Visit Limit attributes (common for both types), only if enabled - STRICT CHECK
                 if (hotspot.enableVisitLimit) {
                     if (hotspot.visitLimit) areaTag += `            data-visit-limit="${escapeHtml(hotspot.visitLimit)}"\n`;
                     if (hotspot.visitLimitTextEnter) areaTag += `            data-visit-limit-enter="${escapeHtml(hotspot.visitLimitTextEnter)}"\n`;
@@ -1573,20 +1718,16 @@
                     }
 
                     let harloweLink = '';
-                    // Only generate conditional link if enabled or has values
-                    if (hotspot.enableConditionVariable || (hotspot.passageConditionVariable && hotspot.passageConditionValue)) {
-                        if (hotspot.passageConditionVariable && hotspot.passageConditionValue) { // Use passage-specific condition
-                            let conditionValueFormatted = hotspot.passageConditionValue;
-                            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => conditionValueFormatted.trim().startsWith(op));
-                            if (!isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
-                                conditionValueFormatted = `is ${conditionValueFormatted}`;
-                            } else if (isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
-                                conditionValueFormatted = `is "${conditionValueFormatted.replace(/"/g, '\\"')}"`;
-                            }
-                            harloweLink = `    (if: ${formatVariable(hotspot.passageConditionVariable)} ${conditionValueFormatted})[(link: "${passageNameForLink}")[${harloweLinkContent}]]`;
-                        } else {
-                            harloweLink = `    (link: "${passageNameForLink}")[${harloweLinkContent}]`;
+                    // Only generate conditional link if enabled AND has values - STRICT CHECK
+                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
+                        let conditionValueFormatted = hotspot.passageConditionValue;
+                        const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => conditionValueFormatted.trim().startsWith(op));
+                        if (!isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
+                            conditionValueFormatted = `is ${conditionValueFormatted}`;
+                        } else if (isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
+                            conditionValueFormatted = `is "${conditionValueFormatted.replace(/"/g, '\\"')}"`;
                         }
+                        harloweLink = `    (if: ${formatVariable(hotspot.passageConditionVariable)} ${conditionValueFormatted})[(link: "${passageNameForLink}")[${harloweLinkContent}]]`;
                     } else {
                         harloweLink = `    (link: "${passageNameForLink}")[${harloweLinkContent}]`;
                     }
@@ -1601,10 +1742,10 @@
             hotspots.forEach(h => {
                 if (h.type === 'dialog' && h.jsonContent) {
                     hasJson = true;
-                    // Updated comment as requested: uses the hotspot name, not character name
-                    twineCode += `\n<!-- Dades de diàleg per al hotspot ${h.id} (${escapeHtml(h.name)}) -->\n`;
+                    // Updated comment as requested: uses the character name
+                    twineCode += `\n<!-- Dades de diàleg per a ${escapeHtml(h.characterName)} -->\n`;
                     // Use a script tag to embed JSON safely so it can be parsed later or used by engine
-                    twineCode += `<script type="application/json" id="dialogue-data-${h.id}">\n`;
+                    twineCode += `<script type="application/json" id="${escapeHtml(h.characterName)}">\n`;
                     
                     try {
                         const jsonRaw = JSON.parse(h.jsonContent);
@@ -1697,7 +1838,7 @@
                 
                 // Dialog specific attributes
                 const dataCharacter = area.getAttribute('data-character');
-                const dataDialogId = area.getAttribute('data-dialog-id');
+                // Removed dataDialogId reading as we use character name now
 
                 // Common condition attributes from HTML
                 const dataConditionVar = area.getAttribute('data-condition-var');
@@ -1749,6 +1890,10 @@
                     characterName: '',
                     jsonContent: '',
                     jsonFileName: '',
+                    // Initialize dialog fields
+                    infoTextDialog: '', soundDialog: '', titleTextDialog: '',
+                    dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
+                    dialogSoundFail: '', dialogSoundClickFail: '',
                     
                     // Passage specific condition fields
                     passageConditionVariable: '',
@@ -1782,14 +1927,29 @@
                 if (dataAction === 'dialog') {
                     newHotspot.type = 'dialog';
                     newHotspot.characterName = dataCharacter || '';
-                    if (dataDialogId) {
-                         // Try to find the associated script tag
-                         const scriptTag = doc.querySelector(`#dialogue-data-${dataDialogId}`);
+                    if (dataCharacter) {
+                         // Try to find the associated script tag by ID (which is the character name)
+                         const scriptTag = doc.getElementById(dataCharacter);
                          if (scriptTag) {
                              newHotspot.jsonContent = scriptTag.textContent.trim();
                              newHotspot.jsonFileName = 'Dades carregades del codi';
                          }
                     }
+                    // Load dialog fields
+                    newHotspot.infoTextDialog = dataInfo || '';
+                    newHotspot.soundDialog = dataSound || '';
+                    newHotspot.titleTextDialog = title || '';
+                    // Dialog conditions
+                    newHotspot.dialogConditionVariable = dataConditionVar || '';
+                    newHotspot.dialogConditionValue = dataConditionVal || '';
+                    newHotspot.dialogFailInfo = dataFailInfoClic || '';
+                    newHotspot.dialogFailInfoEnter = dataFailInfoEnter || '';
+                    newHotspot.dialogSoundFail = dataSoundFail || '';
+                    newHotspot.dialogSoundClickFail = dataSoundClickFail || '';
+                    // Dialog Secondary variable
+                    newHotspot.variable2 = dataVariable2 || '';
+                    newHotspot.valor2 = dataValor2 || '';
+
                 } else if (dataPassage) {
                     newHotspot.type = 'passage';
                     newHotspot.value = dataPassage;
