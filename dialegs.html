@@ -17,121 +17,81 @@
             background-image: 
                 linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
-            background-size: 40px 40px; /* Graella de 40px */
+            background-size: 40px 40px;
             transform-origin: 0 0;
         }
         .cursor-grab { cursor: grab; }
         .cursor-grabbing { cursor: grabbing; }
         
-        /* --- Nodes --- */
+        /* --- Nodes Styles --- */
         .node-card {
             transition: box-shadow 0.2s, border-color 0.2s; 
             position: absolute;
             z-index: 10;
             display: flex;
             flex-direction: column;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
+        .node-type-normal { border: 2px solid #e2e8f0; }
+        .node-type-start { border: 2px solid #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+        .node-type-end { border: 2px solid #ef4444; }
+        .node-type-logic { border: 2px solid #a855f7; }
+        .node-type-decision { border: 2px solid #f97316; }
+
         .node-card:hover {
-            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             z-index: 20;
         }
-        .node-search-highlight {
-            ring: 4px solid #facc15;
-            transform: scale(1.05);
-            z-index: 30;
-        }
+        
+        .header-normal { background-color: #64748b; }
+        .header-start { background-color: #16a34a; }
+        .header-end { background-color: #dc2626; }
+        .header-logic { background-color: #9333ea; }
+        .header-decision { background-color: #ea580c; }
 
-        /* --- Resize Handle --- */
-        .resize-handle {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 15px;
-            height: 15px;
-            cursor: nwse-resize;
-            z-index: 50;
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
-            padding-right: 2px;
-            padding-bottom: 2px;
-        }
-        .resize-handle::after {
-            content: '';
-            width: 0; 
-            height: 0; 
-            border-bottom: 8px solid #94a3b8;
-            border-left: 8px solid transparent;
-        }
-        .node-card:hover .resize-handle::after {
-            border-bottom-color: #3b82f6;
-        }
+        .node-search-highlight { ring: 4px solid #facc15; transform: scale(1.05); z-index: 30; }
+        .resize-handle { position: absolute; bottom: 0; right: 0; width: 15px; height: 15px; cursor: nwse-resize; z-index: 50; }
+        .resize-handle::after { content: ''; position: absolute; right: 2px; bottom: 2px; width: 0; height: 0; border-bottom: 8px solid #94a3b8; border-left: 8px solid transparent; }
 
         /* --- Connexions --- */
-        .connection-line {
-            stroke: #9ca3af;
-            stroke-width: 3;
-            fill: none;
-            pointer-events: none;
-            transition: stroke 0.2s;
-        }
-        .connection-line.dashed { stroke-dasharray: 10, 5; }
-        .connection-line.alt { stroke: #a855f7; stroke-dasharray: 5, 2; } 
-        .connection-line:hover { stroke: #3b82f6; z-index: 5; pointer-events: stroke;}
-
-        .port-out {
-            width: 16px; height: 16px;
-            background-color: #64748b;
-            border: 3px solid white;
-            border-radius: 50%;
-            position: absolute;
-            right: -9px; top: 50%; transform: translateY(-50%);
-            cursor: crosshair; transition: all 0.2s; z-index: 30;
-        }
-        .port-out:hover { transform: translateY(-50%) scale(1.3); background-color: #3b82f6; }
+        .connection-line { stroke: #64748b; stroke-width: 3; fill: none; pointer-events: none; stroke-linecap: round; transition: stroke 0.2s; }
+        .connection-line.dashed { stroke-dasharray: 8, 4; }
+        .connection-line.alt { stroke: #a855f7; stroke-dasharray: 4, 4; } 
+        .connection-line:hover { stroke: #3b82f6; z-index: 5; pointer-events: stroke; }
+        .port-out { width: 14px; height: 14px; background-color: #cbd5e1; border: 2px solid #475569; border-radius: 50%; position: absolute; right: -8px; top: 50%; transform: translateY(-50%); cursor: crosshair; transition: all 0.2s; z-index: 30; }
+        .port-out:hover { transform: translateY(-50%) scale(1.4); background-color: #3b82f6; border-color: white; }
 
         /* --- Minimapa --- */
-        #minimap-container {
-            position: absolute; bottom: 20px; left: 20px;
-            width: 240px; height: 160px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            overflow: hidden; z-index: 40;
+        #minimap-container { 
+            position: absolute; bottom: 20px; left: 20px; width: 200px; height: 140px; 
+            background: rgba(255, 255, 255, 0.9); border: 1px solid #94a3b8; border-radius: 8px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); overflow: hidden; z-index: 40; 
+            cursor: crosshair;
         }
-        #minimap-viewport {
-            position: absolute;
-            border: 2px solid #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-            cursor: move;
+        #minimap-viewport { 
+            position: absolute; border: 2px solid #2563eb; background: rgba(37, 99, 235, 0.2); 
+            cursor: grab; box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.4);
         }
+        #minimap-viewport:active { cursor: grabbing; }
 
         /* --- Utilities --- */
         .retro-text { font-family: 'Courier New', Courier, monospace; text-shadow: 2px 2px 0px #000; }
         .thin-scrollbar::-webkit-scrollbar { width: 6px; }
-        .thin-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-        .thin-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
-        
+        .thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .thin-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .logic-row { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .logic-row.open { max-height: 300px; }
-        
+        .logic-row.open { max-height: 400px; overflow: visible; }
         .code-input { font-family: 'Consolas', 'Monaco', monospace; font-size: 0.75rem; color: #ea580c; }
-
-        /* Dropdown Menu */
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            width: 200px;
-            z-index: 60;
-        }
+        .dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #cbd5e1; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 220px; z-index: 100; }
         .dropdown-menu.show { display: block; }
+        .visual-builder-group { display: flex; gap: 4px; align-items: center; background: #f1f5f9; padding: 4px; border-radius: 4px; margin-bottom: 4px; }
+        .vb-select { font-size: 11px; padding: 2px; border-radius: 3px; border: 1px solid #d1d5db; background: white; max-width: 100px; }
+        .vb-input { font-size: 11px; padding: 2px; border-radius: 3px; border: 1px solid #d1d5db; width: 60px; }
+        .vb-label { font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+        .exp-thumb { width: 20px; height: 20px; object-fit: cover; border-radius: 50%; border: 1px solid #ccc; }
     </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
@@ -140,7 +100,7 @@
     <header class="bg-slate-800 text-white h-14 px-4 flex justify-between items-center shadow-lg z-50">
         <div class="flex items-center gap-3">
             <i class="fa-solid fa-diagram-project text-xl text-blue-400"></i>
-            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v3.1 (Fix)</span></h1>
+            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v4.6 (Fixed)</span></h1>
         </div>
         
         <div class="flex gap-2 bg-slate-700 p-1 rounded-lg">
@@ -156,31 +116,17 @@
         <div class="flex gap-2 relative">
             <label class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition cursor-pointer flex items-center gap-2">
                 <i class="fa-solid fa-upload"></i> Carregar
-                <input type="file" class="hidden" accept=".json,.csv" onchange="ioSystem.loadFile(this)">
+                <input type="file" class="hidden" accept=".json" onchange="ioSystem.loadFile(this)">
             </label>
             <button onclick="editor.addNode()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-plus"></i> Node</button>
             <div class="h-6 w-px bg-slate-600 mx-1 self-center"></div>
             <button onclick="editor.togglePreview()" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-play"></i> Provar</button>
-            
-            <button onclick="ioSystem.exportJSON()" class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Desar JSON"><i class="fa-solid fa-download"></i> JSON</button>
-            <button onclick="ioSystem.exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Desar CSV (Excel)"><i class="fa-solid fa-file-csv"></i> CSV</button>
-            
-            <button onclick="ioSystem.copyTwine()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2" title="Copiar codi diàleg"><i class="fa-solid fa-copy"></i> Twine</button>
-            
-            <!-- Botó Menú Configuració -->
-            <div class="relative">
-                <button onclick="ui.toggleConfigMenu()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-2" title="Configuració"><i class="fa-solid fa-gear"></i></button>
-                <div id="config-menu" class="dropdown-menu text-slate-800 p-2">
-                    <div class="text-xs font-bold text-gray-400 uppercase mb-2 px-2">Recursos Twine</div>
-                    <button onclick="ioSystem.copyEngineJS()" class="w-full text-left px-2 py-2 text-sm hover:bg-blue-50 rounded flex items-center gap-2"><i class="fa-brands fa-js text-yellow-500"></i> Copiar Motor JS</button>
-                    <button onclick="ioSystem.copyEngineCSS()" class="w-full text-left px-2 py-2 text-sm hover:bg-blue-50 rounded flex items-center gap-2"><i class="fa-brands fa-css3 text-blue-500"></i> Copiar Estils CSS</button>
-                </div>
-            </div>
+            <button onclick="ioSystem.exportJSON()" class="bg-slate-600 hover:bg-slate-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-download"></i> JSON</button>
+            <button onclick="ioSystem.copyTwine()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-sm font-bold transition shadow flex items-center gap-2"><i class="fa-solid fa-copy"></i> Twine</button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        
         <!-- BARRA LATERAL -->
         <aside class="w-80 bg-white border-r border-gray-200 flex flex-col z-40 shadow-md relative">
             <div class="flex border-b border-gray-200">
@@ -188,7 +134,7 @@
                 <button onclick="ui.switchTab('vars')" id="tab-vars" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700">Variables</button>
             </div>
             <div id="panel-chars" class="flex-1 flex flex-col overflow-hidden">
-                <div class="p-3 border-b bg-gray-50"><button onclick="characterManager.addCharacter()" class="w-full bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-user-plus"></i> Nou Personatge</button></div>
+                <div class="p-3 border-b bg-gray-50 text-xs text-gray-500 text-center italic">Gestiona les expressions dels personatges</div>
                 <div id="character-list" class="flex-1 overflow-y-auto p-3 space-y-3 thin-scrollbar"></div>
             </div>
             <div id="panel-vars" class="flex-1 flex flex-col overflow-hidden hidden">
@@ -206,20 +152,24 @@
                 <svg id="connections-layer" class="absolute top-0 left-0 w-full h-full z-0 pointer-events-none overflow-visible"><path id="temp-connection" class="connection-line-active hidden" d=""></path></svg>
             </div>
             <div id="minimap-container"><canvas id="minimap-canvas" class="w-full h-full"></canvas><div id="minimap-viewport"></div></div>
+            
             <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-30 pointer-events-none"><div class="bg-black/70 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md shadow font-mono"><span id="zoom-level">100%</span></div></div>
-            <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-30"><button onclick="editor.resetView()" class="bg-white shadow-lg p-3 rounded-full hover:bg-gray-100 text-gray-600 transition pointer-events-auto" title="Centrar Vista"><i class="fa-solid fa-compress"></i></button></div>
+            <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-30 pointer-events-auto">
+                <button onclick="editor.zoomToFit()" class="bg-white shadow-lg p-3 rounded-full hover:bg-blue-50 text-blue-600 transition" title="Veure Tot"><i class="fa-solid fa-expand"></i></button>
+                <button onclick="editor.resetView()" class="bg-white shadow-lg p-3 rounded-full hover:bg-gray-100 text-gray-600 transition" title="Reset 100%"><i class="fa-solid fa-compress"></i></button>
+            </div>
             <div id="autosave-indicator" class="absolute top-4 right-4 bg-white/80 backdrop-blur text-gray-500 text-xs px-2 py-1 rounded shadow opacity-0 transition-opacity pointer-events-none"><i class="fa-solid fa-floppy-disk mr-1"></i> Guardat</div>
         </main>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODALS & PROMPTS -->
     <div id="preview-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
         <div class="relative w-full max-w-6xl aspect-video bg-slate-900 rounded-xl shadow-2xl border-4 border-slate-700 overflow-hidden flex flex-col">
             <div id="preview-game-area" class="flex-1 relative flex items-center justify-center bg-cover bg-center transition-all duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/50"></div>
                 <i id="preview-default-bg" class="fa-solid fa-gamepad text-slate-700 text-9xl opacity-20 absolute"></i>
                 <button onclick="editor.togglePreview()" class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-red-600/80 bg-black/50 px-4 py-2 rounded-full transition z-50"><i class="fa-solid fa-times mr-2"></i> Tancar</button>
-                <div class="absolute top-4 left-4 bg-black/60 text-green-400 p-2 rounded text-xs font-mono pointer-events-none"><div class="font-bold border-b border-gray-600 mb-1">ESTAT (Variables)</div><div id="preview-debug-vars"></div></div>
+                <div class="absolute top-4 left-4 bg-black/60 text-green-400 p-2 rounded text-xs font-mono pointer-events-none"><div class="font-bold border-b border-gray-600 mb-1">ESTAT</div><div id="preview-debug-vars"></div></div>
             </div>
             <div class="h-auto min-h-[35%] max-h-[50%] bg-slate-900 border-t-4 border-slate-700 p-6 flex gap-8 shrink-0 relative z-10">
                 <div class="relative shrink-0"><div id="preview-portrait" class="w-32 h-32 rounded-xl shadow-lg flex items-center justify-center text-5xl font-bold text-white border-4 border-slate-600 bg-slate-800 overflow-hidden -mt-12 transition-all duration-500"><span id="preview-portrait-initial">?</span><img id="preview-portrait-img" src="" class="w-full h-full object-cover hidden"></div></div>
@@ -241,64 +191,81 @@
         </div>
     </div>
 
+    <div id="prompt-modal" class="fixed inset-0 bg-black/50 z-[160] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full">
+            <h3 id="prompt-title" class="text-lg font-bold text-gray-900 mb-2">Introdueix dades</h3>
+            <input type="text" id="prompt-input" class="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:border-blue-500" onkeydown="if(event.key==='Enter') ui.confirmPrompt()">
+            <div class="flex justify-end gap-3"><button onclick="ui.closePrompt(null)" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm">Cancel·lar</button><button onclick="ui.confirmPrompt()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">Acceptar</button></div>
+        </div>
+    </div>
+
     <script>
-        // --- CONSTANTS PLANTILLES TWINE ---
-        const TWINE_ENGINE_JS = `window.AdventureEngine = (function() {
-    let state = { nodes: [], characters: [], vars: {}, visited: new Set(), currentNodeId: null, containerId: 'dialogue-container' };
-    function getCharacter(id) { return state.characters.find(c => c.id === id) || { name: '?', color: '#ccc' }; }
-    function evaluate(code) { if (!code || !code.trim()) return true; try { const keys = Object.keys(state.vars); const values = Object.values(state.vars); const fn = new Function(...keys, \`return \${code};\`); return fn(...values); } catch (e) { console.error("Error condició:", code, e); return false; } }
-    function execute(code) { if (!code || !code.trim()) return; try { const keys = Object.keys(state.vars); const values = Object.values(state.vars); const fn = new Function(...keys, \`\${code}; return {\${keys.join(',')}};\`); const newVars = fn(...values); state.vars = { ...state.vars, ...newVars }; } catch (e) { console.error("Error efecte:", code, e); } }
-    function renderNode() {
-        const container = document.getElementById(state.containerId); if (!container) return;
-        const node = state.nodes.find(n => n.id === state.currentNodeId); if (!node) { container.innerHTML = ""; toggleActive(false); return; }
-        const char = getCharacter(node.characterId);
-        const textOpts = Array.isArray(node.textOptions) ? node.textOptions : [{ text: node.text || "", condition: "" }];
-        let validTexts = textOpts.filter(t => evaluate(t.condition));
-        if (validTexts.some(t => t.condition && t.condition.trim() !== "")) validTexts = validTexts.filter(t => t.condition && t.condition.trim() !== "");
-        const chosenTextObj = validTexts.length > 0 ? validTexts[Math.floor(Math.random() * validTexts.length)] : { text: "..." };
-        let finalText = chosenTextObj.text.replace(/\\{(\\w+)\\}/g, (_, v) => state.vars[v] ?? '?').replace(/\\$(\\w+)/g, (_, v) => state.vars[v] ?? ('$' + v));
-        let html = \`<div class="adv-dialogue-box" style="border-top-color: \${char.color}"><div class="adv-portrait" style="background-color: \${char.color}">\${char.avatarUrl ? \`<img src="\${char.avatarUrl}">\` : \`<span>\${char.name[0]}</span>\`}</div><div class="adv-content"><h3 class="adv-name" style="color: \${char.color}">\${char.name}</h3><p class="adv-text">\${finalText}</p><div class="adv-options">\`;
-        const availableOptions = node.options.filter((opt, idx) => { const visitedKey = node.id + '_' + idx; if (opt.once && state.visited.has(visitedKey)) return false; if (opt.condition && !evaluate(opt.condition)) return false; return true; });
-        if (availableOptions.length === 0 && node.options.length > 0) { html += \`<div class="adv-msg">No hi ha més opcions.</div>\`; } else if (node.options.length === 0) { html += \`<div class="adv-msg">Fi del diàleg.</div>\`; } else { availableOptions.forEach((opt) => { const idx = node.options.indexOf(opt); html += \`<button onclick="AdventureEngine.selectOption('\${node.id}', \${idx})">\${opt.text}</button>\`; }); }
-        html += \`</div></div></div>\`; container.innerHTML = html;
-    }
-    function toggleActive(isActive) { if(isActive) document.documentElement.classList.add('adv-dialogue-active'); else document.documentElement.classList.remove('adv-dialogue-active'); }
-    return {
-        init: function(jsonData, containerId = 'dialogue-container') { try { const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData; const coreData = data.appState || data; state.nodes = coreData.nodes || []; state.characters = coreData.characters || []; state.vars = coreData.globalVariables || {}; state.visited = new Set(); state.containerId = containerId; if (state.nodes.length === 0) return; state.currentNodeId = state.nodes[0].id; toggleActive(true); setTimeout(renderNode, 10); } catch (e) { console.error("Init Error:", e); } },
-        selectOption: function(nodeId, optionIndex) { const node = state.nodes.find(n => n.id === nodeId); const opt = node.options[optionIndex]; if (opt.once) state.visited.add(nodeId + '_' + optionIndex); if (opt.effect) execute(opt.effect); let nextId = opt.targetNodeId; if (opt.altTargetNodeId && opt.targetCondition && evaluate(opt.targetCondition)) nextId = opt.altTargetNodeId; if (nextId) { state.currentNodeId = nextId; renderNode(); } else { const container = document.getElementById(state.containerId); container.innerHTML = ""; if (window.jQuery) jQuery(container).hide(); else container.style.display = 'none'; toggleActive(false); } }
-    };
-})();`;
-        const TWINE_ENGINE_CSS = `#dialogue-container { max-width: 800px; margin: 0 auto; font-family: sans-serif; color: #fff; pointer-events: auto !important; position: relative; z-index: 10000; } .adv-dialogue-box { background-color: #1e293b; border: 2px solid #475569; border-top-width: 6px; border-radius: 12px; padding: 20px; display: flex; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); } .adv-portrait { width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; border: 3px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 32px; font-weight: bold; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); } .adv-portrait img { width: 100%; height: 100%; object-fit: cover; } .adv-content { flex: 1; display: flex; flex-direction: column; } .adv-name { margin: 0 0 10px 0; font-size: 1.1em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; } .adv-text { margin: 0 0 20px 0; font-size: 1.1em; line-height: 1.5; color: #e2e8f0; } .adv-options { display: flex; flex-direction: column; gap: 8px; } .adv-options button { background-color: #334155; border: 1px solid #475569; color: #f1f5f9; padding: 12px 16px; text-align: left; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 0.95em; } .adv-options button:hover { background-color: #475569; border-color: #94a3b8; transform: translateX(5px); } .adv-msg { font-style: italic; color: #94a3b8; text-align: center; margin-top: 10px; } html.adv-dialogue-active .twine-image-wrapper img, html.adv-dialogue-active map, html.adv-dialogue-active area, html.adv-dialogue-active .hotspot-item { pointer-events: none !important; cursor: default !important; }`;
+        // --- CONSTANTS TWINE ---
+        const TWINE_ENGINE_JS=`window.AdventureEngine=(function(){let state={nodes:[],characters:[],vars:{},visited:new Set(),currentNodeId:null,containerId:'dialogue-container'};function getCharacter(id){return state.characters.find(c=>c.id===id)||{name:'?',color:'#ccc'};}function evaluate(code){if(!code||!code.trim())return true;try{const keys=Object.keys(state.vars);const values=Object.values(state.vars);const fn=new Function(...keys,\`return \${code};\`);return fn(...values);}catch(e){console.error("Error condició:",code,e);return false;}}function execute(code){if(!code||!code.trim())return;try{const keys=Object.keys(state.vars);const values=Object.values(state.vars);const fn=new Function(...keys,\`\${code};return {\${keys.join(',')}};\`);const newVars=fn(...values);state.vars={...state.vars,...newVars};}catch(e){console.error("Error efecte:",code,e);}}function renderNode(){const container=document.getElementById(state.containerId);if(!container)return;const node=state.nodes.find(n=>n.id===state.currentNodeId);if(!node){container.innerHTML="";toggleActive(false);return;}if(node.type==='end'){container.innerHTML="";toggleActive(false);return;}if(node.type==='logic'){const validOpt=node.options.find(o=>!o.condition||evaluate(o.condition));if(validOpt){if(validOpt.effect)execute(validOpt.effect);if(validOpt.targetNodeId){state.currentNodeId=validOpt.targetNodeId;setTimeout(renderNode,10);return;}}container.innerHTML="";toggleActive(false);return;}const char=getCharacter(node.characterId);let avatarImg=char.avatarUrl;if(node.characterExpression&&char.expressions){const exp=char.expressions.find(e=>e.name===node.characterExpression);if(exp)avatarImg=exp.url;}const textOpts=Array.isArray(node.textOptions)?node.textOptions:[{text:node.text||"",condition:""}];let validTexts=textOpts.filter(t=>evaluate(t.condition));if(validTexts.some(t=>t.condition&&t.condition.trim()!==""))validTexts=validTexts.filter(t=>t.condition&&t.condition.trim()!=="");const chosenTextObj=validTexts.length>0?validTexts[Math.floor(Math.random()*validTexts.length)]:{text:"..."};let finalText=chosenTextObj.text.replace(/\\{(\\w+)\\}/g,(_,v)=>state.vars[v]??'?').replace(/\\$(\\w+)/g,(_,v)=>state.vars[v]??('$'+v));let html=\`<div class="adv-dialogue-box" style="border-top-color: \${char.color}"><div class="adv-portrait" style="background-color: \${char.color}">\${avatarImg?\`<img src="\${avatarImg}">\`:\`<span>\${char.name[0]}</span>\`}</div><div class="adv-content"><h3 class="adv-name" style="color: \${char.color}">\${char.name}</h3><p class="adv-text">\${finalText}</p><div class="adv-options">\`;const availableOptions=node.options.filter((opt,idx)=>{const visitedKey=node.id+'_'+idx;if(opt.once&&state.visited.has(visitedKey))return false;if(opt.condition&&!evaluate(opt.condition))return false;return true;});if(availableOptions.length===0&&node.options.length>0){html+=\`<div class="adv-msg">No hi ha més opcions.</div>\`;}else if(node.options.length===0){html+=\`<div class="adv-msg">Fi del diàleg.</div>\`;}else{availableOptions.forEach((opt)=>{const idx=node.options.indexOf(opt);html+=\`<button onclick="AdventureEngine.selectOption('\${node.id}', \${idx})">\${opt.text}</button>\`;});}html+=\`</div></div></div>\`;container.innerHTML=html;}function toggleActive(isActive){if(isActive)document.documentElement.classList.add('adv-dialogue-active');else document.documentElement.classList.remove('adv-dialogue-active');}return{init:function(jsonData,containerId='dialogue-container'){try{const data=typeof jsonData==='string'?JSON.parse(jsonData):jsonData;const coreData=data.appState||data;state.nodes=coreData.nodes||[];state.characters=coreData.characters||[];state.vars=coreData.globalVariables||{};state.visited=new Set();state.containerId=containerId;if(state.nodes.length===0)return;state.currentNodeId=state.nodes[0].id;toggleActive(true);setTimeout(renderNode,10);}catch(e){console.error("Init Error:",e);}},selectOption:function(nodeId,optionIndex){const node=state.nodes.find(n=>n.id===nodeId);const opt=node.options[optionIndex];if(opt.once)state.visited.add(nodeId+'_'+optionIndex);if(opt.effect)execute(opt.effect);let nextId=opt.targetNodeId;if(opt.altTargetNodeId&&opt.targetCondition&&evaluate(opt.targetCondition))nextId=opt.altTargetNodeId;if(nextId){state.currentNodeId=nextId;renderNode();}else{const container=document.getElementById(state.containerId);container.innerHTML="";if(window.jQuery)jQuery(container).hide();else container.style.display='none';toggleActive(false);}}};})();`;
+        const TWINE_ENGINE_CSS=`#dialogue-container{max-width:800px;margin:0 auto;font-family:sans-serif;color:#fff;pointer-events:auto!important;position:relative;z-index:10000}.adv-dialogue-box{background-color:#1e293b;border:2px solid #475569;border-top-width:6px;border-radius:12px;padding:20px;display:flex;gap:20px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.5)}.adv-portrait{width:80px;height:80px;flex-shrink:0;border-radius:8px;border:3px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:32px;font-weight:bold;color:white;text-shadow:1px 1px 3px rgba(0,0,0,0.5)}.adv-portrait img{width:100%;height:100%;object-fit:cover}.adv-content{flex:1;display:flex;flex-direction:column}.adv-name{margin:0 0 10px 0;font-size:1.1em;font-weight:bold;text-transform:uppercase;letter-spacing:1px}.adv-text{margin:0 0 20px 0;font-size:1.1em;line-height:1.5;color:#e2e8f0}.adv-options{display:flex;flex-direction:column;gap:8px}.adv-options button{background-color:#334155;border:1px solid #475569;color:#f1f5f9;padding:12px 16px;text-align:left;border-radius:6px;cursor:pointer;transition:all 0.2s;font-size:0.95em}.adv-options button:hover{background-color:#475569;border-color:#94a3b8;transform:translateX(5px)}.adv-msg{font-style:italic;color:#94a3b8;text-align:center;margin-top:10px}html.adv-dialogue-active .twine-image-wrapper img,html.adv-dialogue-active map,html.adv-dialogue-active area,html.adv-dialogue-active .hotspot-item{pointer-events:none!important;cursor:default!important}`;
 
         // --- ESTAT ---
         const appState = {
-            characters: [{ id: 'char_1', name: 'Personatge', color: '#3b82f6', avatarUrl: '' }],
+            characters: [{ id: 'char_1', name: 'Personatge', color: '#3b82f6', avatarUrl: '', avatarFileName: '', expressions: [] }],
             globalVariables: {},
-            nodes: [{
-                id: 'node_start', title: "Inici", characterId: 'char_1', x: 2200, y: 2200, width: 450, height: null, bgImage: '',
-                textOptions: [ { text: "", condition: "" } ], options: []
-            }],
+            nodes: [{ id: 'node_start', title: "Inici", type: "start", characterId: 'char_1', textOptions: [{text:"", condition:""}], options: [], x: 2200, y: 2200, width: 450, height: null }],
             scale: 1, panOffset: { x: -2000, y: -2000 },
-            interactionMode: 'default', draggingNodeId: null, resizingNodeId: null, dragOffset: { x: 0, y: 0 }, connectionStart: { nodeId: null, optionIndex: null, x: 0, y: 0 }
+            interactionMode: 'default', draggingNodeId: null, resizingNodeId: null, draggingOption: null, dragOffset: { x: 0, y: 0 }, connectionStart: { nodeId: null, optionIndex: null, x: 0, y: 0 },
+            dragAllowed: false,
+            minimapMetrics: { minX: 0, minY: 0, mapW: 1, mapH: 1, ratio: 1 }
         };
 
-        // --- SISTEMES ---
+        // --- SYSTEMES ---
         const historySystem = {
             past: [], future: [], maxDepth: 50, ignoreChange: false,
-            pushState() { if (this.ignoreChange) return; const snap = JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables }); if (this.past.length > 0 && this.past[this.past.length - 1] === snap) return; this.past.push(snap); if (this.past.length > this.maxDepth) this.past.shift(); this.future = []; ioSystem.autosave(); },
-            undo() { if (this.past.length === 0) return; this.future.push(JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables })); this.loadState(JSON.parse(this.past.pop())); },
-            redo() { if (this.future.length === 0) return; this.past.push(JSON.stringify({ characters: appState.characters, nodes: appState.nodes, globalVariables: appState.globalVariables })); this.loadState(JSON.parse(this.future.pop())); },
-            loadState(state) { this.ignoreChange = true; appState.characters = state.characters; appState.nodes = state.nodes; appState.globalVariables = state.globalVariables; characterManager.renderList(); variableManager.renderList(); editor.renderNodes(); this.ignoreChange = false; }
+            pushState() { if(this.ignoreChange)return; const s=JSON.stringify({c:appState.characters,n:appState.nodes,v:appState.globalVariables}); if(this.past.length>0&&this.past[this.past.length-1]===s)return; this.past.push(s); if(this.past.length>this.maxDepth)this.past.shift(); this.future=[]; ioSystem.autosave(); },
+            undo() { if(this.past.length===0)return; this.future.push(JSON.stringify({c:appState.characters,n:appState.nodes,v:appState.globalVariables})); this.load(JSON.parse(this.past.pop())); },
+            redo() { if(this.future.length===0)return; this.past.push(JSON.stringify({c:appState.characters,n:appState.nodes,v:appState.globalVariables})); this.load(JSON.parse(this.future.pop())); },
+            load(s) { this.ignoreChange=true; appState.characters=s.c; appState.nodes=s.n; appState.globalVariables=s.v; characterManager.renderList(); variableManager.renderList(); editor.renderNodes(); this.ignoreChange=false; }
         };
 
         const ui = {
-            switchTab(tab) { document.getElementById('panel-chars').classList.toggle('hidden', tab !== 'chars'); document.getElementById('panel-vars').classList.toggle('hidden', tab !== 'vars'); document.getElementById('tab-chars').className = tab === 'chars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; document.getElementById('tab-vars').className = tab === 'vars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; },
-            showDeleteModal(id, type) { this.itemToDeleteId = id; this.itemToDeleteType = type; document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('modal-title').innerText = type==='node'?"Esborrar Node?":type==='character'?"Esborrar Personatge?":"Esborrar Variable?"; document.getElementById('modal-desc').innerText = type==='node'?"Es perdran connexions.":type==='character'?"Reassignat al defecte.":"Es pot trencar la lògica."; document.getElementById('confirm-delete-btn').onclick = () => { historySystem.pushState(); if(type==='node') editor.deleteNodeConfirmed(this.itemToDeleteId); else if(type==='character') characterManager.deleteCharacterConfirmed(this.itemToDeleteId); else variableManager.deleteVariableConfirmed(this.itemToDeleteId); this.closeDeleteModal(); }; },
+            promptCallback: null,
+            switchTab(t) { document.getElementById('panel-chars').classList.toggle('hidden', t!=='chars'); document.getElementById('panel-vars').classList.toggle('hidden', t!=='vars'); document.getElementById('tab-chars').className = t==='chars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; document.getElementById('tab-vars').className = t==='vars' ? "flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50" : "flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700"; },
+            showDeleteModal(id, type) { this.itemToDeleteId=id; this.itemToDeleteType=type; document.getElementById('delete-modal').classList.remove('hidden'); document.getElementById('modal-title').innerText = type==='node'?"Esborrar Node?":type==='character'?"Esborrar Personatge?":"Esborrar Variable?"; document.getElementById('modal-desc').innerText = type==='node'?"Es perdran connexions.":type==='character'?"Reassignat al defecte.":"Es pot trencar la lògica."; document.getElementById('confirm-delete-btn').onclick = () => { historySystem.pushState(); if(type==='node') editor.deleteNodeConfirmed(this.itemToDeleteId); else if(type==='character') characterManager.deleteCharacterConfirmed(this.itemToDeleteId); else variableManager.deleteVariableConfirmed(this.itemToDeleteId); this.closeDeleteModal(); }; },
             closeDeleteModal() { document.getElementById('delete-modal').classList.add('hidden'); },
             toggleLogic(btn) { btn.closest('.option-row').querySelector('.logic-row').classList.toggle('open'); btn.classList.toggle('text-blue-600'); },
-            toggleConfigMenu() { document.getElementById('config-menu').classList.toggle('show'); }
+            showPrompt(title, placeholder, cb) {
+                this.promptCallback = cb;
+                document.getElementById('prompt-title').innerText = title;
+                const inp = document.getElementById('prompt-input');
+                inp.value = ''; inp.placeholder = placeholder || '';
+                document.getElementById('prompt-modal').classList.remove('hidden');
+                setTimeout(()=>inp.focus(), 100);
+            },
+            confirmPrompt() {
+                const val = document.getElementById('prompt-input').value;
+                document.getElementById('prompt-modal').classList.add('hidden');
+                if(val && this.promptCallback) this.promptCallback(val);
+                this.promptCallback = null;
+            },
+            closePrompt(val) {
+                document.getElementById('prompt-modal').classList.add('hidden');
+                if(val !== null && this.promptCallback) this.promptCallback(val);
+                this.promptCallback = null;
+            },
+            toggleConfigMenu() {
+                document.getElementById('config-menu').classList.toggle('show');
+            }
         };
-        window.onclick = function(e) { if (!e.target.matches('.fa-gear') && !e.target.closest('button[onclick*="toggleConfigMenu"]')) document.querySelectorAll('.dropdown-menu.show').forEach(d => d.classList.remove('show')); }
+
+        // Hide dropdown on click outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-menu') && !event.target.closest('button[onclick*="toggleConfigMenu"]')) {
+                var dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
 
         const variableManager = {
             init() { this.renderList(); },
@@ -310,24 +277,90 @@
 
         const characterManager = {
             init() { this.renderList(); },
-            addCharacter() { historySystem.pushState(); appState.characters.push({id:'char_'+Date.now(),name:'Nou',color:'#8b5cf6',avatarUrl:''}); this.renderList(); },
             updateCharacter(id,f,v) { const c=appState.characters.find(x=>x.id===id); if(c&&c[f]!==v){ c[f]=v; if(f==='color'||f==='name') editor.renderNodes(); } },
+            handleImageSelect(id, input, expName = null) {
+                const file = input.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const c = appState.characters.find(x => x.id === id);
+                        if(c) {
+                            historySystem.pushState();
+                            if (expName) {
+                                const exp = c.expressions.find(x => x.name === expName);
+                                if(exp) { exp.url = e.target.result; exp.fileName = file.name; }
+                            } else {
+                                c.avatarUrl = e.target.result; 
+                                c.avatarFileName = file.name; 
+                            }
+                            this.renderList();
+                            editor.renderNodes();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            addExpression(id) {
+                ui.showPrompt("Nom de l'expressió (ex: Feliç)", "Feliç", (name) => {
+                    historySystem.pushState();
+                    const c = appState.characters.find(x => x.id === id);
+                    if (!c.expressions) c.expressions = [];
+                    c.expressions.push({ name: name, url: '', fileName: '' });
+                    this.renderList();
+                    editor.renderNodes();
+                });
+            },
+            deleteExpression(id, name) {
+                historySystem.pushState();
+                const c = appState.characters.find(x => x.id === id);
+                c.expressions = c.expressions.filter(e => e.name !== name);
+                this.renderList();
+                editor.renderNodes();
+            },
             saveState() { historySystem.pushState(); },
-            deleteCharacter(id) { if(appState.characters.length<=1)return alert("Mínim 1."); ui.showDeleteModal(id,'character'); },
-            deleteCharacterConfirmed(id) { appState.characters=appState.characters.filter(c=>c.id!==id); const f=appState.characters[0].id; appState.nodes.forEach(n=>{if(n.characterId===id)n.characterId=f;}); this.renderList(); editor.renderNodes(); },
+            // Removed deleteCharacter logic
             getCharacter(id) { return appState.characters.find(c=>c.id===id)||appState.characters[0]; },
-            draggedIndex: null,
-            handleDragStart(e,i) { this.draggedIndex=i; e.dataTransfer.effectAllowed="move"; },
-            handleDragOver(e) { e.preventDefault(); },
-            handleDrop(e,t) { e.stopPropagation(); if(this.draggedIndex!==null&&this.draggedIndex!==t){ historySystem.pushState(); const it=appState.characters.splice(this.draggedIndex,1)[0]; appState.characters.splice(t,0,it); this.renderList(); } },
-            renderList() { const c=document.getElementById('character-list'); c.innerHTML=''; appState.characters.forEach((char,i)=>{ const d=document.createElement('div'); d.className="draggable-item bg-white p-2 rounded border border-gray-200 shadow-sm group"; d.draggable=true; d.ondragstart=(e)=>this.handleDragStart(e,i); d.ondragover=this.handleDragOver; d.ondrop=(e)=>this.handleDrop(e,i); d.innerHTML=`<div class="flex items-center gap-2 mb-2"><i class="fa-solid fa-grip-vertical text-gray-300 cursor-move hover:text-gray-500"></i><input type="color" value="${char.color}" onchange="characterManager.updateCharacter('${char.id}','color',this.value);characterManager.saveState()" class="w-6 h-6 rounded cursor-pointer border-none p-0"><input type="text" value="${char.name}" onchange="characterManager.updateCharacter('${char.id}','name',this.value);characterManager.saveState()" class="flex-1 text-sm font-bold border-none focus:ring-0 p-0" placeholder="Nom"><button onclick="characterManager.deleteCharacter('${char.id}')" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div><div class="flex items-center gap-2 bg-gray-50 p-1 rounded"><i class="fa-regular fa-image text-gray-400 text-xs"></i><input type="text" value="${char.avatarUrl||''}" onchange="characterManager.updateCharacter('${char.id}','avatarUrl',this.value);characterManager.saveState()" class="flex-1 bg-transparent text-[10px] border-none focus:ring-0 p-0 text-gray-500" placeholder="URL Imatge"></div>`; c.appendChild(d); }); }
+            // Drag (unchanged)
+            draggedIndex: null, handleDragStart(e,i) { this.draggedIndex=i; e.dataTransfer.effectAllowed="move"; }, handleDragOver(e) { e.preventDefault(); }, handleDrop(e,t) { e.stopPropagation(); if(this.draggedIndex!==null&&this.draggedIndex!==t){ historySystem.pushState(); const it=appState.characters.splice(this.draggedIndex,1)[0]; appState.characters.splice(t,0,it); this.renderList(); } },
+            renderList() { 
+                const c=document.getElementById('character-list'); c.innerHTML=''; 
+                appState.characters.forEach((char,i)=>{ 
+                    const d=document.createElement('div'); d.className="draggable-item bg-white p-2 rounded border border-gray-200 shadow-sm group mb-2"; 
+                    d.innerHTML=`<div class="flex items-center gap-2 mb-2" draggable="true" ondragstart="characterManager.handleDragStart(event,${i})" ondragover="characterManager.handleDragOver(event)" ondrop="characterManager.handleDrop(event,${i})">
+                        <i class="fa-solid fa-grip-vertical text-gray-300 cursor-move hover:text-gray-500"></i>
+                        <input type="color" value="${char.color}" onchange="characterManager.updateCharacter('${char.id}','color',this.value);characterManager.saveState()" class="w-6 h-6 rounded cursor-pointer border-none p-0 shrink-0">
+                        ${char.avatarUrl ? `<img src="${char.avatarUrl}" class="w-6 h-6 rounded object-cover border border-gray-300 shrink-0" title="Imatge Base">` : ''}
+                        <input type="text" value="${char.name}" onchange="characterManager.updateCharacter('${char.id}','name',this.value);characterManager.saveState()" class="flex-1 text-sm font-bold border-none focus:ring-0 p-0 min-w-0" placeholder="Nom">
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-50 p-1 rounded mb-1">
+                        <input type="file" id="file-input-${char.id}" class="hidden" accept="image/*" onchange="characterManager.handleImageSelect('${char.id}', this)">
+                        <button onclick="document.getElementById('file-input-${char.id}').click()" class="flex-1 flex items-center gap-2 text-[10px] text-gray-500 hover:text-blue-600 px-1">
+                            <i class="fa-regular fa-image"></i>
+                            <span class="truncate">${char.avatarFileName || (char.avatarUrl ? 'Imatge Base' : 'Afegir Imatge Base...')}</span>
+                        </button>
+                        <button onclick="characterManager.addExpression('${char.id}')" class="text-[10px] bg-blue-100 text-blue-600 px-1 rounded border border-blue-200 hover:bg-blue-200" title="Afegir Expressió"><i class="fa-solid fa-face-smile"></i>+</button>
+                    </div>
+                    <div class="pl-4 space-y-1">
+                        ${(char.expressions||[]).map(exp => `
+                            <div class="flex items-center gap-2 text-[10px] bg-gray-50 p-1 rounded border border-gray-100">
+                                <span class="font-bold text-gray-600 w-12 truncate" title="${exp.name}">${exp.name}</span>
+                                <img src="${exp.url || ''}" class="exp-thumb ${!exp.url?'hidden':''}">
+                                <input type="file" id="exp-input-${char.id}-${exp.name}" class="hidden" accept="image/*" onchange="characterManager.handleImageSelect('${char.id}', this, '${exp.name}')">
+                                <button onclick="document.getElementById('exp-input-${char.id}-${exp.name}').click()" class="flex-1 text-left text-gray-400 hover:text-blue-500 truncate">${exp.fileName || 'Tria img...'}</button>
+                                <button onclick="characterManager.deleteExpression('${char.id}', '${exp.name}')" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>`; 
+                    c.appendChild(d); 
+                }); 
+            }
         };
 
         const editor = {
             init() { this.renderNodes(); this.setupCanvasEvents(); this.applyTransform(); this.renderMinimap(); document.addEventListener('keydown',(e)=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();historySystem.undo();}if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();historySystem.redo();}}); },
-            addNode(x,y) { if(x===undefined){const c=document.getElementById('workspace-container');x=(c.clientWidth/2-appState.panOffset.x)/appState.scale;y=(c.clientHeight/2-appState.panOffset.y)/appState.scale;} historySystem.pushState(); const id='node_'+Date.now(); appState.nodes.push({id,title:"Nou Node",characterId:appState.characters[0].id,textOptions:[{text:"",condition:""}],x,y,width:450,height:null,bgImage:'',options:[]}); this.renderNodes(); return id; },
+            addNode(x,y) { if(x===undefined){const c=document.getElementById('workspace-container');x=(c.clientWidth/2-appState.panOffset.x)/appState.scale;y=(c.clientHeight/2-appState.panOffset.y)/appState.scale;} historySystem.pushState(); const id='node_'+Date.now(); appState.nodes.push({id,title:"Nou Node",type:"normal",characterId:appState.characters[0].id,textOptions:[{text:"",condition:""}],x,y,width:450,height:null,bgImage:'',options:[]}); this.renderNodes(); return id; },
             deleteNodeConfirmed(id) { appState.nodes=appState.nodes.filter(n=>n.id!==id); appState.nodes.forEach(n=>{n.options.forEach(opt=>{if(opt.targetNodeId===id)opt.targetNodeId=null;if(opt.altTargetNodeId===id)opt.altTargetNodeId=null;});}); this.renderNodes(); },
-            updateNode(id,f,v) { const n=appState.nodes.find(x=>x.id===id); if(n){ n[f]=v; if(f==='title')this.updateTitleRefs(id,v); if(f==='characterId')this.renderNodes(); } },
+            updateNode(id,f,v) { const n=appState.nodes.find(x=>x.id===id); if(n){ n[f]=v; if(f==='title')this.updateTitleRefs(id,v); if(f==='characterId'||f==='type')this.renderNodes(); } },
             saveState() { historySystem.pushState(); },
             updateTitleRefs(id,t) { document.querySelectorAll(`.target-opt-${id}`).forEach(e=>e.innerText=t||'Sense Títol'); },
             addTextVar(nid) { const n=appState.nodes.find(x=>x.id===nid); historySystem.pushState(); n.textOptions.push({text:"",condition:""}); this.renderNodes(); },
@@ -336,40 +369,290 @@
             addOption(id) { const n=appState.nodes.find(x=>x.id===id); historySystem.pushState(); n.options.push({text:"Opció...",targetNodeId:null,altTargetNodeId:null,targetCondition:"",once:false,condition:"",effect:""}); this.renderNodes(); },
             deleteOption(id,idx) { const n=appState.nodes.find(x=>x.id===id); historySystem.pushState(); n.options.splice(idx,1); this.renderNodes(); },
             updateOption(id,idx,f,v) { const n=appState.nodes.find(x=>x.id===id); n.options[idx][f]=v; if(['targetNodeId','altTargetNodeId','once'].includes(f))this.drawConnections(); },
+            handleOptDragStart(e,nid,idx) { if(!appState.dragAllowed){e.preventDefault();return;} appState.dragAllowed=false; appState.draggingOption={nodeId:nid,index:idx}; e.dataTransfer.effectAllowed="move"; e.dataTransfer.setData('text/plain',nid); e.target.closest('.option-row').classList.add('opacity-50'); },
+            handleOptDragOver(e){e.preventDefault();},
+            handleOptDrop(e,nid,tidx){ e.stopPropagation(); const s=appState.draggingOption; if(!s||s.nodeId!==nid||s.index===tidx)return; historySystem.pushState(); const n=appState.nodes.find(x=>x.id===nid); const i=n.options.splice(s.index,1)[0]; n.options.splice(tidx,0,i); this.renderNodes(); },
+            handleOptDragEnd(e){ appState.draggingOption=null; document.querySelectorAll('.option-row').forEach(el=>el.classList.remove('opacity-50')); },
             handleTargetSelect(nid,idx,val,alt=false) { historySystem.pushState(); const f=alt?'altTargetNodeId':'targetNodeId'; if(val==='NEW'){ const p=appState.nodes.find(x=>x.id===nid); const nid2=this.addNode(p.x+450,p.y+(idx*100)); this.updateOption(nid,idx,f,nid2); } else this.updateOption(nid,idx,f,val||null); },
             handleSearch(q) { q=q.toLowerCase(); document.querySelectorAll('.node-card').forEach(el=>{ if(!q){el.classList.remove('node-search-highlight','opacity-25');return;} const n=appState.nodes.find(x=>x.id===el.id); const match=n.title.toLowerCase().includes(q)||n.textOptions.some(t=>t.text.toLowerCase().includes(q)); if(match){el.classList.add('node-search-highlight');el.classList.remove('opacity-25');}else{el.classList.remove('node-search-highlight');el.classList.add('opacity-25');} }); },
+            insertLogic(input, type) {
+                const vars = Object.keys(appState.globalVariables);
+                if(vars.length === 0) return alert("Primer has de crear variables al panell lateral.");
+                ui.showPrompt("Tria Variable:\n" + vars.join(", "), vars[0], (v) => {
+                    if(!vars.includes(v)) return;
+                    if(type === 'condition') {
+                        ui.showPrompt("Operador (==, >, <, >=, <=, !=):", "==", (op) => {
+                             ui.showPrompt("Valor:", "0", (val) => {
+                                 input.value = `${v} ${op} ${val}`;
+                                 input.onchange();
+                             });
+                        });
+                    } else {
+                        ui.showPrompt("Acció (+=, -=, =, = true):", "+= 1", (op) => {
+                            input.value = `${v} ${op}`;
+                            input.onchange();
+                        });
+                    }
+                });
+            },
+            zoomToFit() {
+                if (appState.nodes.length === 0) return;
+                let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+                appState.nodes.forEach(n => {
+                    minX = Math.min(minX, n.x); minY = Math.min(minY, n.y);
+                    maxX = Math.max(maxX, n.x + (n.width||450)); maxY = Math.max(maxY, n.y + (n.height||200));
+                });
+                const padding = 100; const w = maxX - minX + (padding*2); const h = maxY - minY + (padding*2);
+                const c = document.getElementById('workspace-container');
+                const cw = c.clientWidth; const ch = c.clientHeight;
+                let scale = Math.min(cw/w, ch/h); scale = Math.min(Math.max(scale, 0.2), 1);
+                const cx = minX + (maxX - minX)/2; const cy = minY + (maxY - minY)/2;
+                appState.scale = scale; appState.panOffset.x = (cw/2) - (cx*scale); appState.panOffset.y = (ch/2) - (cy*scale);
+                this.applyTransform();
+            },
+
             renderNodes() {
-                const cv=document.getElementById('canvas-area'); document.querySelectorAll('.node-card').forEach(e=>e.remove());
-                let optsHtml='<option value="">(Fi / Res)</option>'; appState.nodes.forEach(n=>optsHtml+=`<option value="${n.id}" class="target-opt-${n.id}">${n.title||'Sense Títol'}</option>`); const newOpt=`<option value="NEW" class="text-blue-600 font-bold">[+ Nou Node]</option>`;
-                appState.nodes.forEach(node=>{
-                    const char=characterManager.getCharacter(node.characterId); const isEnd=node.options.length===0;
-                    const div=document.createElement('div'); div.id=node.id; div.className=`node-card bg-white rounded-lg shadow-lg flex flex-col border-2 ${isEnd?'border-red-400':'border-slate-200'}`;
-                    div.style.left=node.x+'px'; div.style.top=node.y+'px'; div.style.width=(node.width||450)+'px'; if(node.height)div.style.height=node.height+'px';
-                    const textVarsHtml=node.textOptions.map((t,i)=>`<div class="flex flex-col gap-1 mb-2 bg-yellow-50 p-1.5 rounded border border-yellow-200"><div class="flex gap-1"><span class="text-[10px] font-bold text-yellow-600 mt-1">TXT</span><textarea onchange="editor.updateTextVar('${node.id}',${i},'text',this.value);editor.saveState()" class="w-full p-1 text-xs border rounded resize-y h-12 focus:outline-none focus:border-yellow-400" placeholder="Text...">${t.text}</textarea><button onclick="editor.deleteTextVar('${node.id}',${i})" class="text-gray-300 hover:text-red-500 self-start ${node.textOptions.length===1?'hidden':''}"><i class="fa-solid fa-times"></i></button></div><div class="flex items-center gap-2"><span class="text-[10px] font-bold text-gray-400">IF</span><input type="text" value="${t.condition||''}" onchange="editor.updateTextVar('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 py-0.5 text-[10px] code-input" placeholder="Condició (opcional)"></div></div>`).join('');
-                    const optionsContent=node.options.map((opt,i)=>`<div class="relative group option-row mb-2 p-2 bg-slate-50 rounded border border-slate-200 transition hover:border-blue-300" data-idx="${i}"><div class="flex items-center gap-2 mb-1"><input type="checkbox" ${opt.once?'checked':''} onchange="editor.updateOption('${node.id}',${i},'once',this.checked);editor.saveState()" class="accent-blue-600" title="Només un cop"><input type="text" value="${opt.text}" onchange="editor.updateOption('${node.id}',${i},'text',this.value);editor.saveState()" class="flex-1 text-sm bg-transparent border-b border-transparent focus:border-blue-400 outline-none" placeholder="Text opció..."><button onclick="ui.toggleLogic(this)" class="text-gray-400 hover:text-blue-600 transition" title="Lògica"><i class="fa-solid fa-code"></i></button><button onclick="editor.deleteOption('${node.id}',${i})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button></div><div class="logic-row bg-slate-100 rounded px-2 text-xs space-y-2 border-l-2 border-orange-400"><div class="pt-2 font-bold text-gray-400 border-b pb-1">VISIBILITAT & EFECTES</div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">IF</span><input type="text" value="${opt.condition||''}" onchange="editor.updateOption('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or >= 10"></div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">DO</span><input type="text" value="${opt.effect||''}" onchange="editor.updateOption('${node.id}',${i},'effect',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or -= 10"></div><div class="pt-2 font-bold text-purple-400 border-b pb-1">DESVIACIÓ CONDICIONAL</div><div class="flex items-center gap-2"><span class="font-bold text-gray-500 w-8">ELSE IF</span><input type="text" value="${opt.targetCondition||''}" onchange="editor.updateOption('${node.id}',${i},'targetCondition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="ex: or < 5"></div><div class="flex items-center gap-2 pb-2"><span class="font-bold text-gray-500 w-8">GOTO</span><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value,true)" class="flex-1 bg-white border rounded px-1 text-[10px]">${optsHtml.replace(`value="${opt.altTargetNodeId}"`,`value="${opt.altTargetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div></div><div class="mt-1 flex items-center gap-1"><i class="fa-solid fa-share-nodes text-gray-300 text-xs"></i><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value)" class="w-full text-xs bg-transparent outline-none text-slate-600 cursor-pointer hover:text-blue-600">${optsHtml.replace(`value="${opt.targetNodeId}"`,`value="${opt.targetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div><div class="port-out" onmousedown="editor.startConnection(event,'${node.id}',${i})"></div></div>`).join('');
-                    let charOpts=''; appState.characters.forEach(c=>charOpts+=`<option value="${c.id}" ${c.id===node.characterId?'selected':''}>${c.name}</option>`);
-                    div.innerHTML=`<div class="drag-handle p-2 border-b flex items-center gap-2 rounded-t-md cursor-grab active:cursor-grabbing text-white" style="background-color:${char.color}"><i class="fa-solid ${isEnd?'fa-flag-checkered':'fa-comment-dots'} opacity-75"></i><input type="text" value="${node.title}" onchange="editor.updateNode('${node.id}','title',this.value);editor.saveState()" class="flex-1 bg-transparent font-bold text-sm focus:bg-black/20 rounded px-1 outline-none placeholder-white/50" placeholder="Títol"><button onclick="ui.showDeleteModal('${node.id}','node')" class="opacity-50 hover:opacity-100"><i class="fa-solid fa-times"></i></button></div><div class="p-3 flex flex-col flex-1 min-h-0 gap-3"><div class="flex gap-2 shrink-0"><div class="w-8 h-8 rounded shadow flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden" style="background-color:${char.color}">${char.avatarUrl?`<img src="${char.avatarUrl}" class="w-full h-full object-cover">`:char.name[0]}</div><div class="flex-1 space-y-1"><select onchange="editor.updateNode('${node.id}','characterId',this.value)" class="w-full text-xs border rounded p-1 bg-gray-50">${charOpts}</select><input type="text" value="${node.bgImage||''}" onchange="editor.updateNode('${node.id}','bgImage',this.value);editor.saveState()" class="w-full text-[10px] border rounded p-1 text-gray-500" placeholder="URL Fons (Opcional)"></div></div><div class="flex flex-col min-h-[80px] shrink-0 max-h-[50%]"><div class="flex justify-between items-center mb-1 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Variacions de Text</span><button onclick="editor.addTextVar('${node.id}')" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 rounded hover:bg-yellow-200"><i class="fa-solid fa-plus"></i></button></div><div class="overflow-y-auto thin-scrollbar pr-1 h-full">${textVarsHtml}</div></div><div class="flex flex-col min-h-[80px] border-t pt-2 flex-1"><div class="flex justify-between items-center mb-2 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Respostes</span><button onclick="editor.addOption('${node.id}')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded font-medium"><i class="fa-solid fa-plus"></i></button></div><div class="overflow-y-auto thin-scrollbar h-full -mr-1 pr-1">${optionsContent}</div></div></div><div class="resize-handle" onmousedown="editor.startResize(event,'${node.id}')"></div>`;
-                    div.querySelector('.drag-handle').onmousedown=(e)=>{if(e.target.tagName==='INPUT')return;e.stopPropagation();appState.interactionMode='dragging_node';appState.draggingNodeId=node.id;const r=cv.getBoundingClientRect();const sx=(node.x*appState.scale)+appState.panOffset.x;const sy=(node.y*appState.scale)+appState.panOffset.y;appState.dragOffset={x:(e.clientX-r.left)-sx,y:(e.clientY-r.top)-sy};div.style.zIndex=50;};
+                const cv=document.getElementById('canvas-area'); 
+                
+                // Clean existing
+                document.querySelectorAll('.node-card').forEach(e=>e.remove());
+                
+                // Generate options list for selects FIRST
+                let optsHtml='<option value="">(Fi / Res)</option>'; 
+                appState.nodes.forEach(n=>optsHtml+=`<option value="${n.id}" class="target-opt-${n.id}">${n.title||'Sense Títol'}</option>`); 
+                const newOpt=`<option value="NEW" class="text-blue-600 font-bold">[+ Nou Node]</option>`;
+
+                // Now iterate to build nodes
+                appState.nodes.forEach(node => {
+                    const char = characterManager.getCharacter(node.characterId); 
+                    
+                    // Expression Selector
+                    let expSelect = '';
+                    if (char.expressions && char.expressions.length > 0) {
+                        expSelect = `<select onchange="editor.updateNode('${node.id}','characterExpression',this.value);editor.saveState()" class="w-20 text-[10px] border rounded p-1 bg-gray-50 ml-1" title="Expressió"><option value="">(Normal)</option>${char.expressions.map(e=>`<option value="${e.name}" ${node.characterExpression===e.name?'selected':''}>${e.name}</option>`).join('')}</select>`;
+                    }
+                    
+                    // Character Options for THIS node
+                    let charOpts = ''; 
+                    appState.characters.forEach(c => {
+                        charOpts += `<option value="${c.id}" ${c.id === node.characterId ? 'selected' : ''}>${c.name}</option>`;
+                    });
+                    
+                    // Type Selector logic
+                    const typeColors = { normal: 'header-normal', start: 'header-start', end: 'header-end', logic: 'header-logic', decision: 'header-decision' };
+                    const typeClass = `node-type-${node.type||'normal'}`;
+                    const headerClass = typeColors[node.type||'normal'];
+
+                    const div = document.createElement('div'); 
+                    div.id = node.id; 
+                    div.className = `node-card ${typeClass}`;
+                    div.style.left = node.x + 'px'; 
+                    div.style.top = node.y + 'px'; 
+                    div.style.width = (node.width||450) + 'px'; 
+                    if (node.height) div.style.height = node.height + 'px';
+                    
+                    const textVarsHtml = node.textOptions.map((t,i) => `
+                        <div class="flex flex-col gap-1 mb-2 bg-yellow-50 p-1.5 rounded border border-yellow-200">
+                            <div class="flex gap-1">
+                                <span class="text-[10px] font-bold text-yellow-600 mt-1">TXT</span>
+                                <textarea onchange="editor.updateTextVar('${node.id}',${i},'text',this.value);editor.saveState()" class="w-full p-1 text-xs border rounded resize-y h-12 focus:outline-none focus:border-yellow-400" placeholder="Text...">${t.text}</textarea>
+                                <button onclick="editor.deleteTextVar('${node.id}',${i})" class="text-gray-300 hover:text-red-500 self-start ${node.textOptions.length===1?'hidden':''}"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                            <div class="visual-builder-group">
+                                <span class="vb-label w-4">IF</span>
+                                <input type="text" value="${t.condition||''}" onchange="editor.updateTextVar('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 py-0.5 text-[10px] code-input" placeholder="Condició">
+                                <button onclick="editor.insertLogic(this.previousElementSibling, 'condition')" class="text-blue-500 hover:text-blue-700 text-xs px-1" title="Constructor"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                            </div>
+                        </div>`).join('');
+                    
+                    const optionsContent = node.options.map((opt,i) => `
+                        <div class="relative group option-row mb-2 p-2 bg-slate-50 rounded border border-slate-200 transition hover:border-blue-300 flex flex-col" data-idx="${i}" draggable="true" ondragstart="editor.handleOptDragStart(event, '${node.id}', ${i})" ondragover="editor.handleOptDragOver(event)" ondrop="editor.handleOptDrop(event, '${node.id}', ${i})" ondragend="editor.handleOptDragEnd(event)">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="cursor-move text-gray-300 hover:text-gray-500 mr-1 self-center grab-handle" onmousedown="appState.dragAllowed=true" onmouseup="appState.dragAllowed=false" onmouseleave="appState.dragAllowed=false"><i class="fa-solid fa-grip-vertical"></i></div>
+                                <input type="checkbox" ${opt.once?'checked':''} onchange="editor.updateOption('${node.id}',${i},'once',this.checked);editor.saveState()" class="accent-blue-600" title="Només un cop">
+                                <input type="text" value="${opt.text}" onchange="editor.updateOption('${node.id}',${i},'text',this.value);editor.saveState()" class="flex-1 text-sm bg-transparent border-b border-transparent focus:border-blue-400 outline-none" placeholder="Text opció...">
+                                <button onclick="ui.toggleLogic(this)" class="text-gray-400 hover:text-blue-600 transition" title="Lògica"><i class="fa-solid fa-code"></i></button>
+                                <button onclick="editor.deleteOption('${node.id}',${i})" class="text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <div class="logic-row bg-slate-100 rounded px-2 text-xs space-y-1 border-l-2 border-orange-400 mb-2">
+                                <div class="visual-builder-group mt-1"><span class="vb-label w-8">IF</span><input type="text" value="${opt.condition||''}" onchange="editor.updateOption('${node.id}',${i},'condition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input"><button onclick="editor.insertLogic(this.previousElementSibling,'condition')" class="text-blue-500 px-1"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+                                <div class="visual-builder-group"><span class="vb-label w-8">DO</span><input type="text" value="${opt.effect||''}" onchange="editor.updateOption('${node.id}',${i},'effect',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input"><button onclick="editor.insertLogic(this.previousElementSibling,'effect')" class="text-blue-500 px-1"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+                                <div class="visual-builder-group border-t pt-1 mt-1"><span class="vb-label w-8 text-purple-600">ELSE</span><input type="text" value="${opt.targetCondition||''}" onchange="editor.updateOption('${node.id}',${i},'targetCondition',this.value);editor.saveState()" class="flex-1 bg-white border rounded px-1 code-input" placeholder="Condició desviació"><button onclick="editor.insertLogic(this.previousElementSibling,'condition')" class="text-blue-500 px-1"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>
+                                <div class="flex items-center gap-2 pb-1"><span class="vb-label w-8 text-purple-600">GOTO</span><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value,true)" class="flex-1 bg-white border rounded px-1 text-[10px]">${optsHtml.replace(`value="${opt.altTargetNodeId}"`,`value="${opt.altTargetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div>
+                            </div>
+                            <div class="mt-1 flex items-center gap-1"><i class="fa-solid fa-share-nodes text-gray-300 text-xs"></i><select onchange="editor.handleTargetSelect('${node.id}',${i},this.value)" class="w-full text-xs bg-transparent outline-none text-slate-600 cursor-pointer hover:text-blue-600">${optsHtml.replace(`value="${opt.targetNodeId}"`,`value="${opt.targetNodeId}" selected`)}<option disabled>────────</option> ${newOpt}</select></div>
+                            <div class="port-out" onmousedown="editor.startConnection(event,'${node.id}',${i})"></div>
+                        </div>
+                    `).join('');
+                    
+                    div.innerHTML = `
+                        <div class="drag-handle p-2 border-b flex items-center gap-2 rounded-t-md cursor-grab active:cursor-grabbing text-white ${headerClass}">
+                            <select onchange="editor.updateNode('${node.id}','type',this.value);editor.saveState()" class="bg-transparent text-xs font-bold outline-none border border-white/30 rounded text-white cursor-pointer hover:bg-white/10" title="Tipus de Node">
+                                <option value="normal" ${node.type==='normal'?'selected':''} style="color:black">📝</option>
+                                <option value="start" ${node.type==='start'?'selected':''} style="color:black">🏁</option>
+                                <option value="end" ${node.type==='end'?'selected':''} style="color:black">🛑</option>
+                                <option value="logic" ${node.type==='logic'?'selected':''} style="color:black">⚙️</option>
+                                <option value="decision" ${node.type==='decision'?'selected':''} style="color:black">🔀</option>
+                            </select>
+                            <input type="text" value="${node.title}" onchange="editor.updateNode('${node.id}','title',this.value);editor.saveState()" class="flex-1 bg-transparent font-bold text-sm focus:bg-black/20 rounded px-1 outline-none placeholder-white/50" placeholder="Títol">
+                            <button onclick="ui.showDeleteModal('${node.id}','node')" class="opacity-50 hover:opacity-100 mr-2"><i class="fa-solid fa-times"></i></button>
+                            <div class="cursor-move hover:text-gray-200 px-1 border-l border-white/20 pl-2"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>
+                        </div>
+                        <div class="p-3 flex flex-col flex-1 min-h-0 gap-3">
+                            <div class="flex gap-2 shrink-0">
+                                <div class="w-8 h-8 rounded shadow flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden" style="background-color:${char.color}">
+                                    ${char.avatarUrl ? `<img src="${char.avatarUrl}" class="w-full h-full object-cover">` : char.name[0]}
+                                </div>
+                                <div class="flex-1 flex flex-col gap-1">
+                                    <div class="flex gap-1">
+                                        <select onchange="editor.updateNode('${node.id}','characterId',this.value)" class="flex-1 text-xs border rounded p-1 bg-gray-50">${charOpts}</select>
+                                        ${expSelect}
+                                    </div>
+                                    <input type="text" value="${node.bgImage||''}" onchange="editor.updateNode('${node.id}','bgImage',this.value);editor.saveState()" class="w-full text-[10px] border rounded p-1 text-gray-500" placeholder="URL Fons (Opcional)">
+                                </div>
+                            </div>
+                            <div class="flex flex-col min-h-[80px] shrink-0 max-h-[50%]">
+                                <div class="flex justify-between items-center mb-1 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Textos</span><button onclick="editor.addTextVar('${node.id}')" class="text-[10px] bg-yellow-100 text-yellow-700 px-2 rounded hover:bg-yellow-200"><i class="fa-solid fa-plus"></i></button></div>
+                                <div class="overflow-y-auto thin-scrollbar pr-1 h-full">${textVarsHtml}</div>
+                            </div>
+                            <div class="flex flex-col min-h-[80px] border-t pt-2 flex-1">
+                                <div class="flex justify-between items-center mb-2 shrink-0"><span class="text-xs font-bold text-gray-400 uppercase">Respostes</span><button onclick="editor.addOption('${node.id}')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded font-medium"><i class="fa-solid fa-plus"></i></button></div>
+                                <div class="overflow-y-auto thin-scrollbar h-full -mr-1 pr-1">${optionsContent}</div>
+                            </div>
+                        </div>
+                        <div class="resize-handle" onmousedown="editor.startResize(event,'${node.id}')"></div>
+                    `;
+                    
+                    div.querySelector('.drag-handle').onmousedown = (e) => {
+                        if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+                        e.stopPropagation();
+                        appState.interactionMode = 'dragging_node';
+                        appState.draggingNodeId = node.id;
+                        
+                        const rect = document.getElementById('workspace-container').getBoundingClientRect();
+                        const nodeVisualX = (node.x * appState.scale) + appState.panOffset.x;
+                        const nodeVisualY = (node.y * appState.scale) + appState.panOffset.y;
+                        const mouseVisualX = e.clientX - rect.left;
+                        const mouseVisualY = e.clientY - rect.top;
+                        
+                        appState.dragOffset = { x: mouseVisualX - nodeVisualX, y: mouseVisualY - nodeVisualY };
+                        div.style.zIndex = 50;
+                    };
+
                     cv.appendChild(div);
                 });
-                this.drawConnections(); this.renderMinimap();
+                
+                // Minimap Metrics Calculation
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                if (appState.nodes.length > 0) {
+                    appState.nodes.forEach(n => {
+                        minX = Math.min(minX, n.x);
+                        minY = Math.min(minY, n.y);
+                        maxX = Math.max(maxX, n.x + (n.width || 450));
+                        maxY = Math.max(maxY, n.y + (n.height || 200));
+                    });
+                } else {
+                    minX = 0; minY = 0; maxX = 100; maxY = 100;
+                }
+                
+                minX -= 1000; minY -= 1000; maxX += 1000; maxY += 1000;
+                const mapW = maxX - minX;
+                const mapH = maxY - minY;
+                
+                appState.minimapMetrics = { minX, minY, mapW, mapH };
+
+                this.drawConnections(); 
+                this.renderMinimap();
             },
             startResize(e,nid){e.stopPropagation();appState.interactionMode='resizing_node';appState.resizingNodeId=nid;const n=appState.nodes.find(x=>x.id===nid);appState.resizeStart={x:e.clientX,y:e.clientY};appState.resizeInitialDim={w:n.width||450,h:n.height||(document.getElementById(nid).clientHeight)};},
-            drawConnections(){const svg=document.getElementById('connections-layer');Array.from(svg.children).forEach(c=>{if(c.id!=='temp-connection')c.remove()});appState.nodes.forEach(n=>{const el=document.getElementById(n.id);if(!el)return;n.options.forEach((o,i)=>{const r=el.querySelectorAll('.option-row');if(!r[i])return;const p=r[i].querySelector('.port-out');const pr=p.getBoundingClientRect();const nr=el.getBoundingClientRect();const rx=(pr.left-nr.left)/appState.scale;const ry=(pr.top-nr.top)/appState.scale;const x1=n.x+rx+8;const y1=n.y+ry+8;const dl=(tid,alt)=>{const t=appState.nodes.find(x=>x.id===tid);if(!t)return;const x2=t.x;const y2=t.y+20;const pt=document.createElementNS("http://www.w3.org/2000/svg","path");const d=Math.abs(x2-x1)*0.5;pt.setAttribute("d",`M ${x1} ${y1} C ${x1+d} ${y1}, ${x2-d} ${y2}, ${x2} ${y2}`);let c="connection-line";if(o.once)c+=" dashed";if(alt)c+=" alt";pt.setAttribute("class",c);svg.appendChild(pt);};if(o.targetNodeId)dl(o.targetNodeId,false);if(o.altTargetNodeId)dl(o.altTargetNodeId,true);});});},
-            renderMinimap(){const cv=document.getElementById('minimap-canvas');const ctx=cv.getContext('2d');const w=cv.width=cv.clientWidth;const h=cv.height=cv.clientHeight;ctx.clearRect(0,0,w,h);let mx=Infinity,my=Infinity,MX=-Infinity,MY=-Infinity;if(appState.nodes.length===0)return;appState.nodes.forEach(n=>{mx=Math.min(mx,n.x);my=Math.min(my,n.y);MX=Math.max(MX,n.x+(n.width||450));MY=Math.max(MY,n.y+300);});mx-=1000;my-=1000;MX+=1000;MY+=1000;const mw=MX-mx,mh=MY-my,r=Math.min(w/mw,h/mh);appState.nodes.forEach(n=>{const c=characterManager.getCharacter(n.characterId);ctx.fillStyle=c.color;ctx.fillRect((n.x-mx)*r,(n.y-my)*r,(n.width||450)*r,(n.height||200)*r);});const wc=document.getElementById('workspace-container');const vx=(-appState.panOffset.x/appState.scale),vy=(-appState.panOffset.y/appState.scale),vw=wc.clientWidth/appState.scale,vh=wc.clientHeight/appState.scale;const ve=document.getElementById('minimap-viewport');ve.style.left=((vx-mx)*r)+'px';ve.style.top=((vy-my)*r)+'px';ve.style.width=(vw*r)+'px';ve.style.height=(vh*r)+'px';},
+            drawConnections(){const svg=document.getElementById('connections-layer');Array.from(svg.children).forEach(c=>{if(c.id!=='temp-connection')c.remove()});appState.nodes.forEach(n=>{const el=document.getElementById(n.id);if(!el)return;n.options.forEach((o,i)=>{const r=el.querySelectorAll('.option-row');if(!r[i])return;const p=r[i].querySelector('.port-out');const pr=p.getBoundingClientRect();const nr=el.getBoundingClientRect();const rx=(pr.left-nr.left)/appState.scale;const ry=(pr.top-nr.top)/appState.scale;const x1=n.x+rx+8;const y1=n.y+ry+8;const dl=(tid,alt)=>{const t=appState.nodes.find(x=>x.id===tid);if(!t)return;const x2=t.x;const y2=t.y+20;const pt=document.createElementNS("http://www.w3.org/2000/svg","path");
+                if(Math.abs(y1-y2)<50){pt.setAttribute("d",`M ${x1} ${y1} C ${x1+50} ${y1}, ${x2-50} ${y2}, ${x2} ${y2}`);}
+                else{pt.setAttribute("d",`M ${x1} ${y1} C ${x1+100} ${y1}, ${x2-100} ${y2}, ${x2} ${y2}`);}
+                let c="connection-line";if(o.once)c+=" dashed";if(alt)c+=" alt";pt.setAttribute("class",c);svg.appendChild(pt);};if(o.targetNodeId)dl(o.targetNodeId,false);if(o.altTargetNodeId)dl(o.altTargetNodeId,true);});});},
+            renderMinimap(){
+                const cv=document.getElementById('minimap-canvas');
+                const ctx=cv.getContext('2d');
+                const w=cv.width=cv.clientWidth;
+                const h=cv.height=cv.clientHeight;
+                ctx.clearRect(0,0,w,h);
+
+                if (!appState.minimapMetrics) return;
+
+                const { minX, minY, mapW, mapH } = appState.minimapMetrics;
+                const ratio = Math.min(w/mapW, h/mapH);
+                appState.minimapMetrics.ratio = ratio;
+
+                const nodeColors = { start: '#22c55e', end: '#ef4444', logic: '#a855f7', decision: '#f97316', normal: '#64748b' };
+
+                appState.nodes.forEach(n=>{
+                    let color = nodeColors[n.type] || '#64748b';
+                    ctx.fillStyle = color;
+                    ctx.fillRect((n.x - minX) * ratio, (n.y - minY) * ratio, (n.width||450) * ratio, (n.height||200) * ratio);
+                });
+                
+                const wc=document.getElementById('workspace-container');
+                const vx=(-appState.panOffset.x/appState.scale);
+                const vy=(-appState.panOffset.y/appState.scale);
+                const vw=wc.clientWidth/appState.scale;
+                const vh=wc.clientHeight/appState.scale;
+                
+                const ve=document.getElementById('minimap-viewport');
+                ve.style.left=((vx - minX) * ratio) + 'px';
+                ve.style.top=((vy - minY) * ratio) + 'px';
+                ve.style.width=(vw * ratio) + 'px';
+                ve.style.height=(vh * ratio) + 'px';
+            },
             setupCanvasEvents(){
                 const c=document.getElementById('workspace-container');
                 c.addEventListener('wheel',(e)=>{e.preventDefault();const i=0.1,d=-Math.sign(e.deltaY),os=appState.scale,ns=Math.min(Math.max(0.1,os+(d*i)),2);const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,lx=(mx-appState.panOffset.x)/os,ly=(my-appState.panOffset.y)/os;appState.panOffset.x=mx-(lx*ns);appState.panOffset.y=my-(ly*ns);appState.scale=ns;this.applyTransform();},{passive:false});
                 c.addEventListener('mousedown',(e)=>{if(e.target===c||e.target.id==='canvas-area'||e.target.tagName==='svg'){appState.interactionMode='panning';appState.panStart={x:e.clientX,y:e.clientY};document.body.style.cursor='grabbing';}});
                 this.startConnection=(e,nid,idx)=>{e.stopPropagation();appState.interactionMode='connecting';const r=c.getBoundingClientRect(),lx=(e.clientX-r.left-appState.panOffset.x)/appState.scale,ly=(e.clientY-r.top-appState.panOffset.y)/appState.scale;appState.connectionStart={nodeId:nid,optionIndex:idx,x:lx,y:ly};document.getElementById('temp-connection').classList.remove('hidden');};
-                window.addEventListener('mousemove',(e)=>{const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;if(appState.interactionMode==='resizing_node'&&appState.resizingNodeId){const n=appState.nodes.find(x=>x.id===appState.resizingNodeId),dx=(e.clientX-appState.resizeStart.x)/appState.scale,dy=(e.clientY-appState.resizeStart.y)/appState.scale;n.width=Math.max(300,appState.resizeInitialDim.w+dx);n.height=Math.max(200,appState.resizeInitialDim.h+dy);const el=document.getElementById(n.id);el.style.width=n.width+'px';el.style.height=n.height+'px';editor.drawConnections();}else if(appState.interactionMode==='dragging_node'&&appState.draggingNodeId){const n=appState.nodes.find(x=>x.id===appState.draggingNodeId),nx=(mx-appState.dragOffset.x-appState.panOffset.x)/appState.scale,ny=(my-appState.dragOffset.y-appState.panOffset.y)/appState.scale;n.x=Math.round(nx/20)*20;n.y=Math.round(ny/20)*20;const el=document.getElementById(n.id);el.style.left=n.x+'px';el.style.top=n.y+'px';this.drawConnections();}else if(appState.interactionMode==='panning'){const dx=e.clientX-appState.panStart.x,dy=e.clientY-appState.panStart.y;appState.panOffset.x+=dx;appState.panOffset.y+=dy;appState.panStart={x:e.clientX,y:e.clientY};this.applyTransform();}else if(appState.interactionMode==='connecting'){const lx=(mx-appState.panOffset.x)/appState.scale,ly=(my-appState.panOffset.y)/appState.scale,sx=appState.connectionStart.x,sy=appState.connectionStart.y;document.getElementById('temp-connection').setAttribute("d",`M ${sx} ${sy} C ${sx+50} ${sy}, ${lx-50} ${ly}, ${lx} ${ly}`);}});
-                window.addEventListener('mouseup',(e)=>{if(appState.interactionMode==='resizing_node'){historySystem.pushState();}else if(appState.interactionMode==='connecting'){const t=document.elementFromPoint(e.clientX,e.clientY),tn=t?t.closest('.node-card'):null,{nodeId,optionIndex}=appState.connectionStart;historySystem.pushState();if(tn&&tn.id!==nodeId){editor.updateOption(nodeId,optionIndex,'targetNodeId',tn.id);}else if(!tn){const r=c.getBoundingClientRect(),lx=(e.clientX-r.left-appState.panOffset.x)/appState.scale,ly=(e.clientY-r.top-appState.panOffset.y)/appState.scale,nid=editor.addNode(lx,ly-20);editor.updateOption(nodeId,optionIndex,'targetNodeId',nid);}document.getElementById('temp-connection').classList.add('hidden');this.renderNodes();}else if(appState.interactionMode==='dragging_node'){historySystem.pushState();editor.renderMinimap();}appState.interactionMode='default';appState.draggingNodeId=null;appState.resizingNodeId=null;document.body.style.cursor='';});
+                window.addEventListener('mousemove',(e)=>{
+                    const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+                    if(appState.interactionMode==='resizing_node'&&appState.resizingNodeId){
+                        const n=appState.nodes.find(x=>x.id===appState.resizingNodeId),dx=(e.clientX-appState.resizeStart.x)/appState.scale,dy=(e.clientY-appState.resizeStart.y)/appState.scale;
+                        n.width=Math.max(300,appState.resizeInitialDim.w+dx);n.height=Math.max(200,appState.resizeInitialDim.h+dy);
+                        const el=document.getElementById(n.id);el.style.width=n.width+'px';el.style.height=n.height+'px';editor.drawConnections();
+                    }
+                    else if(appState.interactionMode==='dragging_node'&&appState.draggingNodeId){
+                        const n=appState.nodes.find(x=>x.id===appState.draggingNodeId),
+                        nx = (mx - appState.dragOffset.x - appState.panOffset.x) / appState.scale,
+                        ny = (my - appState.dragOffset.y - appState.panOffset.y) / appState.scale;
+                        n.x=Math.round(nx/10)*10;n.y=Math.round(ny/10)*10;const el=document.getElementById(n.id);el.style.left=n.x+'px';el.style.top=n.y+'px';this.drawConnections();
+                    }
+                    else if(appState.interactionMode==='panning'){const dx=e.clientX-appState.panStart.x,dy=e.clientY-appState.panStart.y;appState.panOffset.x+=dx;appState.panOffset.y+=dy;appState.panStart={x:e.clientX,y:e.clientY};this.applyTransform();}
+                    else if(appState.interactionMode==='connecting'){const lx=(mx-appState.panOffset.x)/appState.scale,ly=(my-appState.panOffset.y)/appState.scale,sx=appState.connectionStart.x,sy=appState.connectionStart.y;document.getElementById('temp-connection').setAttribute("d",`M ${sx} ${sy} C ${sx+50} ${sy}, ${lx-50} ${ly}, ${lx} ${ly}`);}
+                });
+                window.addEventListener('mouseup',(e)=>{
+                    if(appState.interactionMode==='resizing_node'){historySystem.pushState();}
+                    else if(appState.interactionMode==='connecting'){const t=document.elementFromPoint(e.clientX,e.clientY),tn=t?t.closest('.node-card'):null,{nodeId,optionIndex}=appState.connectionStart;historySystem.pushState();if(tn&&tn.id!==nodeId){editor.updateOption(nodeId,optionIndex,'targetNodeId',tn.id);}else if(!tn){const r=c.getBoundingClientRect(),lx=(e.clientX-r.left-appState.panOffset.x)/appState.scale,ly=(e.clientY-r.top-appState.panOffset.y)/appState.scale,nid=editor.addNode(lx,ly-20);editor.updateOption(nodeId,optionIndex,'targetNodeId',nid);}document.getElementById('temp-connection').classList.add('hidden');this.renderNodes();}
+                    else if(appState.interactionMode==='dragging_node'){historySystem.pushState();editor.renderMinimap();}
+                    appState.interactionMode='default';appState.draggingNodeId=null;appState.resizingNodeId=null;document.body.style.cursor='';
+                });
+
+                const mm = document.getElementById('minimap-container');
+                const updateMinimapPan = (e) => {
+                    if (!appState.minimapMetrics || !appState.minimapMetrics.ratio) return;
+                    const rect = mm.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    const logicalX = (mx / appState.minimapMetrics.ratio) + appState.minimapMetrics.minX;
+                    const logicalY = (my / appState.minimapMetrics.ratio) + appState.minimapMetrics.minY;
+                    const c = document.getElementById('workspace-container');
+                    appState.panOffset.x = (c.clientWidth / 2) - (logicalX * appState.scale);
+                    appState.panOffset.y = (c.clientHeight / 2) - (logicalY * appState.scale);
+                    this.applyTransform();
+                };
+                mm.addEventListener('mousedown', (e) => { appState.interactionMode = 'panning_minimap'; updateMinimapPan(e); });
+                window.addEventListener('mousemove', (e) => { if (appState.interactionMode === 'panning_minimap') { updateMinimapPan(e); } });
+                window.addEventListener('mouseup', () => { if (appState.interactionMode === 'panning_minimap') { appState.interactionMode = 'default'; } });
             },
             applyTransform(){const el=document.getElementById('canvas-area');el.style.transform=`translate(${appState.panOffset.x}px,${appState.panOffset.y}px) scale(${appState.scale})`;document.getElementById('zoom-level').innerText=Math.round(appState.scale*100)+'%';this.renderMinimap();},
             resetView(){appState.scale=1;appState.panOffset={x:-2000,y:-2000};this.applyTransform();},
             togglePreview(){const m=document.getElementById('preview-modal');if(m.classList.contains('hidden')){m.classList.remove('hidden');previewEngine.start();}else{m.classList.add('hidden');}}
         };
 
+        // --- PREVIEW ---
         const previewEngine = {
             currentId: null, visited: new Set(), runtimeVars: {},
             start(keepState=false){if(appState.nodes.length===0)return alert("Buit!");this.currentId=appState.nodes[0].id;if(!keepState){this.visited.clear();this.runtimeVars=JSON.parse(JSON.stringify(appState.globalVariables));}this.render();},
@@ -378,9 +661,28 @@
             render(){
                 const n=appState.nodes.find(x=>x.id===this.currentId),c=characterManager.getCharacter(n.characterId);
                 const bg=document.getElementById('preview-game-area'),pb=document.getElementById('preview-portrait'),pt=document.getElementById('preview-portrait-initial'),pi=document.getElementById('preview-portrait-img'),ta=document.getElementById('preview-text'),na=document.getElementById('preview-char-name'),oc=document.getElementById('preview-options'),da=document.getElementById('preview-debug-vars');
+                
+                if(n.type === 'logic') {
+                     const validOpt = n.options.find(o => !o.condition || this.evaluate(o.condition));
+                     if (validOpt) { 
+                        if (validOpt.effect) this.execute(validOpt.effect);
+                        if (validOpt.targetNodeId) { this.currentId = validOpt.targetNodeId; setTimeout(()=>this.render(), 10); return; }
+                     }
+                     pb.style.display='none';document.getElementById('preview-text-container').style.display='none';this.showEnd("Fi lògica."); return;
+                }
+                if(n.type === 'end') { pb.style.display='none';document.getElementById('preview-text-container').style.display='none';this.showEnd("Fi."); return; }
+
                 pb.style.display='flex';document.getElementById('preview-text-container').style.display='block';
                 if(n.bgImage){bg.style.backgroundImage=`url('${n.bgImage}')`;document.getElementById('preview-default-bg').style.display='none';}else{bg.style.backgroundImage='none';document.getElementById('preview-default-bg').style.display='block';}
-                pb.style.backgroundColor=c.color;if(c.avatarUrl){pt.classList.add('hidden');pi.src=c.avatarUrl;pi.classList.remove('hidden');}else{pt.innerText=c.name[0];pt.classList.remove('hidden');pi.classList.add('hidden');}
+                pb.style.backgroundColor=c.color;
+                
+                let avatar = c.avatarUrl;
+                if(n.characterExpression && c.expressions) {
+                    const exp = c.expressions.find(e=>e.name===n.characterExpression);
+                    if(exp) avatar = exp.url;
+                }
+
+                if(avatar){pt.classList.add('hidden');pi.src=avatar;pi.classList.remove('hidden');}else{pt.innerText=c.name[0];pt.classList.remove('hidden');pi.classList.add('hidden');}
                 na.innerText=c.name;na.style.color=c.color;da.innerHTML=Object.entries(this.runtimeVars).map(([k,v])=>`<div>${k}: <span class="text-white">${v}</span></div>`).join('');
                 let vts=n.textOptions.filter(t=>this.evaluate(t.condition));const hasSpec=vts.some(t=>t.condition&&t.condition.trim()!=="");if(hasSpec)vts=vts.filter(t=>t.condition&&t.condition.trim()!=="");
                 const txt=vts.length>0?vts[Math.floor(Math.random()*vts.length)].text:"(Sense text)";
@@ -403,157 +705,63 @@
             showEnd(m){const c=document.getElementById('preview-options');c.innerHTML=`<div class="text-center text-yellow-500 text-xl font-bold mb-4 mt-4">${m}</div><div class="flex justify-center gap-4"><button onclick="previewEngine.start(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-rotate-left"></i> Nova</button><button onclick="previewEngine.start(false)" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded shadow"><i class="fa-solid fa-power-off"></i> Reiniciar</button></div>`;}
         };
 
+        // --- IO ---
         const ioSystem = {
             autosave() { localStorage.setItem('adv_editor_data', JSON.stringify(appState)); const ind = document.getElementById('autosave-indicator'); ind.classList.remove('opacity-0'); setTimeout(() => ind.classList.add('opacity-0'), 2000); },
             autoload() { const data = localStorage.getItem('adv_editor_data'); if (data) { try { const p = JSON.parse(data); appState.nodes = p.nodes||[]; appState.characters = p.characters||[]; appState.globalVariables = p.globalVariables||{}; this.migrate(); historySystem.pushState(); } catch(e) { console.error("Autoload error", e); } } },
-            migrate() { appState.nodes.forEach(n => { if (!n.textOptions) { n.textOptions = [{ text: n.text || "", condition: "" }]; delete n.text; } if (!n.width) n.width = 450; }); },
+            migrate() { appState.nodes.forEach(n => { if (!n.textOptions) { n.textOptions = [{ text: n.text || "", condition: "" }]; delete n.text; } if (!n.width) n.width = 450; }); appState.characters.forEach(c=>{ if(!c.expressions) c.expressions=[]; }); },
             exportJSON() { const s=appState.nodes.find(n=>n.id==='node_start')||appState.nodes[0];const cn=s?characterManager.getCharacter(s.characterId).name:"Unknown";const o={id_dialogue:cn,...appState};const u="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(o,null,2));const a=document.createElement('a');a.href=u;a.download=`adventure_${Date.now()}.json`;a.click();},
-            exportCSV(){
-                // Generar CSV amb capçaleres descriptives
-                // L'estructura és polimòrfica (les columnes signifiquen coses diferents segons el TYPE), però ara els noms ajuden a identificar-ho.
-                let csv = "\uFEFFTYPE;ID;PARENT_ID;TEXT_NAME_TITLE;TARGET_COLOR_COND;AVATAR_X_ALTTARGET;Y_TARGETCOND;WIDTH_ONCE;HEIGHT_LOGIC;BGIMAGE_EFFECT\n";
-                
-                // 1. Characters
-                // TEXT_NAME_TITLE -> Name
-                // TARGET_COLOR_COND -> Color
-                // AVATAR_X_ALTTARGET -> AvatarUrl
-                appState.characters.forEach(c => {
-                    csv += `CHAR;${c.id};;${c.name};${c.color};${c.avatarUrl};;;;\n`;
-                });
-
-                // 2. Variables
-                // TEXT_NAME_TITLE -> Value
-                // TARGET_COLOR_COND -> Type
-                for(const [k,v] of Object.entries(appState.globalVariables)) {
-                    csv += `VAR;${k};;${v};${typeof v};;;;;\n`;
-                }
-
-                // 3. Nodes & contents
-                appState.nodes.forEach(n => {
-                    // NODE ROW
-                    // TEXT_NAME_TITLE -> Title
-                    // TARGET_COLOR_COND -> CharId
-                    // AVATAR_X_ALTTARGET -> X
-                    // Y_TARGETCOND -> Y
-                    // WIDTH_ONCE -> Width
-                    // HEIGHT_LOGIC -> Height
-                    // BGIMAGE_EFFECT -> BgImage
-                    csv += `NODE;${n.id};;${n.title};${n.characterId};${n.x};${n.y};${n.width || 450};${n.height || 0};${n.bgImage}\n`;
-                    
-                    // TEXT ROWS
-                    // TEXT_NAME_TITLE -> Text
-                    // TARGET_COLOR_COND -> Condition
-                    n.textOptions.forEach(t => {
-                        const safeText = t.text.replace(/;/g, '[,]').replace(/\n/g, '[NL]');
-                        csv += `TEXT;;${n.id};${safeText};${t.condition};;;;;\n`;
-                    });
-
-                    // OPTION ROWS
-                    // TEXT_NAME_TITLE -> Text
-                    // TARGET_COLOR_COND -> TargetNodeId
-                    // AVATAR_X_ALTTARGET -> AltTargetNodeId
-                    // Y_TARGETCOND -> TargetCondition (Logic per anar a Alt)
-                    // WIDTH_ONCE -> Once (true/false)
-                    // HEIGHT_LOGIC -> Condition (Logic per mostrar opció)
-                    // BGIMAGE_EFFECT -> Effect (JS)
-                    n.options.forEach(o => {
-                        const safeText = o.text.replace(/;/g, '[,]').replace(/\n/g, '[NL]');
-                        csv += `OPT;;${n.id};${safeText};${o.targetNodeId};${o.altTargetNodeId};${o.targetCondition};${o.once};${o.condition};${o.effect}\n`;
-                    });
-                });
-
-                const u="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
-                const a=document.createElement('a');a.href=u;a.download=`adventure_${Date.now()}.csv`;a.click();
-            },
             loadFile(input) {
                 const file = input.files[0];
                 if(!file) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const content = e.target.result;
-                    if (file.name.endsWith('.csv')) {
-                        this.importCSV(content);
-                    } else {
-                        try {
-                            const json = JSON.parse(content);
-                            const d = json.appState || json;
-                            appState.nodes=d.nodes||[]; appState.characters=d.characters||[]; appState.globalVariables=d.globalVariables||{};
-                            this.postLoad();
-                        } catch(err) { alert("Error JSON: "+err.message); }
-                    }
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        const d = json.appState || json;
+                        appState.nodes=d.nodes||[]; appState.characters=d.characters||[]; appState.globalVariables=d.globalVariables||{};
+                        this.postLoad();
+                    } catch(err) { alert("Error JSON: "+err.message); }
                 };
                 reader.readAsText(file);
                 input.value = '';
             },
-            importCSV(csvText) {
-                try {
-                    const lines = csvText.split(/\r?\n/);
-                    const newChars = [];
-                    const newVars = {};
-                    const newNodes = [];
-
-                    // Helper to restore text
-                    const restore = (t) => t ? t.replace(/\[,\]/g, ';').replace(/\[NL\]/g, '\n') : "";
-
-                    lines.forEach(line => {
-                        if(!line.trim() || line.startsWith('TYPE')) return;
-                        const cols = line.split(';');
-                        const type = cols[0];
-
-                        if (type === 'CHAR') {
-                            newChars.push({ id: cols[1], name: cols[3], color: cols[4], avatarUrl: cols[5] });
-                        } else if (type === 'VAR') {
-                            let val = cols[3];
-                            if (cols[4] === 'number') val = Number(val);
-                            if (cols[4] === 'boolean') val = (val === 'true');
-                            newVars[cols[1]] = val;
-                        } else if (type === 'NODE') {
-                            newNodes.push({
-                                id: cols[1], title: cols[3], characterId: cols[4],
-                                x: Number(cols[5]), y: Number(cols[6]), width: Number(cols[7]), height: (cols[8] === '0' ? null : Number(cols[8])),
-                                bgImage: cols[9], textOptions: [], options: []
-                            });
-                        } else if (type === 'TEXT') {
-                            const parent = newNodes.find(n => n.id === cols[2]);
-                            if (parent) parent.textOptions.push({ text: restore(cols[3]), condition: cols[4] });
-                        } else if (type === 'OPT') {
-                            const parent = newNodes.find(n => n.id === cols[2]);
-                            if (parent) {
-                                parent.options.push({
-                                    text: restore(cols[3]),
-                                    targetNodeId: cols[4] === 'null' ? null : cols[4],
-                                    altTargetNodeId: cols[5] === 'null' ? null : cols[5],
-                                    targetCondition: cols[6],
-                                    once: cols[7] === 'true',
-                                    condition: cols[8],
-                                    effect: cols[9]
-                                });
-                            }
+            postLoad() { this.migrate(); historySystem.pushState(); characterManager.renderList(); variableManager.renderList(); editor.renderNodes(); editor.resetView(); },
+            copyTwine() {
+                const clean = (obj) => { 
+                    if (Array.isArray(obj)) return obj.map(clean); 
+                    if (obj && typeof obj === 'object') { 
+                        const newObj = {}; 
+                        for (const key in obj) { 
+                            if (['x', 'y', 'width', 'height', 'interactionMode', 'draggingNodeId', 'resizingNodeId', 'draggingOption', 'dragOffset', 'connectionStart', 'scale', 'panOffset', 'avatarUrl', 'avatarFileName', 'dragAllowed', 'minimapMetrics'].includes(key)) continue; 
+                            const val = obj[key]; 
+                            if (val === null || val === "" || val === undefined) continue; 
+                            newObj[key] = clean(val); 
+                        } 
+                        if (obj.avatarFileName) { newObj.avatarUrl = "imatges/" + obj.avatarFileName; } 
+                        else if (obj.avatarUrl && !obj.avatarUrl.startsWith('blob:')) { newObj.avatarUrl = obj.avatarUrl; }
+                        if (obj.expressions) {
+                            newObj.expressions = obj.expressions.map(e => ({
+                                name: e.name,
+                                url: (e.fileName ? "imatges/" + e.fileName : (e.url.startsWith('blob:') ? '' : e.url))
+                            }));
                         }
-                    });
+                        return newObj; 
+                    } 
+                    return obj; 
+                };
+                const s=appState.nodes.find(n=>n.id==='node_start')||appState.nodes[0];
+                const cn=s?characterManager.getCharacter(s.characterId).name:"Unknown";
 
-                    appState.characters = newChars;
-                    appState.globalVariables = newVars;
-                    appState.nodes = newNodes;
-                    this.postLoad();
-
-                } catch (e) { alert("Error CSV: " + e.message); }
+                const exportData = { id_dialogue: cn, characters: clean(appState.characters), globalVariables: appState.globalVariables, nodes: clean(appState.nodes) };
+                let jsonStr = JSON.stringify(exportData, null, 2).replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+                const template = `<!-- CODI DIÀLEG PER ENGANXAR AL PASSATGE -->\n<script>\n    // 1. Dades\n    var jsonDiàleg = \`\n${jsonStr}\n    \`;\n\n    // 2. Contenidor (adaptat al teu projecte)\n    var containerId = 'twineImageInfoDisplay';\n    var container = document.getElementById(containerId);\n\n    // 3. Inicialització\n    if (container && window.AdventureEngine) {\n        container.style.display = 'block'; // Mostrar contenidor\n        AdventureEngine.init(jsonDiàleg, containerId);\n    } else {\n        console.error("Error: Falta AdventureEngine o el contenidor '" + containerId + "'");\n    }\n<\/script>\n<!-- Recorda: AdventureEngine gestiona la classe .adv-dialogue-active automàticament -->`;
+                this.copyToClipboard(template);
             },
-            postLoad() {
-                this.migrate();
-                historySystem.pushState();
-                characterManager.renderList();
-                variableManager.renderList();
-                editor.renderNodes();
-                editor.resetView();
-            },
-            copyTwine(){const clean=(o)=>{if(Array.isArray(o))return o.map(clean);if(o&&typeof o==='object'){const n={};for(const k in o){if(['x','y','width','height','interactionMode','draggingNodeId','resizingNodeId','dragOffset','connectionStart','scale','panOffset'].includes(k))continue;const v=o[k];if(v===null||v===""||v===undefined)continue;n[k]=clean(v);}return n;}return o;};const sn=appState.nodes.find(n=>n.id==='node_start')||appState.nodes[0];const cn=sn?characterManager.getCharacter(sn.characterId).name:"Unknown";const exp={id_dialogue:cn,characters:clean(appState.characters),globalVariables:appState.globalVariables,nodes:clean(appState.nodes)};let js=JSON.stringify(exp,null,2).replace(/`/g,'\\`').replace(/\$\{/g,'\\${');const t=`<!-- CODI TWINE -->\n<script>\nvar jsonDiàleg=\`\n${js}\n\`;\nvar containerId='twineImageInfoDisplay';var container=document.getElementById(containerId);\nif(container&&window.AdventureEngine){container.style.display='block';AdventureEngine.init(jsonDiàleg,containerId);}else{console.error("Error Motor");}\n<\/script>`;this.copyToClipboard(t);},
-            copyEngineJS(){this.copyToClipboard(TWINE_ENGINE_JS);},
-            copyEngineCSS(){this.copyToClipboard(TWINE_ENGINE_CSS);},
-            copyToClipboard(t){const e=document.createElement('textarea');e.value=t;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);const i=document.getElementById('autosave-indicator');const o=i.innerHTML;i.innerHTML='<i class="fa-solid fa-check mr-1"></i> Copiat!';i.classList.remove('opacity-0','text-gray-500');i.classList.add('text-green-600');setTimeout(()=>{i.classList.add('opacity-0');setTimeout(()=>{i.innerHTML=o;i.classList.replace('text-green-600','text-gray-500');},500);},2000);}
+            copyToClipboard(t) { const e=document.createElement('textarea');e.value=t;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);const i=document.getElementById('autosave-indicator');const o=i.innerHTML;i.innerHTML='<i class="fa-solid fa-check mr-1"></i> Copiat!';i.classList.remove('opacity-0','text-gray-500');i.classList.add('text-green-600');setTimeout(()=>{i.classList.add('opacity-0');setTimeout(()=>{i.innerHTML=o;i.classList.replace('text-green-600','text-gray-500');},500);},2000); }
         };
 
-        window.onload = () => { ioSystem.autoload(); characterManager.init(); variableManager.init(); editor.init(); if (appState.nodes.length === 0) editor.addNode(); editor.resetView(); };
+        window.onload = () => { ioSystem.autoload(); characterManager.init(); variableManager.init(); editor.init(); if (appState.nodes.length === 0) editor.addNode(); editor.zoomToFit(); };
     </script>
 </body>
 </html>
