@@ -10,7 +10,7 @@
             margin: 20px;
             background-color: #f4f4f4;
             color: #333;
-            font-size: 0.95em; /* Base font size for the body */
+            font-size: 0.95em;
         }
         h1, h2 {
             color: #2c3e50;
@@ -39,19 +39,17 @@
             height: auto;
             min-height: 400px;
             border: 1px dashed #ccc;
-            overflow: hidden; /* Important per controlar el desbordament visual */
-            box-sizing: border-box; /* Per incloure padding i border en el width/height */
-            /* Add touch-action to prevent default browser touch gestures on the editor itself */
-            touch-action: none; /* Prevents pan/zoom on the editor area */
+            overflow: hidden;
+            box-sizing: border-box;
+            touch-action: none;
         }
         #imageDisplay {
             max-width: 100%;
             height: auto;
             display: none;
-            user-select: none; /* Evita que la imatge es pugui seleccionar amb el ratolí */
-            -webkit-user-drag: none; /* Evita que la imatge es pugui arrossegar */
-            /* Add touch-action: none to image as well if needed, but it might inherit from parent */
-            touch-action: none; /* Prevents pan/zoom on the image itself */
+            user-select: none;
+            -webkit-user-drag: none;
+            touch-action: none;
         }
         #drawingInstructions {
             text-align: center;
@@ -71,8 +69,19 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             font-size: 14px;
             box-sizing: border-box;
-            z-index: 5; /* Base z-index for the hotspot area */
-            touch-action: none; /* Prevents pan/zoom on hotspots */
+            z-index: 10; 
+            touch-action: none;
+        }
+        .hotspot-overlay-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.8;
         }
         .hotspot-name-display {
             position: absolute;
@@ -83,11 +92,12 @@
             background: rgba(0,0,0,0.7);
             border-radius: 3px;
             white-space: nowrap;
-            pointer-events: none; /* Permet el clic a través del nom */
-            z-index: 15; /* Higher z-index to be above the hotspot area */
+            pointer-events: none;
+            z-index: 15;
         }
         .hotspot-area:hover {
             background-color: rgba(0, 123, 255, 0.4);
+            border-color: #0056b3;
         }
         #hotspotsConfig {
             flex: 1;
@@ -96,29 +106,28 @@
         .hotspot-item {
             border: 1px solid #ddd;
             padding: 15px;
-            margin-bottom: 20px; /* Increased margin-bottom for spacing between hotspot items */
+            margin-bottom: 20px;
             border-radius: 5px;
             background-color: #f9f9f9;
         }
         .hotspot-item label {
             display: block;
             margin-bottom: 5px;
-            font-size: 1.05em; /* Slightly larger than text fields */
+            font-size: 1.05em;
         }
-        /* Estil per etiquetes en negreta específiques */
         .hotspot-item label.bold-label {
             font-weight: bold;
         }
         .hotspot-item input[type="text"],
         .hotspot-item select,
         .hotspot-item textarea,
-        .hotspot-item input[type="number"] { /* Added number type */
+        .hotspot-item input[type="number"] {
             width: calc(100% - 12px);
             padding: 8px;
-            margin-bottom: 10px; /* Kept existing margin-bottom for input fields */
+            margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1em; /* Standardized font size for inputs */
+            font-size: 1em;
         }
         .hotspot-item textarea {
             resize: vertical;
@@ -181,24 +190,23 @@
             font-size: 12px;
             cursor: pointer;
             box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-            z-index: 20; /* Even higher z-index to be above the hotspot area */
+            z-index: 20;
         }
         .hotspot-delete-button-visual:hover {
             background-color: #c82333;
         }
-        /* Styles for the resize handle */
         .hotspot-resize-handle {
             position: absolute;
-            bottom: -10px; /* Adjust to position slightly outside */
-            right: -10px; /* Adjust to position slightly outside */
-            width: 20px; /* Increased size */
-            height: 20px; /* Increased size */
+            bottom: -10px;
+            right: -10px;
+            width: 20px;
+            height: 20px;
             background-color: white;
             border: 1px solid #007bff;
             border-radius: 50%;
-            cursor: nwse-resize; /* Diagonal resize cursor */
-            z-index: 25; /* Higher than delete button and name display */
-            touch-action: none; /* Prevents pan/zoom on resize handle */
+            cursor: nwse-resize;
+            z-index: 25;
+            touch-action: none;
         }
         .hidden-field {
             display: none;
@@ -214,109 +222,93 @@
             border-radius: 5px;
             font-size: 1em;
             display: none;
-            z-index: 100; /* Assegura que estigui per sobre de tot */
-            pointer-events: none; /* No interfereix amb els clics */
+            z-index: 100;
+            pointer-events: none;
         }
-        /* New styles for condition labels */
         .condition-label-container label,
-        .column label { /* Changed to target all labels in columns */
-            color: #333; /* Default color for all labels */
+        .column label {
+            color: #333;
         }
-        .column .condition-label { /* Specific class for condition labels */
-            color: darkred; /* Dark red for condition labels */
+        .column .condition-label {
+            color: darkred;
         }
-        .column .limit-label { /* Specific class for limit labels */
-            color: darkorange; /* Dark orange for limit labels */
+        .column .limit-label {
+            color: darkorange;
         }
-        .column .darkblue-label { /* NEW: Specific class for dark blue labels */
-            color: darkblue; /* Dark blue for the new labels */
+        .column .darkblue-label {
+            color: darkblue;
         }
-        .column .darkyellow-label { /* NEW: Specific class for dark yellow labels */
-            color: darkorange; /* Changed from #DAA520 to darkorange */
+        .column .darkyellow-label {
+            color: darkorange;
         }
-
-
-        /* Styles for section separation */
         .hotspot-section {
-            margin-bottom: 10px; /* Space between sections */
-            padding-bottom: 10px; /* Padding before the border */
-            border-bottom: 1px dashed #e0e0e0; /* Dashed line for separation */
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e0e0e0;
         }
-
         .hotspot-section:last-of-type {
-            border-bottom: none; /* No border for the last section */
+            border-bottom: none;
             padding-bottom: 0;
             margin-bottom: 0;
         }
-
-        /* New styles for two-column layout */
         .two-column-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px; /* Space between columns */
+            gap: 20px;
             margin-top: 15px;
         }
-
         .column {
             display: flex;
             flex-direction: column;
-            /* No padding-top here. The blank div will handle the spacing. */
         }
-        /* Specific style for condition fields to stack vertically */
         .condition-inputs-wrapper {
-            display: block !important; /* Override flex to stack */
+            display: block !important;
         }
         .condition-inputs-wrapper label,
         .condition-inputs-wrapper input,
         .condition-inputs-wrapper textarea {
-            margin-bottom: 10px; /* Add space between stacked elements */
+            margin-bottom: 10px;
         }
-        /* Style for the checkbox container to ensure proper alignment */
         .secondary-variable-toggle-container,
         .condition-toggle-container,
-        .visit-limit-toggle-container { /* Added visit-limit-toggle-container */
-            margin-top: 10px; /* Space above the checkbox */
-            margin-bottom: 10px; /* Space below the checkbox */
+        .visit-limit-toggle-container {
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
-        /* Specific style for the label containing the checkbox for "Activar Condició" */
         .condition-toggle-container label {
-            color: #8B0000 !important; /* Force dark red for the entire label content */
-            display: flex; /* Keep this for alignment */
+            color: #8B0000 !important;
+            display: flex;
             align-items: center;
             font-weight: bold;
         }
         .secondary-variable-toggle-container label,
-        .visit-limit-toggle-container label { /* Added visit-limit-toggle-container */
+        .visit-limit-toggle-container label {
             display: flex;
             align-items: center;
             font-weight: bold;
         }
         .secondary-variable-toggle-container input[type="checkbox"],
         .condition-toggle-container input[type="checkbox"],
-        .visit-limit-toggle-container input[type="checkbox"] { /* Added visit-limit-toggle-container */
-            margin-right: 8px; /* Space between checkbox and label text */
-            width: auto; /* Reset width for checkbox */
-            margin-bottom: 0; /* Remove bottom margin for checkbox */
+        .visit-limit-toggle-container input[type="checkbox"] {
+            margin-right: 8px;
+            width: auto;
+            margin-bottom: 0;
         }
-        /* The strong-red-label class is no longer strictly necessary if the direct rule works,
-           but keeping it for backward compatibility if other elements use it. */
         .strong-red-label {
-            color: #8B0000 !important; /* Darker red, force with !important */
+            color: #8B0000 !important;
         }
-
-        /* Styles for the new button row in hotspot-item */
         .hotspot-item .button-row {
             display: flex;
-            justify-content: flex-end; /* Align buttons to the right */
-            gap: 10px; /* Space between buttons */
-            margin-top: 20px; /* Space above buttons */
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
         .hotspot-item .button-row button {
-            display: inline-block; /* Ensure they are inline */
-            margin: 0; /* Remove previous margins */
+            display: inline-block;
+            margin: 0;
         }
         .scroll-to-top-button {
-            background-color: #28a745; /* Green color */
+            background-color: #28a745;
             color: white;
             border: none;
             padding: 8px 12px;
@@ -326,10 +318,8 @@
         .scroll-to-top-button:hover {
             background-color: #218838;
         }
-        
-        /* Estils per al botó de càrrega JSON */
         .json-upload-btn {
-            background-color: #6f42c1; /* Purple */
+            background-color: #6f42c1;
             color: white;
             border: none;
             padding: 8px 12px;
@@ -339,9 +329,8 @@
         .json-upload-btn:hover {
             background-color: #59359a;
         }
-        /* Estils per al botó de generar diàleg */
         .generate-dialog-btn {
-            background-color: #28a745; /* Green */
+            background-color: #28a745;
             color: white;
             border: none;
             padding: 8px 12px;
@@ -352,16 +341,36 @@
         .generate-dialog-btn:hover {
             background-color: #218838;
         }
-
+        .overlay-config-section {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid #90caf9;
+        }
+        .overlay-preview-img {
+            max-width: 100px;
+            max-height: 100px;
+            display: block;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+        }
+        .remove-overlay-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
         .json-file-status {
             font-size: 0.9em;
             color: #666;
             margin-left: 10px;
             font-style: italic;
         }
-
-        /* Styles for custom confirmation modal */
-        #confirmationModal {
+        #confirmationModal, #folderRequestModal {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -373,7 +382,7 @@
             background-color: rgba(0,0,0,0.5);
             z-index: 9999;
         }
-        #confirmationModal > div {
+        #confirmationModal > div, #folderRequestModal > div {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
@@ -382,7 +391,7 @@
             max-width: 300px;
             width: 90%;
         }
-        #confirmationModal button {
+        #confirmationModal button, #folderRequestModal button {
             padding: 10px 15px;
             margin: 0 5px;
             border: none;
@@ -390,11 +399,14 @@
             cursor: pointer;
             color: white;
         }
-        #confirmationModal #cancelDeleteButton {
-            background-color: #6c757d; /* Grey */
+        #confirmationModal #cancelDeleteButton, #folderRequestModal #cancelFolderButton {
+            background-color: #6c757d;
         }
         #confirmationModal #confirmDeleteButton {
-            background-color: #dc3545; /* Red */
+            background-color: #dc3545;
+        }
+        #folderRequestModal #confirmFolderButton {
+             background-color: #007bff;
         }
     </style>
 </head>
@@ -407,6 +419,10 @@
             <h2>Configuració de la Imatge</h2>
             <label for="imageUpload">Carregar Imatge:</label>
             <input type="file" id="imageUpload" accept="image/*">
+            
+            <!-- Hidden input for loading image folder -->
+            <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;">
+
             <div id="imageEditor">
                 <img id="imageDisplay" src="" alt="Imatge de la història" style="display: none;">
                 <p id="drawingInstructions">Carrega una imatge i dibuixa un hotspot!</p>
@@ -433,6 +449,7 @@
     </div>
 
     <script>
+        // --- DOM Elements ---
         const imageUpload = document.getElementById('imageUpload');
         const imageDisplay = document.getElementById('imageDisplay');
         const imageEditor = document.getElementById('imageEditor');
@@ -443,34 +460,43 @@
         const editorImageInfoDisplay = document.getElementById('editorImageInfoDisplay');
         const copyFeedback = document.getElementById('copyFeedback');
         const loadCodeButton = document.getElementById('loadCodeButton');
+        const folderInput = document.getElementById('folderInput');
 
+        // --- State Variables ---
         let isDrawing = false;
         let isDragging = false;
-        let isResizing = false; // New state for resizing
-        let activeHotspotElement = null;
+        let isResizing = false;
+        let activeHotspotElement = null; 
         let dragOffsetX, dragOffsetY;
-        let initialHotspotWidth, initialHotspotHeight; // New variables for resizing
-        let initialMouseX, initialMouseY; // New variables for resizing
-        let startX, startY; // For drawing start and tap detection
+        let initialHotspotWidth, initialHotspotHeight;
+        let initialMouseX, initialMouseY;
+        let startX, startY;
         let currentRect = null;
         let hotspots = [];
         let hotspotIdCounter = 0;
-        let hasMovedDuringInteraction = false; // New flag to track if mouse moved during mousedown/touchstart
-        let initialInteractionTarget = null; // New global variable to store the element where interaction started
+        let hasMovedDuringInteraction = false;
+        let initialInteractionTarget = null;
+        
+        // Modal State Variables
+        let confirmationModal = null;
+        let folderRequestModal = null;
+        let currentHotspotToDeleteId = null;
+        
+        // Overlay & Folder State
+        let projectImages = {};
+        let pendingParseCode = null; // Store code to parse after loading folder
+        let mainImageFilename = null; // New variable to store the main image file name when loading existing code
+        
+        const TAP_THRESHOLD = 8;
 
-
-        // Add a small threshold for movement to distinguish a tap from a drag
-        const TAP_THRESHOLD = 8; // pixels (increased for more forgiving tap detection)
-
-        // Function to hide the "Code copied!" feedback
+        // --- UTILS ---
         function hideCopyFeedback() {
             copyFeedback.classList.remove('show');
         }
 
-        // Function to escape HTML special characters for attribute values
         function escapeHtml(unsafe) {
             if (typeof unsafe !== 'string') {
-                return unsafe; // Return as is if not a string (e.g., numbers, booleans)
+                return unsafe; 
             }
             return unsafe
                 .replace(/&/g, "&amp;")
@@ -478,10 +504,9 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;")
-                .replace(/`/g, "&#x60;"); // Escape backticks for HTML entity representation
+                .replace(/`/g, "&#x60;");
         }
         
-        // Function to escape backticks specifically for JavaScript template literals
         function escapeForTemplateLiteral(str) {
             if (typeof str !== 'string') {
                 str = String(str || '');
@@ -489,52 +514,164 @@
             return str.replace(/`/g, '\\`');
         }
 
+        function formatVariable(varName) {
+            if (varName && typeof varName === 'string' && !varName.startsWith('$')) {
+                return '$' + varName;
+            }
+            return varName;
+        }
 
-        // Event listener for image upload
+        function buildConditionString(variable, value) {
+            if (!variable || !value) return "";
+            let val = value.trim();
+            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => val.startsWith(op));
+            
+            if (!isNaN(val) && !startsWithOperator && val !== '') {
+                val = `is ${val}`;
+            } else if (isNaN(val) && !startsWithOperator && val !== '') {
+                val = `is "${val.replace(/"/g, '\\"')}"`;
+            }
+            return `${formatVariable(variable)} ${val}`;
+        }
+
+        // --- MODAL LOGIC ---
+        function setupConfirmationModal() {
+            // Confirmation Modal
+            confirmationModal = document.createElement('div');
+            confirmationModal.id = 'confirmationModal';
+            confirmationModal.style.display = 'none';
+
+            const modalContent = document.createElement('div');
+            const confirmMessage = document.createElement('p');
+            confirmMessage.id = 'confirmMessage';
+            confirmMessage.style.marginBottom = '20px';
+            modalContent.appendChild(confirmMessage);
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'space-around';
+
+            const cancelDeleteButton = document.createElement('button');
+            cancelDeleteButton.id = 'cancelDeleteButton';
+            cancelDeleteButton.textContent = 'No!';
+            cancelDeleteButton.addEventListener('click', hideConfirmationModal);
+            buttonContainer.appendChild(cancelDeleteButton);
+
+            const confirmDeleteButton = document.createElement('button');
+            confirmDeleteButton.id = 'confirmDeleteButton';
+            confirmDeleteButton.textContent = 'Eliminar';
+            confirmDeleteButton.addEventListener('click', () => {
+                if (currentHotspotToDeleteId !== null) {
+                    removeHotspot(currentHotspotToDeleteId);
+                }
+                hideConfirmationModal();
+            });
+            buttonContainer.appendChild(confirmDeleteButton);
+
+            modalContent.appendChild(buttonContainer);
+            confirmationModal.appendChild(modalContent);
+            document.body.appendChild(confirmationModal);
+
+            // Folder Request Modal
+            folderRequestModal = document.createElement('div');
+            folderRequestModal.id = 'folderRequestModal';
+            folderRequestModal.style.display = 'none';
+            folderRequestModal.innerHTML = `
+                <div>
+                    <p style="margin-bottom:20px;">S'han detectat imatges en el codi. Si us plau, selecciona la carpeta on es troben per visualitzar-les correctament.</p>
+                    <div style="display:flex; justify-content:space-around;">
+                        <button id="cancelFolderButton">Ometre</button>
+                        <button id="confirmFolderButton">Seleccionar Carpeta</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(folderRequestModal);
+            
+            document.getElementById('confirmFolderButton').addEventListener('click', () => {
+                 folderInput.click();
+            });
+            
+            document.getElementById('cancelFolderButton').addEventListener('click', () => {
+                 // Close modal and process code without local images
+                 folderRequestModal.style.display = 'none';
+                 if (pendingParseCode) {
+                     processTwineCode(pendingParseCode);
+                     pendingParseCode = null; // Clear after use
+                 }
+            });
+        }
+
+        function showConfirmationModal(hotspotId, hotspotName) {
+            currentHotspotToDeleteId = hotspotId;
+            document.getElementById('confirmMessage').textContent = `Segur que vols eliminar el hotspot ${hotspotName}?`;
+            confirmationModal.style.display = 'flex';
+        }
+
+        function hideConfirmationModal() {
+            confirmationModal.style.display = 'none';
+            currentHotspotToDeleteId = null;
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Image Upload
         imageUpload.addEventListener('change', (e) => {
-            hideCopyFeedback(); // Hide feedback on new image upload
+            hideCopyFeedback(); 
             const file = e.target.files[0];
             if (file) {
+                mainImageFilename = file.name; // Store the filename when uploading manually
                 const reader = new FileReader();
                 reader.onload = (event) => {
+                    // IMPORTANT: Reset logic only for manual image upload
+                    imageDisplay.onload = () => {
+                        const extraSpace = 80;
+                        imageEditor.style.minHeight = imageDisplay.offsetHeight + extraSpace + 'px';
+                        imageEditor.style.height = imageDisplay.offsetHeight + extraSpace + 'px';
+                        
+                        // Only clear hotspots when uploading a NEW image manually
+                        hotspots = []; 
+                        renderHotspots();
+                        generateTwineCode();
+                    };
+                    
                     imageDisplay.src = event.target.result;
                     imageDisplay.style.display = 'block';
                     drawingInstructions.style.display = 'none';
                     editorImageInfoDisplay.style.display = 'none';
-
-                    imageDisplay.onload = () => {
-                        // Adjust image editor height based on image dimensions
-                        const extraSpace = 80;
-                        imageEditor.style.minHeight = imageDisplay.offsetHeight + extraSpace + 'px';
-                        imageEditor.style.height = imageDisplay.offsetHeight + extraSpace + 'px';
-                        hotspots = []; // Clear existing hotspots when a new image is loaded
-                        renderHotspots();
-                        generateTwineCode();
-                    };
-                    imageDisplay.onerror = () => {
-                        // Handle image loading errors
-                        alert("Error al carregar la imatge.");
-                        imageDisplay.src = '';
-                        imageDisplay.style.display = 'none';
-                        drawingInstructions.style.display = 'block';
-                        editorImageInfoDisplay.style.display = 'none';
-                    }
                 };
                 reader.readAsDataURL(file);
             } else {
-                // Reset display if no file is selected
                 imageDisplay.src = '';
                 imageDisplay.style.display = 'none';
                 drawingInstructions.style.display = 'block';
                 imageEditor.style.height = 'auto';
                 imageEditor.style.minHeight = '400px';
                 hotspots = [];
+                mainImageFilename = null; // Clear filename if image is removed
                 renderHotspots();
                 generateTwineCode();
             }
         });
 
-        // Helper to get coordinates from mouse or touch event
+        // Folder Input
+        folderInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type.startsWith('image/')) {
+                         projectImages[file.name] = URL.createObjectURL(file);
+                    }
+                }
+                
+                if (pendingParseCode) {
+                    document.getElementById('folderRequestModal').style.display = 'none';
+                    processTwineCode(pendingParseCode);
+                    pendingParseCode = null; // Clear after use
+                }
+            }
+        });
+
         function getCoords(e) {
             if (e.touches && e.touches.length > 0) {
                 return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
@@ -542,35 +679,37 @@
             return { clientX: e.clientX, clientY: e.clientY };
         }
 
-        // Helper function to find the closest parent with the 'hotspot-area' class
-        function findHotspotAreaParent(element) {
+        function findParentWithClass(element, className) {
             let currentElement = element;
             while (currentElement && currentElement !== imageEditor) {
-                if (currentElement.classList.contains('hotspot-area')) {
+                if (currentElement.classList.contains(className)) {
                     return currentElement;
                 }
                 currentElement = currentElement.parentElement;
             }
-            return null; // Not found within the imageEditor or is not a hotspot-area
+            return null;
         }
 
-        // Mouse down and Touch start event listener for image editor (drawing, dragging, and resizing)
+        function findHotspotAreaParent(element) {
+            return findParentWithClass(element, 'hotspot-area');
+        }
+        
+        // Interaction Handlers
         imageEditor.addEventListener('mousedown', startInteraction);
         imageEditor.addEventListener('touchstart', startInteraction);
 
         function startInteraction(e) {
-            hideCopyFeedback(); // Hide feedback on interaction
-            if (imageDisplay.style.display === 'none' || !imageDisplay.src) return; // Only interact if an image is loaded
+            hideCopyFeedback(); 
+            if (imageDisplay.style.display === 'none' || !imageDisplay.src) return; 
             
             const { clientX, clientY } = getCoords(e);
 
-            // Store initial clientX, clientY for tap detection
             startX = clientX;
             startY = clientY;
-            hasMovedDuringInteraction = false; // Reset flag at the start of a new interaction
-            initialInteractionTarget = e.target; // Store the initial target for tap detection
+            hasMovedDuringInteraction = false; 
+            initialInteractionTarget = e.target; 
 
-            // Check if the target is the delete button
+            // Check Delete Buttons
             if (e.target.classList.contains('hotspot-delete-button-visual')) {
                 const hotspotElement = findHotspotAreaParent(e.target);
                 if (hotspotElement) {
@@ -580,50 +719,40 @@
                         showConfirmationModal(hotspot.id, hotspot.name || `Hotspot ${hotspot.id}`);
                     }
                 }
-                e.stopPropagation(); // Prevent further bubbling
-                e.preventDefault(); // Prevent default touch behavior (e.g., scrolling, context menu)
+                e.stopPropagation(); 
+                e.preventDefault(); 
                 return;
             }
-
-            // Check if the target is the resize handle
+            
+            // Check Resize Handles
             if (e.target.classList.contains('hotspot-resize-handle')) {
                 isResizing = true;
-                activeHotspotElement = findHotspotAreaParent(e.target); // Get the parent hotspot-area
-                if (activeHotspotElement) {
-                    initialHotspotWidth = activeHotspotElement.offsetWidth;
-                    initialHotspotHeight = activeHotspotElement.offsetHeight;
-                    initialMouseX = clientX;
-                    initialMouseY = clientY;
-                    activeHotspotElement.style.cursor = 'nwse-resize'; // Keep resize cursor
-                }
-                e.stopPropagation(); // Prevent drawing or dragging the hotspot
-                e.preventDefault(); // Prevent default touch behavior
+                activeHotspotElement = findHotspotAreaParent(e.target); 
+                startResize(clientX, clientY);
+                e.stopPropagation(); 
+                e.preventDefault(); 
                 return;
             } 
             
-            // Check if the target is a hotspot area itself (or its name display)
+            // Check Draggables
             const clickedHotspotArea = findHotspotAreaParent(e.target);
+            
             if (clickedHotspotArea) {
                 isDragging = true;
                 activeHotspotElement = clickedHotspotArea;
-                const hotspotRect = activeHotspotElement.getBoundingClientRect();
-                dragOffsetX = clientX - hotspotRect.left;
-                dragOffsetY = clientY - hotspotRect.top;
-                activeHotspotElement.style.cursor = 'grabbing';
-                e.stopPropagation(); // Prevent further bubbling
-                e.preventDefault(); // Prevent default touch behavior
+                startDrag(clientX, clientY);
+                e.stopPropagation(); 
+                e.preventDefault(); 
             } else if (imageEditor.contains(e.target) && (e.target === imageDisplay || e.target === imageEditor || e.target.parentElement === imageEditor || e.target.parentElement.parentElement === imageEditor ) ) {
-                // If it's a click on the image editor background and not a hotspot
+                // Drawing new hotspot
                 isDrawing = true;
                 const imageRect = imageDisplay.getBoundingClientRect();
-                // Coordinates relative to the image itself
                 startX = clientX - imageRect.left;
                 startY = clientY - imageRect.top;
 
                 currentRect = document.createElement('div');
                 currentRect.classList.add('hotspot-area');
                 const editorRect = imageEditor.getBoundingClientRect();
-                // Position currentRect relative to imageEditor
                 currentRect.style.left = `${clientX - editorRect.left}px`;
                 currentRect.style.top = `${clientY - editorRect.top}px`;
                 currentRect.style.width = '0px';
@@ -631,30 +760,45 @@
                 currentRect.style.cursor = 'crosshair';
                 imageEditor.appendChild(currentRect);
                 imageEditor.style.cursor = 'grabbing';
-                e.preventDefault(); // Prevent default touch behavior
+                e.preventDefault(); 
+            }
+        }
+        
+        function startResize(clientX, clientY) {
+            if (activeHotspotElement) {
+                initialHotspotWidth = activeHotspotElement.offsetWidth;
+                initialHotspotHeight = activeHotspotElement.offsetHeight;
+                initialMouseX = clientX;
+                initialMouseY = clientY;
+                activeHotspotElement.style.cursor = 'nwse-resize'; 
+            }
+        }
+        
+        function startDrag(clientX, clientY) {
+            if (activeHotspotElement) {
+                const rect = activeHotspotElement.getBoundingClientRect();
+                dragOffsetX = clientX - rect.left;
+                dragOffsetY = clientY - rect.top;
+                activeHotspotElement.style.cursor = 'grabbing';
             }
         }
 
-        // Mouse move and Touch move event listener for drawing, dragging, and resizing
         document.addEventListener('mousemove', handleInteractionMove);
-        document.addEventListener('touchmove', handleInteractionMove, { passive: false }); // passive: false for preventDefault
+        document.addEventListener('touchmove', handleInteractionMove, { passive: false }); 
 
         function handleInteractionMove(e) {
             const { clientX, clientY } = getCoords(e);
 
-            // Only set hasMovedDuringInteraction to true if movement exceeds threshold
             if (Math.abs(clientX - startX) > TAP_THRESHOLD || Math.abs(clientY - startY) > TAP_THRESHOLD) {
                 hasMovedDuringInteraction = true;
             }
 
             if (isDrawing && currentRect) {
-                // Update dimensions of the new hotspot being drawn
                 const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
                 let currentMouseEventX_onImage = clientX - imageRect.left, currentMouseEventY_onImage = clientY - imageRect.top;
                 let rLeft = Math.min(startX, currentMouseEventX_onImage), rTop = Math.min(startY, currentMouseEventY_onImage),
                     rRight = Math.max(startX, currentMouseEventX_onImage), rBottom = Math.max(startY, currentMouseEventY_onImage);
                 
-                // Clamp coordinates to image boundaries
                 rLeft = Math.max(0, rLeft);
                 rTop = Math.max(0, rTop);
                 rRight = Math.min(imageRect.width, rRight);
@@ -669,22 +813,21 @@
                 currentRect.style.top = `${(imageRect.top - editorRect.top) + rTop}px`;
                 currentRect.style.width = `${rWidth}px`;
                 currentRect.style.height = `${rHeight}px`;
-                e.preventDefault(); // Prevent scrolling during drawing
+                e.preventDefault(); 
             } else if (isDragging && activeHotspotElement) {
-                // Update position of the dragged hotspot
                 const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
                 let newLeftInEditor = clientX - editorRect.left - dragOffsetX, newTopInEditor = clientY - editorRect.top - dragOffsetY;
                 const hotspotWidth = activeHotspotElement.offsetWidth, hotspotHeight = activeHotspotElement.offsetHeight,
                       imageLeftInEditor = imageRect.left - editorRect.left, imageTopInEditor = imageRect.top - editorRect.top,
                       imageRightInEditor = imageLeftInEditor + imageRect.width, imageBottomInEditor = imageTopInEditor + imageRect.height;
                 
-                // Clamp hotspot position to image boundaries
+                // Clamp
                 newLeftInEditor = Math.max(imageLeftInEditor, Math.min(newLeftInEditor, imageRightInEditor - hotspotWidth));
                 newTopInEditor = Math.max(imageTopInEditor, Math.min(newTopInEditor, imageBottomInEditor - hotspotHeight));
                 
                 activeHotspotElement.style.left = `${newLeftInEditor}px`;
                 activeHotspotElement.style.top = `${newTopInEditor}px`;
-                e.preventDefault(); // Prevent scrolling during dragging
+                e.preventDefault(); 
             } else if (isResizing && activeHotspotElement) {
                 const imageRect = imageDisplay.getBoundingClientRect(), editorRect = imageEditor.getBoundingClientRect();
                 const imageLeftInEditor = imageRect.left - editorRect.left;
@@ -695,24 +838,21 @@
                 let newWidth = initialHotspotWidth + (clientX - initialMouseX);
                 let newHeight = initialHotspotHeight + (clientY - initialMouseY);
 
-                // Get current position of the hotspot
                 const currentLeft = parseFloat(activeHotspotElement.style.left);
                 const currentTop = parseFloat(activeHotspotElement.style.top);
 
-                // Clamp new width/height to image boundaries and minimum size (e.g., 5px)
                 newWidth = Math.max(5, Math.min(newWidth, imageRightInEditor - currentLeft));
                 newHeight = Math.max(5, Math.min(newHeight, imageBottomInEditor - currentTop));
 
                 activeHotspotElement.style.width = `${newWidth}px`;
                 activeHotspotElement.style.height = `${newHeight}px`;
-                e.preventDefault(); // Prevent scrolling during resizing
+                e.preventDefault(); 
             }
         }
 
-        // Mouse up and Touch end event listener for finishing drawing, dragging, or resizing
         document.addEventListener('mouseup', endInteraction);
         document.addEventListener('touchend', endInteraction);
-        document.addEventListener('touchcancel', endInteraction); // Handle cancelled touches
+        document.addEventListener('touchcancel', endInteraction); 
 
         function endInteraction(e) {
             const { clientX, clientY } = getCoords(e);
@@ -728,17 +868,16 @@
             imageEditor.style.cursor = 'crosshair';
 
             if (wasDrawing && currentRect) {
-                // Logic for finishing drawing a new hotspot
                 const natW = imageDisplay.naturalWidth, natH = imageDisplay.naturalHeight,
                       dispW = imageDisplay.offsetWidth, dispH = imageDisplay.offsetHeight;
 
                 const hotspotRectVis = currentRect.getBoundingClientRect(), imageRectVis = imageDisplay.getBoundingClientRect();
                 let l_disp = hotspotRectVis.left - imageRectVis.left, t_disp = hotspotRectVis.top - imageRectVis.top,
                     w_disp = hotspotRectVis.width, h_disp = hotspotRectVis.height;
-                currentRect.remove(); // Remove the temporary drawing rectangle
-                currentRect = null; // Clear the reference
+                currentRect.remove(); 
+                currentRect = null; 
 
-                if (w_disp >= 5 && h_disp >= 5 && dispW && dispH) { // Only add if it's a reasonable size
+                if (w_disp >= 5 && h_disp >= 5 && dispW && dispH) { 
                     const sX = natW / dispW, sY = natH / dispH;
                     const fL = l_disp * sX, fT = t_disp * sY, fW = w_disp * sX, fH = h_disp * sY;
 
@@ -767,24 +906,29 @@
                         setterConditionVariable: '', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
                         setterSoundFail: '', setterSoundClickFail: '',
                         visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
-                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false
+                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false,
+                        
+                        // Overlay fields
+                        overlayImage: null, // Base64
+                        overlayFilename: null,
+                        overlayConditionVariable: '',
+                        overlayConditionValue: ''
                     });
                 }
                 renderHotspots();
-                generateTwineCode(); // Generate code after adding a new hotspot
-            } else if ((wasDragging || wasResizing) && activeHotspotElement) { // Handle both drag and resize ending
+                generateTwineCode(); 
+            } else if ((wasDragging || wasResizing) && activeHotspotElement) { 
+                // It was a hotspot
                 const hotspotId = parseInt(activeHotspotElement.dataset.hotspotId);
                 const hotspot = hotspots.find(h => h.id === hotspotId);
 
                 if (hotspot) {
                     if (!movedSignificantly) {
-                        // This was a tap on an existing hotspot/resize handle, not a drag/resize
                         const configElement = document.querySelector(`#hotspotsContainer .hotspot-item[data-hotspot-id="${hotspotId}"]`);
                         if (configElement) {
                             configElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
                     } else {
-                        // This was an actual drag or resize, update coordinates
                         const natW = imageDisplay.naturalWidth, natH = imageDisplay.naturalHeight,
                             dispW = imageDisplay.offsetWidth, dispH = imageDisplay.offsetHeight;
                         if (dispW && dispH) {
@@ -794,7 +938,7 @@
                             const sX = natW / dispW, sY = natH / dispH;
                             const fL = l_disp * sX, fT = t_disp * sY, fW = w_disp * sX, fH = h_disp * sY;
                             hotspot.coords = [Math.round(fL), Math.round(fT), Math.round(fL + fW), Math.round(fT + fH)].join(',');
-                            generateTwineCode(); // Generate code after dragging or resizing
+                            generateTwineCode(); 
                         }
                     }
                 }
@@ -843,7 +987,7 @@
 
         // Function to render hotspots in the image editor and configuration panel
         function renderHotspots() {
-            hotspotsContainerEl.innerHTML = ''; // Clear current hotspot configurations
+            hotspotsContainerEl.innerHTML = ''; 
             // Remove visual hotspot elements from the image editor
             document.querySelectorAll('#imageEditor .hotspot-area').forEach(el => { if (el !== currentRect) el.remove(); });
             
@@ -861,11 +1005,18 @@
                           visRect = document.createElement('div');
                     visRect.classList.add('hotspot-area');
                     visRect.dataset.hotspotId = hotspot.id;
-                    // Position and size visual hotspot based on scaled coordinates
                     visRect.style.left = `${(coordsArr[0] * scaleX) + offsetXinEd}px`;
                     visRect.style.top = `${(coordsArr[1] * scaleY) + offsetYinEd}px`;
                     visRect.style.width = `${(coordsArr[2] - coordsArr[0]) * scaleX}px`;
                     visRect.style.height = `${(coordsArr[3] - coordsArr[1]) * scaleY}px`;
+
+                    // Render overlay image if exists inside the hotspot div
+                    if (hotspot.overlayImage) {
+                        const img = document.createElement('img');
+                        img.src = hotspot.overlayImage;
+                        img.className = 'hotspot-overlay-img';
+                        visRect.appendChild(img);
+                    }
 
                     const nameDisplay = document.createElement('div');
                     nameDisplay.classList.add('hotspot-name-display');
@@ -874,11 +1025,10 @@
 
                     const delBtn = document.createElement('div');
                     delBtn.classList.add('hotspot-delete-button-visual');
-                    delBtn.textContent = 'X'; // Keep it as 'X'
-                    delBtn.title = `Eliminar aquest hotspot (${hotspot.name || `Hotspot ${hotspot.id}`})`; // Fixed typo from hotpot to hotspot
+                    delBtn.textContent = 'X'; 
+                    delBtn.title = `Eliminar aquest hotspot (${hotspot.name || `Hotspot ${hotspot.id}`})`; 
                     visRect.appendChild(delBtn);
 
-                    // Add resize handle
                     const resizeHandle = document.createElement('div');
                     resizeHandle.classList.add('hotspot-resize-handle');
                     resizeHandle.title = "Redimensionar hotspot";
@@ -888,7 +1038,6 @@
                 });
             }
 
-            // Options for transition select dropdowns
             const transitionOptions = `
                 <option value="">Cap</option>
                 <option value="instant">Instantani</option>
@@ -915,6 +1064,24 @@
                 item.classList.add('hotspot-item');
                 item.dataset.hotspotId = hotspot.id;
 
+                let overlaySectionHtml = `
+                    <div class="overlay-config-section">
+                        <label class="bold-label">Imatge Superposada (Personatge/Objecte):</label>
+                        ${hotspot.overlayImage ? 
+                            `<img src="${hotspot.overlayImage}" class="overlay-preview-img">
+                             <button class="remove-overlay-btn">Eliminar imatge</button>` : 
+                            `<input type="file" class="overlay-file-input" accept="image/*">`
+                        }
+                        <div style="margin-top: 5px;">
+                            <label>Condició de visibilitat (imtg/hotspot):</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" data-field="overlayConditionVariable" value="${escapeHtml(hotspot.overlayConditionVariable || '')}" placeholder="Variable (ex: $clau)" style="flex: 1;">
+                                <input type="text" data-field="overlayConditionValue" value="${escapeHtml(hotspot.overlayConditionValue || '')}" placeholder="Valor (ex: true)" style="flex: 1;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
                 item.innerHTML = `
                     <div class="hotspot-section general-settings">
                         <label>Nom Hotspot:</label><input type="text" data-field="name" value="${escapeHtml(hotspot.name || '')}" placeholder="Ej: Puerta">
@@ -925,6 +1092,8 @@
                         </select>
                     </div>
                     
+                    ${overlaySectionHtml}
+
                     <div class="hotspot-section setter-specific-fields ${hotspot.type==='setter'?'':'hidden-field'}">
                         <div class="two-column-layout">
                             <div class="column">
@@ -973,7 +1142,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <div class="hotspot-section dialog-specific-fields ${hotspot.type==='dialog'?'':'hidden-field'}">
                         <label class="bold-label">Diàleg:</label>
                         <div style="margin-bottom: 10px; display: flex; align-items: center;">
@@ -1092,38 +1261,75 @@
                 const sFields = item.querySelector('.setter-specific-fields');
                 const dFields = item.querySelector('.dialog-specific-fields');
                 
-                // Set selected options for existing and new dropdowns
                 if (hotspot.type === 'passage') {
                     pFields.querySelector(`select[data-field="transition"]`).value = hotspot.transition;
                     pFields.querySelector(`select[data-field="transitionArrive"]`).value = hotspot.transitionArrive;
                 }
 
-                // Function to toggle visibility of main fields based on hotspot type
                 const toggle = type => {
                     pFields.classList.toggle('hidden-field', type !== 'passage');
                     sFields.classList.toggle('hidden-field', type !== 'setter');
                     dFields.classList.toggle('hidden-field', type !== 'dialog');
-                    // After toggling the main sections, update the inner field visibility for the active section
                     updateInnerFieldVisibility(hotspot, item);
                 };
 
-                toggle(hotspot.type); // Initial toggle based on current type
+                toggle(hotspot.type);
 
                 const deleteConfigButton = item.querySelector('.delete-config-button');
 
-                // Listener for Dialog Character Name
+                const overlayInput = item.querySelector('.overlay-file-input');
+                const removeOverlayBtn = item.querySelector('.remove-overlay-btn');
+                
+                if (overlayInput) {
+                    overlayInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                hotspot.overlayImage = ev.target.result;
+                                hotspot.overlayFilename = file.name;
+                                renderHotspots();
+                                generateTwineCode();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+                
+                if (removeOverlayBtn) {
+                    removeOverlayBtn.addEventListener('click', () => {
+                        hotspot.overlayImage = null;
+                        hotspot.overlayFilename = null;
+                        renderHotspots();
+                        generateTwineCode();
+                    });
+                }
+                
+                const overlayCondVarInput = item.querySelector('input[data-field="overlayConditionVariable"]');
+                const overlayCondValInput = item.querySelector('input[data-field="overlayConditionValue"]');
+                
+                if (overlayCondVarInput) {
+                    overlayCondVarInput.addEventListener('input', (e) => {
+                        hotspot.overlayConditionVariable = e.target.value;
+                        generateTwineCode();
+                    });
+                }
+                if (overlayCondValInput) {
+                    overlayCondValInput.addEventListener('input', (e) => {
+                        hotspot.overlayConditionValue = e.target.value;
+                        generateTwineCode();
+                    });
+                }
+
                 const charNameInput = dFields.querySelector('input[data-field="characterName"]');
                 if (charNameInput) {
                     charNameInput.addEventListener('input', e => {
-                        // Keep it readonly in UI but update if code changes manually?
-                        // Actually it's readonly so this listener won't fire from UI interaction
                         hotspot.characterName = e.target.value;
                         generateTwineCode();
                         hideCopyFeedback();
                     });
                 }
 
-                // Listener for JSON Upload Button
                 const jsonBtn = dFields.querySelector('.json-upload-btn');
                 const jsonInput = dFields.querySelector('.json-file-input');
                 const jsonStatus = dFields.querySelector('.json-file-status');
@@ -1140,23 +1346,20 @@
                             reader.onload = (ev) => {
                                 const content = ev.target.result;
                                 try {
-                                    // Parse JSON to find id_dialogue
                                     const json = JSON.parse(content);
-
-                                    // Function to recursively find and update avatarURL based on avatarFilename
                                     const updateAvatarURLs = (obj) => {
                                         if (Array.isArray(obj)) {
                                             obj.forEach(updateAvatarURLs);
                                         } else if (typeof obj === 'object' && obj !== null) {
-                                            // If current object has avatarFileName (capital N), update avatarUrl (lower l)
                                             if (obj.avatarFileName && typeof obj.avatarFileName === 'string') {
-                                                // Ensure avatarUrl exists or create it
                                                 obj.avatarUrl = `imatges/${obj.avatarFileName}`;
                                             }
-                                            
-                                            // Recurse into properties
+                                            if (obj.url && typeof obj.url === 'string' && obj.url.startsWith('data:image')) {
+                                                if (obj.fileName && typeof obj.fileName === 'string') {
+                                                    obj.url = `imatges/${obj.fileName}`;
+                                                }
+                                            }
                                             for (const key in obj) {
-                                                // Avoid infinite loops if circular reference, though JSON.parse usually prevents this
                                                 if (typeof obj[key] === 'object') {
                                                     updateAvatarURLs(obj[key]);
                                                 }
@@ -1168,12 +1371,11 @@
 
                                     if (json && json.id_dialogue) {
                                         hotspot.characterName = json.id_dialogue;
-                                        // Update the input field visibly immediately
                                         const charInput = dFields.querySelector('input[data-field="characterName"]');
                                         if (charInput) charInput.value = hotspot.characterName;
                                     }
                                     
-                                    hotspot.jsonContent = JSON.stringify(json, null, 2); // Store modified JSON
+                                    hotspot.jsonContent = JSON.stringify(json, null, 2);
                                     hotspot.jsonFileName = file.name;
                                     jsonStatus.textContent = file.name;
                                     generateTwineCode();
@@ -1188,7 +1390,6 @@
                     });
                 }
 
-                // Listener for Generate Dialog Button
                 const generateDialogBtn = dFields.querySelector('.generate-dialog-btn');
                 if (generateDialogBtn) {
                     generateDialogBtn.addEventListener('click', () => {
@@ -1196,7 +1397,6 @@
                     });
                 }
 
-                // Event listeners for updating hotspot properties
                 item.querySelector('input[data-field="name"]').addEventListener('input', e => {
                     hotspot.name = e.target.value;
                     generateTwineCode();
@@ -1205,18 +1405,16 @@
                     if (hotspotElement) {
                         hotspotElement.textContent = e.target.value;
                     }
-                    // Update the delete button text in the config panel as well
                     deleteConfigButton.textContent = `Eliminar ${e.target.value || `Hotspot ${hotspot.id}`}`;
                 });
                 item.querySelector('select[data-field="type"]').addEventListener('change', e => {
                     hotspot.type = e.target.value;
-                    toggle(hotspot.type); // This call will now also update inner field visibility
+                    toggle(hotspot.type);
                     generateTwineCode();
                     hideCopyFeedback();
                 });
                 
-                // Update event listeners for 'value' (passage) and 'variable', 'valor' (setter)
-                ['value','sound','soundClick', 'titleText'].forEach(f => { // titleText is now at the end
+                ['value','sound','soundClick', 'titleText'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
@@ -1227,21 +1425,17 @@
                     }
                 });
 
-                // Textarea fields need to be handled separately if we want to ensure escapeHtml is not applied to their content
-                // as they are parsed by Twine later, not directly as HTML attributes of the editor.
                 ['infoText', 'infoText2'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
 
-
-                // Specific listener for 'transition' select element
                 const passageTransitionSelect = item.querySelector('.passage-specific-fields [data-field="transition"]');
                 if (passageTransitionSelect) {
                     passageTransitionSelect.addEventListener('change', e => {
@@ -1251,7 +1445,6 @@
                     });
                 }
 
-                // Specific listener for NEW 'transitionArrive' select element
                 const passageTransitionArriveSelect = item.querySelector('.passage-specific-fields [data-field="transitionArrive"]');
                 if (passageTransitionArriveSelect) {
                     passageTransitionArriveSelect.addEventListener('change', e => {
@@ -1261,8 +1454,7 @@
                     });
                 }
 
-
-                ['variable', 'valor', 'soundSetter','soundClickSetter', 'titleTextSetter'].forEach(f => { // titleTextSetter is now at the end
+                ['variable', 'valor', 'soundSetter','soundClickSetter', 'titleTextSetter'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
@@ -1273,19 +1465,17 @@
                     }
                 });
 
-                // Textarea fields for setter
                 ['infoTextSetter','infoTextSetter2'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
 
-                // Listeners for Dialog Specific Fields
                 ['infoTextDialog', 'soundDialog', 'titleTextDialog'].forEach(f => {
                     const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
                     if (element) {
@@ -1297,7 +1487,6 @@
                     }
                 });
 
-                // Dialog-specific condition fields listeners
                 ['dialogConditionVariable', 'dialogConditionValue', 'dialogSoundFail', 'dialogSoundClickFail'].forEach(f => {
                     const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
                     if (element) {
@@ -1308,20 +1497,17 @@
                         });
                     }
                 });
-                // Textarea fields for dialog condition
                 ['dialogFailInfo', 'dialogFailInfoEnter'].forEach(f => {
                     const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
 
-                // Event listeners for secondary variable fields (common to both types)
-                // Attach to the checkbox within the passage section
                 const pEnableSecondaryVariableCheckbox = pFields.querySelector('[data-field="enableSecondaryVariable"]');
                 if (pEnableSecondaryVariableCheckbox) {
                     pEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
@@ -1331,7 +1517,6 @@
                         hideCopyFeedback();
                     });
                 }
-                // Attach to the checkbox within the setter section
                 const sEnableSecondaryVariableCheckbox = sFields.querySelector('[data-field="enableSecondaryVariable"]');
                 if (sEnableSecondaryVariableCheckbox) {
                     sEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
@@ -1341,7 +1526,6 @@
                         hideCopyFeedback();
                     });
                 }
-                // Attach to the checkbox within the dialog section
                 const dEnableSecondaryVariableCheckbox = dFields.querySelector('[data-field="enableSecondaryVariable"]');
                 if (dEnableSecondaryVariableCheckbox) {
                     dEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
@@ -1352,8 +1536,6 @@
                     });
                 }
 
-                // Also attach listeners for the secondary fields themselves (variable2, valor2)
-                // These are common, so we need to find them in both sections
                 const pVariable2Input = pFields.querySelector('[data-field="variable2"]');
                 const pValor2Input = pFields.querySelector('[data-field="valor2"]');
                 const sVariable2Input = sFields.querySelector('[data-field="variable2"]');
@@ -1368,8 +1550,6 @@
                 if (dVariable2Input) dVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (dValor2Input) dValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
 
-
-                // Passage-specific condition fields listeners
                 ['passageConditionVariable', 'passageConditionValue', 'passageSoundFail', 'passageSoundClickFail'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
@@ -1380,20 +1560,17 @@
                         });
                     }
                 });
-                // Textarea fields for passage condition
                 ['passageFailInfo', 'passageFailInfoEnter'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
 
-
-                // Setter-specific condition fields listeners
                 ['setterConditionVariable', 'setterConditionValue', 'setterSoundFail', 'setterSoundClickFail'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
@@ -1404,19 +1581,17 @@
                         });
                     }
                 });
-                // Textarea fields for setter condition
                 ['setterFailInfo', 'setterFailInfoEnter'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value; // Store raw value for textarea
+                            hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
                 
-                // Visit Limit checkbox listener
                 const pEnableVisitLimitCheckbox = pFields.querySelector('[data-field="enableVisitLimit"]');
                 if (pEnableVisitLimitCheckbox) {
                     pEnableVisitLimitCheckbox.addEventListener('change', (e) => {
@@ -1445,11 +1620,10 @@
                     });
                 }
 
-                // Visit Limit text fields listeners (common for both types)
                 const pVisitLimitInput = pFields.querySelector('[data-field="visitLimit"]');
                 if (pVisitLimitInput) {
                     pVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        hotspot.visitLimit = e.target.value;
                         generateTwineCode();
                         hideCopyFeedback();
                     });
@@ -1457,7 +1631,7 @@
                 const sVisitLimitInput = sFields.querySelector('[data-field="visitLimit"]');
                 if (sVisitLimitInput) {
                     sVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        hotspot.visitLimit = e.target.value;
                         generateTwineCode();
                         hideCopyFeedback();
                     });
@@ -1465,7 +1639,7 @@
                 const dVisitLimitInput = dFields.querySelector('[data-field="visitLimit"]');
                 if (dVisitLimitInput) {
                     dVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value; // Update hotspot object
+                        hotspot.visitLimit = e.target.value;
                         generateTwineCode();
                         hideCopyFeedback();
                     });
@@ -1485,9 +1659,6 @@
                 if (dVisitLimitTextEnter) dVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
                 if (dVisitLimitTextClic) dVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
 
-
-                // Event listener for the NEW "enableConditionVariable" checkbox
-                // Attach to the checkbox within the passage section
                 const pEnableConditionVariableCheckbox = pFields.querySelector('[data-field="enableConditionVariable"]');
                 if (pEnableConditionVariableCheckbox) {
                     pEnableConditionVariableCheckbox.addEventListener('change', (e) => {
@@ -1497,7 +1668,6 @@
                         hideCopyFeedback();
                     });
                 }
-                // Attach to the checkbox within the setter section
                 const sEnableConditionVariableCheckbox = sFields.querySelector('[data-field="enableConditionVariable"]');
                 if (sEnableConditionVariableCheckbox) {
                     sEnableConditionVariableCheckbox.addEventListener('change', (e) => {
@@ -1507,7 +1677,6 @@
                         hideCopyFeedback();
                     });
                 }
-                // Attach to the checkbox within the dialog section
                 const dEnableConditionVariableCheckbox = dFields.querySelector('[data-field="enableConditionVariable"]');
                 if (dEnableConditionVariableCheckbox) {
                     dEnableConditionVariableCheckbox.addEventListener('change', (e) => {
@@ -1518,27 +1687,23 @@
                     });
                 }
 
-                // Modified delete button listener to show confirmation modal
                 item.querySelector('.delete-config-button').addEventListener('click', () => { 
                     showConfirmationModal(hotspot.id, hotspot.name || `Hotspot ${hotspot.id}`);
                     hideCopyFeedback();
                 });
 
-                // Add event listener for the new scroll-to-top button
                 item.querySelector('.scroll-to-top-button').addEventListener('click', () => {
                     imageEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
             });
         }
-
-        // Function to remove a hotspot
+        
         function removeHotspot(id) {
             hotspots = hotspots.filter(h => h.id !== id);
             renderHotspots();
             generateTwineCode();
         }
 
-        // Helper function to ensure variable names start with '$'
         function formatVariable(varName) {
             if (varName && typeof varName === 'string' && !varName.startsWith('$')) {
                 return '$' + varName;
@@ -1546,40 +1711,85 @@
             return varName;
         }
 
-        // Function to generate Twine (Harlowe) code
         function generateTwineCode() {
-            if (!imageDisplay.src || !imageDisplay.naturalWidth || !imageUpload.files || imageUpload.files.length === 0) {
+            // Use mainImageFilename if loading existing code, otherwise use the uploaded file name
+            const currentFileName = mainImageFilename || (imageUpload.files[0] ? imageUpload.files[0].name : null);
+
+            if (!imageDisplay.src || !imageDisplay.naturalWidth || !currentFileName) {
                 outputCode.value = "<p>Carga una imagen para generar el código.</p>";
                 return;
             }
-            const originalFileName = imageUpload.files[0].name;
+            
             let twineCode = '';
             
             twineCode += `<div class="twine-image-wrapper" style="min-width:${imageDisplay.naturalWidth}px;">\n`;
-            twineCode += `    <img src="imatges/${originalFileName.replace(/"/g, '&quot;')}" usemap="#hotspotmap" alt="Imatge amb hotspots">\n`;
+            twineCode += `    <img src="imatges/${currentFileName.replace(/"/g, '&quot;')}" usemap="#hotspotmap" alt="Imatge amb hotspots">\n`;
+            
+            const dispW = imageDisplay.naturalWidth;
+            const dispH = imageDisplay.naturalHeight;
+
+            hotspots.forEach(hotspot => {
+                if (hotspot.overlayImage && dispW && dispH) {
+                    const coords = hotspot.coords.split(',').map(Number);
+                    const width = coords[2] - coords[0];
+                    const height = coords[3] - coords[1];
+                    const left = coords[0];
+                    const top = coords[1];
+
+                    const leftPercent = (left / dispW * 100).toFixed(2);
+                    const topPercent = (top / dispH * 100).toFixed(2);
+                    const widthPercent = (width / dispW * 100).toFixed(2);
+                    const heightPercent = (height / dispH * 100).toFixed(2);
+                    
+                    const filename = hotspot.overlayFilename || 'overlay.png';
+                    
+                    let imgTag = `    <img src="imatges/${filename}" class="twine-overlay" data-hotspot-id="${hotspot.id}" style="position:absolute; left:${leftPercent}%; top:${topPercent}%; width:${widthPercent}%; height:${heightPercent}%; pointer-events:none;">\n`;
+                    
+                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionValue);
+
+                    if (overlayConditionString) {
+                        imgTag = `(if: ${overlayConditionString})[${imgTag}]`;
+                    }
+                    
+                    twineCode += imgTag;
+                }
+            });
+
             twineCode += '    <map name="hotspotmap">\n';
             hotspots.forEach(hotspot => {
                 const coords = hotspot.coords;
 
                 const altText = escapeHtml(hotspot.name || `Hotspot ${hotspot.id}`);
                 
-                // Add comment for each hotspot in HTML comment format
-                twineCode += `    <!-- ${escapeHtml(hotspot.name) || `Hotspot ${hotspot.id}`} -->\n`; // FIX: Apply escapeHtml to hotspot.name here
+                twineCode += `    <!-- ${escapeHtml(hotspot.name) || `Hotspot ${hotspot.id}`} -->\n`; 
                 let areaTag = `        <area shape="rect"\n`;
                 areaTag += `            coords="${coords}"\n`;
                 areaTag += `            alt="${altText}"\n`;
                 areaTag += `            class="hotspot-item"\n`;
+                
+                if (hotspot.overlayFilename) {
+                    let finalOverlayName = hotspot.overlayFilename;
+                    if (!finalOverlayName.startsWith('imatges/')) {
+                        finalOverlayName = `imatges/${finalOverlayName}`;
+                    }
+                    areaTag += `            data-overlay-filename="${escapeHtml(finalOverlayName)}"\n`;
+                }
+                
+                if (hotspot.overlayConditionVariable) {
+                    areaTag += `            data-overlay-condition-var="${escapeHtml(hotspot.overlayConditionVariable)}"\n`;
+                }
+                if (hotspot.overlayConditionValue) {
+                    areaTag += `            data-overlay-condition-val="${escapeHtml(hotspot.overlayConditionValue)}"\n`;
+                }
 
                 if (hotspot.type === 'dialog') {
                      areaTag += `            data-action="dialog"\n`;
                      if (hotspot.characterName) areaTag += `            data-character="${escapeHtml(hotspot.characterName)}"\n`;
                      
-                     // Dialog specific generic attributes
                      if (hotspot.infoTextDialog) areaTag += `            data_info="${escapeHtml(hotspot.infoTextDialog)}"\n`;
                      if (hotspot.soundDialog) areaTag += `            data-sound="${escapeHtml(hotspot.soundDialog)}"\n`; 
                      if (hotspot.titleTextDialog) areaTag += `            title="${escapeHtml(hotspot.titleTextDialog)}"\n`;
 
-                     // Dialog specific conditions - STRICT CHECK
                      if (hotspot.enableConditionVariable && hotspot.dialogConditionVariable && hotspot.dialogConditionValue) {
                         areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.dialogConditionVariable))}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.dialogConditionValue)}"\n`;
@@ -1589,53 +1799,46 @@
                         if (hotspot.dialogSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.dialogSoundClickFail)}"\n`;
                     }
                     
-                    // Secondary Setter attributes for dialog type - STRICT CHECK
                     if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
                         areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
                         areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
                     }
                 }
                 
-                // Condition attributes are now type-specific
                 if (hotspot.type === 'passage') {
-                    // Only include condition attributes if enabled AND has values - STRICT CHECK
                     if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
                         areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.passageConditionVariable))}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
                         if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
                         if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
-                        if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`; // mouse enter
-                        if (hotspot.passageSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.passageSoundClickFail)}"\n`; // click
+                        if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`;
+                        if (hotspot.passageSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.passageSoundClickFail)}"\n`;
                     }
-                    // Only include data-sound if it has a value
-                    if (hotspot.sound) areaTag += `            data-sound="${escapeHtml(hotspot.sound)}"\n`; // mouse enter
-                    if (hotspot.soundClick) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClick)}"\n`; // click
+                    if (hotspot.sound) areaTag += `            data-sound="${escapeHtml(hotspot.sound)}"\n`;
+                    if (hotspot.soundClick) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClick)}"\n`;
                     if (hotspot.value) areaTag += `            data-passage="${escapeHtml(hotspot.value)}"\n`;
                     if (hotspot.infoText) areaTag += `            data_info="${escapeHtml(hotspot.infoText)}"\n`;
                     if (hotspot.infoText2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoText2)}"\n`;
                     if (hotspot.transition) areaTag += `            data-transition-depart="${escapeHtml(hotspot.transition)}"\n`; 
-                    if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`; // NEW ARRIVE TRANSITION
-                    if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`; // Moved to end
+                    if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`;
+                    if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`;
 
-                    // Secondary Setter attributes for passage type (only if enabled AND has values) - STRICT CHECK
                     if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
                         areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
                         areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
                     }
 
                 } else if (hotspot.type === 'setter') {
-                    // Only include condition attributes if enabled AND has values - STRICT CHECK
                     if (hotspot.enableConditionVariable && hotspot.setterConditionVariable && hotspot.setterConditionValue) {
                         areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.setterConditionVariable))}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
                         if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
                         if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
-                        if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`; // mouse enter
-                        if (hotspot.setterSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.setterSoundClickFail)}"\n`; // click
+                        if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`;
+                        if (hotspot.setterSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.setterSoundClickFail)}"\n`;
                     }
-                    // Only include data-sound if it has a value
-                    if (hotspot.soundSetter) areaTag += `            data-sound="${escapeHtml(hotspot.soundSetter)}"\n`; // mouse enter
-                    if (hotspot.soundClickSetter) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClickSetter)}"\n`; // click
+                    if (hotspot.soundSetter) areaTag += `            data-sound="${escapeHtml(hotspot.soundSetter)}"\n`;
+                    if (hotspot.soundClickSetter) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClickSetter)}"\n`;
                     let setMacroContent = '';
                     const valorRaw = hotspot.valor;
                     const valorTrimmed = valorRaw.trim();
@@ -1643,7 +1846,7 @@
                     const startsWithArithmeticOperator = arithmeticOperators.some(op => valorTrimmed.startsWith(op));
                     const hasOtherOperator = ['>', '<', 'is', '=', 'to'].some(op => valorTrimmed.startsWith(op));
 
-                    const formattedVariableName = formatVariable(hotspot.variable); // Format variable name here
+                    const formattedVariableName = formatVariable(hotspot.variable);
 
                     if (formattedVariableName) {
                         let formattedValorForMacro = valorTrimmed;
@@ -1654,8 +1857,6 @@
                             formattedValorForMacro = !hasOtherOperator ? `"${valorTrimmed.replace(/"/g, '\\"')}"` : formattedValorForMacro;
                             setMacroContent = `${formattedVariableName} = ${formattedValorForMacro}`;
                         } else {
-                            // If it's not a number and not an arithmetic operation, treat as string.
-                            // Ensure it's quoted unless it contains operators that make it a valid Harlowe expression.
                             if (!hasOtherOperator) {
                                 formattedValorForMacro = `"${valorTrimmed.replace(/"/g, '\\"')}"`;
                             }
@@ -1666,34 +1867,31 @@
                     if (setMacroContent) areaTag += `            data-setter="${escapeHtml(setMacroContent)}"\n`;
                     if (hotspot.infoTextSetter) areaTag += `            data_info="${escapeHtml(hotspot.infoTextSetter)}"\n`;
                     if (hotspot.infoTextSetter2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoTextSetter2)}"\n`;
-                    if (hotspot.titleTextSetter) areaTag += `            title="${escapeHtml(hotspot.titleTextSetter)}"\n`; // Moved to end
+                    if (hotspot.titleTextSetter) areaTag += `            title="${escapeHtml(hotspot.titleTextSetter)}"\n`;
                     
                     if (formattedVariableName) areaTag += `            data_variable="${escapeHtml(formattedVariableName)}"\n`;
                     if (hotspot.valor) areaTag += `            data_valor="${escapeHtml(hotspot.valor)}"\n`;
 
-                    // Secondary Setter attributes (only if enabled AND has values) - STRICT CHECK
                     if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
                         areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
                         areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
                     }
                 }
 
-                // Visit Limit attributes (common for both types), only if enabled - STRICT CHECK
                 if (hotspot.enableVisitLimit) {
                     if (hotspot.visitLimit) areaTag += `            data-visit-limit="${escapeHtml(hotspot.visitLimit)}"\n`;
                     if (hotspot.visitLimitTextEnter) areaTag += `            data-visit-limit-enter="${escapeHtml(hotspot.visitLimitTextEnter)}"\n`;
                     if (hotspot.visitLimitTextClic) areaTag += `            data-visit-limit-clic="${escapeHtml(hotspot.visitLimitTextClic)}"\n`;
                 }
 
-                areaTag += `        >\n`; // Close the area tag
+                areaTag += `        >\n`;
                 twineCode += areaTag;
-                twineCode += `\n`; // Add an extra newline for separation
+                twineCode += `\n`;
             });
             twineCode += '    </map>\n';
             twineCode += `    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>\n`;
             twineCode += '</div>\n\n';
 
-            // Generate Harlowe links for passages
             twineCode += '(live: 0.1s)[\n';
             twineCode += '    <span id="Ocult" style="display:none;">\n';
             hotspots.forEach(hotspot => {
@@ -1701,11 +1899,9 @@
                     const passageNameForLink = hotspot.value.replace(/"/g, '\\"');
                     const transitionParts = [];
 
-                    // Add (t8n-arrive: ...) if applicable
                     if (hotspot.transitionArrive && hotspot.transitionArrive !== 'Cap' && hotspot.transitionArrive !== 'instant') {
                         transitionParts.push(`(t8n-arrive: "${hotspot.transitionArrive.replace(/"/g, '\\"')}")`);
                     }
-                    // Add (t8n-depart: ...) if applicable
                     if (hotspot.transition && hotspot.transition !== 'Cap' && hotspot.transition !== 'instant') {
                         transitionParts.push(`(t8n-depart: "${hotspot.transition.replace(/"/g, '\\"')}")`);
                     }
@@ -1718,16 +1914,25 @@
                     }
 
                     let harloweLink = '';
-                    // Only generate conditional link if enabled AND has values - STRICT CHECK
+                    
+                    let activeCondition = "";
+                    
                     if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
-                        let conditionValueFormatted = hotspot.passageConditionValue;
-                        const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => conditionValueFormatted.trim().startsWith(op));
-                        if (!isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
-                            conditionValueFormatted = `is ${conditionValueFormatted}`;
-                        } else if (isNaN(conditionValueFormatted) && !startsWithOperator && conditionValueFormatted.trim() !== '') {
-                            conditionValueFormatted = `is "${conditionValueFormatted.replace(/"/g, '\\"')}"`;
+                        activeCondition = buildConditionString(hotspot.passageConditionVariable, hotspot.passageConditionValue);
+                    }
+                    
+                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionValue);
+                    
+                    if (overlayConditionString) {
+                        if (activeCondition) {
+                            activeCondition = `(${activeCondition}) and (${overlayConditionString})`;
+                        } else {
+                            activeCondition = overlayConditionString;
                         }
-                        harloweLink = `    (if: ${formatVariable(hotspot.passageConditionVariable)} ${conditionValueFormatted})[(link: "${passageNameForLink}")[${harloweLinkContent}]]`;
+                    }
+
+                    if (activeCondition) {
+                        harloweLink = `    (if: ${activeCondition})[(link: "${passageNameForLink}")[${harloweLinkContent}]]`;
                     } else {
                         harloweLink = `    (link: "${passageNameForLink}")[${harloweLinkContent}]`;
                     }
@@ -1737,14 +1942,11 @@
             twineCode += '    </span>\n';
             twineCode += ']\n';
 
-            // APPEND DIALOG JSON DATA AT THE END
             let hasJson = false;
             hotspots.forEach(h => {
                 if (h.type === 'dialog' && h.jsonContent) {
                     hasJson = true;
-                    // Updated comment as requested: uses the character name
                     twineCode += `\n<!-- Dades de diàleg per a ${escapeHtml(h.characterName)} -->\n`;
-                    // Use a script tag to embed JSON safely so it can be parsed later or used by engine
                     twineCode += `<script type="application/json" id="${escapeHtml(h.characterName)}">\n`;
                     
                     try {
@@ -1764,11 +1966,37 @@
                             }
                             return obj;
                         };
+                        
+                        const cleanJsonData = (obj) => {
+                            if (Array.isArray(obj)) {
+                                return obj.map(cleanJsonData);
+                            } else if (typeof obj === 'object' && obj !== null) {
+                                if (obj.avatarUrl && typeof obj.avatarUrl === 'string' && obj.avatarUrl.startsWith('data:image')) {
+                                     if (obj.avatarFileName && typeof obj.avatarFileName === 'string') {
+                                         obj.avatarUrl = `imatges/${obj.avatarFileName}`;
+                                     }
+                                }
+                                if (obj.url && typeof obj.url === 'string' && obj.url.startsWith('data:image')) {
+                                     if (obj.fileName && typeof obj.fileName === 'string') {
+                                         obj.url = `imatges/${obj.fileName}`;
+                                     }
+                                }
+                                
+                                for (const key in obj) {
+                                    if (typeof obj[key] === 'object') {
+                                        cleanJsonData(obj[key]);
+                                    }
+                                }
+                                return obj;
+                            }
+                            return obj;
+                        };
 
-                        const jsonClean = removeLayoutProps(jsonRaw);
-                        twineCode += JSON.stringify(jsonClean, null, 4); // Indented for readability
+                        let jsonClean = removeLayoutProps(jsonRaw);
+                        jsonClean = cleanJsonData(jsonClean);
+                        
+                        twineCode += JSON.stringify(jsonClean, null, 4);
                     } catch (e) {
-                        // If parsing fails (shouldn't if validated on load), fallback to raw content
                         console.warn("Could not clean JSON for export, using raw content", e);
                         twineCode += h.jsonContent;
                     }
@@ -1779,40 +2007,52 @@
 
             outputCode.value = twineCode;
         }
+        
+        function buildConditionString(variable, value) {
+            if (!variable || !value) return "";
+            let val = value.trim();
+            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => val.startsWith(op));
+            
+            if (!isNaN(val) && !startsWithOperator && val !== '') {
+                val = `is ${val}`;
+            } else if (isNaN(val) && !startsWithOperator && val !== '') {
+                val = `is "${val.replace(/"/g, '\\"')}"`;
+            }
+            return `${formatVariable(variable)} ${val}`;
+        }
 
-        // Event listener for copy code button
         copyCodeButton.addEventListener('click', () => {
-            outputCode.select(); // Select the text in the textarea
-            document.execCommand('copy'); // Copy to clipboard
-            copyFeedback.style.display = 'inline-block'; // Show feedback message
+            outputCode.select(); 
+            document.execCommand('copy'); 
+            copyFeedback.style.display = 'inline-block'; 
             setTimeout(() => {
-                copyFeedback.style.display = 'none'; // Hide feedback message after 2 seconds
+                copyFeedback.style.display = 'none'; 
             }, 2000);
         });
 
-        // Event listener for load code button
         loadCodeButton.addEventListener('click', () => {
-            hideCopyFeedback(); // Hide feedback on load
+            hideCopyFeedback(); 
             const codeToParse = outputCode.value;
             if (codeToParse.trim() === "") {
                 alert("El campo de código está vacío. Pega el código HTML/Harlowe para cargar.");
                 return;
             }
             parseTwineCode(codeToParse);
+            // Clear the input value after successful parsing attempt, regardless of whether folder was asked
+            outputCode.value = ""; 
         });
 
-        // Function to parse existing Twine code and populate the editor
         function parseTwineCode(code) {
             const parser = new DOMParser();
-            const doc = parser.parseFromString(code, 'text/html'); // Parse into a full document
+            const doc = parser.parseFromString(code, 'text/html'); 
 
-            const imgElement = doc.querySelector('.twine-image-wrapper img[usemap]'); // Be more specific
+            const imgElement = doc.querySelector('.twine-image-wrapper img[usemap]'); 
             if (!imgElement) {
                 alert("No se ha encontrado ninguna etiqueta <img> con usemap dentro de .twine-image-wrapper.");
                 return;
             }
 
-            const mapName = imgElement.getAttribute('usemap').substring(1); // Get map name without '#'
+            const mapName = imgElement.getAttribute('usemap').substring(1); 
             const mapElement = doc.querySelector(`map[name="${mapName}"]`);
 
             if (!mapElement) {
@@ -1820,241 +2060,284 @@
                 return;
             }
 
-            // Reset hotspots and counter
-            hotspots = [];
-            let maxHotspotId = 0;
-            const areaElements = mapElement.querySelectorAll('area'); // Query areas directly from the map
-            areaElements.forEach(area => {
-                const coords = area.getAttribute('coords');
-                const altText = area.getAttribute('alt');
-                const dataPassage = area.getAttribute('data-passage');
-                const dataSetter = area.getAttribute('data-setter'); // This will be the combined string
-                const title = area.getAttribute('title');
-                const dataSound = area.getAttribute('data-sound'); // mouse enter
-                const dataSoundClick = area.getAttribute('data-sound-click'); // click
-                const dataInfo = area.getAttribute('data_info');
-                const dataInfo2 = area.getAttribute('data_info_2');
-                const dataAction = area.getAttribute('data-action'); // Detect Action type explicitly
-                
-                // Dialog specific attributes
-                const dataCharacter = area.getAttribute('data-character');
-                // Removed dataDialogId reading as we use character name now
-
-                // Common condition attributes from HTML
-                const dataConditionVar = area.getAttribute('data-condition-var');
-                const dataConditionVal = area.getAttribute('data-condition-val');
-                const dataFailInfoClic = area.getAttribute('text_fail_clic');
-                const dataFailInfoEnter = area.getAttribute('text_fail_enter');
-                const dataSoundFail = area.getAttribute('data-sound-fail'); // mouse enter
-                const dataSoundClickFail = area.getAttribute('data-sound-click-fail'); // click
-                
-                const dataTransition = area.getAttribute('data-transition-depart'); 
-                const dataTransitionArrive = area.getAttribute('data-transition-arrive'); // NEW: Get data-transition-arrive
-
-                // Retrieve visit limit attributes
-                const visitLimit = area.getAttribute('data-visit-limit');
-                const visitLimitTextEnter = area.getAttribute('data-visit-limit-enter');
-                const visitLimitTextClic = area.getAttribute('data-visit-limit-clic');
-
-                // Declare dataVariable, dataValor, dataVariable2, dataValor2 here to ensure they are always in scope
-                const dataVariable = area.getAttribute('data_variable');
-                const dataValor = area.getAttribute('data_valor');
-                const dataVariable2 = area.getAttribute('data-variable-2');
-                const dataValor2 = area.getAttribute('data-valor-2');
-
-                hotspotIdCounter++;
-                maxHotspotId = Math.max(maxHotspotId, hotspotIdCounter);
-
-                let newHotspot = {
-                    id: hotspotIdCounter,
-                    coords: coords,
-                    name: altText || `Hotspot ${hotspotIdCounter}`,
-                    type: 'passage', // Default type
-                    value: '',
-                    titleText: '',
-                    sound: '',
-                    soundClick: '', // Initialized
-                    infoText: '',
-                    infoText2: '',
-                    transition: '',
-                    transitionArrive: '', // NEW: Initialize transitionArrive
-                    variable: '', // Will be assigned below
-                    valor: '',    // Will be assigned below
-                    titleTextSetter: '',
-                    soundSetter: '',
-                    soundClickSetter: '', // Initialized
-                    infoTextSetter: '',
-                    infoTextSetter2: '',
-
-                    // Dialog Fields
-                    characterName: '',
-                    jsonContent: '',
-                    jsonFileName: '',
-                    // Initialize dialog fields
-                    infoTextDialog: '', soundDialog: '', titleTextDialog: '',
-                    dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
-                    dialogSoundFail: '', dialogSoundClickFail: '',
-                    
-                    // Passage specific condition fields
-                    passageConditionVariable: '',
-                    passageConditionValue: '',
-                    passageFailInfo: '',
-                    passageFailInfoEnter: '',
-                    passageSoundFail: '',
-                    passageSoundClickFail: '', // Initialized
-
-                    // Setter specific condition fields
-                    setterConditionVariable: '',
-                    setterConditionValue: '',
-                    setterFailInfo: '',
-                    setterFailInfoEnter: '',
-                    setterSoundFail: '',
-                    setterSoundClickFail: '', // Initialized
-
-                    // Visit Limit fields (common for both types)
-                    visitLimit: visitLimit || '',
-                    visitLimitTextEnter: visitLimitTextEnter || '',
-                    visitLimitTextClic: visitLimitTextClic || '',
-                    enableVisitLimit: (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false, // Set based on loaded data
-
-                    // Secondary Setter fields
-                    variable2: dataVariable2 || '',
-                    valor2: dataValor2 || '',
-                    enableSecondaryVariable: (dataVariable2 || dataValor2) ? true : false, // Set based on loaded data
-                    enableConditionVariable: (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false // Set based on loaded condition data
-                };
-                
-                if (dataAction === 'dialog') {
-                    newHotspot.type = 'dialog';
-                    newHotspot.characterName = dataCharacter || '';
-                    if (dataCharacter) {
-                         // Try to find the associated script tag by ID (which is the character name)
-                         const scriptTag = doc.getElementById(dataCharacter);
-                         if (scriptTag) {
-                             newHotspot.jsonContent = scriptTag.textContent.trim();
-                             newHotspot.jsonFileName = 'Dades carregades del codi';
+            const hasOverlays = doc.querySelectorAll('.twine-overlay').length > 0;
+            const hasMainImage = doc.querySelector('.twine-image-wrapper img[usemap]');
+            
+            let missingImages = false;
+            // Check for missing overlay images
+            if (hasOverlays) {
+                 const overlays = doc.querySelectorAll('.twine-overlay');
+                 for (let img of overlays) {
+                     const src = img.getAttribute('src');
+                     if (src) {
+                         const filename = src.split(/[/\\]/).pop();
+                         if (!projectImages[filename]) {
+                             missingImages = true;
+                             break;
                          }
+                     }
+                 }
+            }
+            
+            // Check for missing main image
+            if (hasMainImage) {
+                const src = hasMainImage.getAttribute('src');
+                if (src) {
+                    const filename = src.split(/[/\\]/).pop();
+                    if (!projectImages[filename] && !imageDisplay.src) {
+                         missingImages = true;
                     }
-                    // Load dialog fields
-                    newHotspot.infoTextDialog = dataInfo || '';
-                    newHotspot.soundDialog = dataSound || '';
-                    newHotspot.titleTextDialog = title || '';
-                    // Dialog conditions
-                    newHotspot.dialogConditionVariable = dataConditionVar || '';
-                    newHotspot.dialogConditionValue = dataConditionVal || '';
-                    newHotspot.dialogFailInfo = dataFailInfoClic || '';
-                    newHotspot.dialogFailInfoEnter = dataFailInfoEnter || '';
-                    newHotspot.dialogSoundFail = dataSoundFail || '';
-                    newHotspot.dialogSoundClickFail = dataSoundClickFail || '';
-                    // Dialog Secondary variable
-                    newHotspot.variable2 = dataVariable2 || '';
-                    newHotspot.valor2 = dataValor2 || '';
-
-                } else if (dataPassage) {
-                    newHotspot.type = 'passage';
-                    newHotspot.value = dataPassage;
-                    newHotspot.titleText = title || '';
-                    newHotspot.sound = dataSound || ''; // Assign dataSound for passage
-                    newHotspot.soundClick = dataSoundClick || ''; // Assign new soundClick for passage
-                    newHotspot.infoText = dataInfo || '';
-                    newHotspot.infoText2 = dataInfo2 || '';
-                    newHotspot.transition = dataTransition || '';
-                    newHotspot.transitionArrive = dataTransitionArrive || ''; // NEW: Assign transitionArrive
-                    // Assign passage-specific condition fields
-                    newHotspot.passageConditionVariable = dataConditionVar || '';
-                    newHotspot.passageConditionValue = dataConditionVal || '';
-                    newHotspot.passageFailInfo = dataFailInfoClic || '';
-                    newHotspot.passageFailInfoEnter = dataFailInfoEnter || '';
-                    newHotspot.passageSoundFail = dataSoundFail || '';
-                    newHotspot.passageSoundClickFail = dataSoundClickFail || ''; // Assign new soundClickFail for passage
-                    // Assign secondary setter fields for passage type
-                    newHotspot.variable2 = dataVariable2 || '';
-                    newHotspot.valor2 = dataValor2 || '';
-                } else if (dataSetter) {
-                    newHotspot.type = 'setter';
-                    newHotspot.variable = dataVariable || ''; // Now dataVariable is defined
-                    newHotspot.valor = dataValor || '';       // Now dataValor is defined
-                    newHotspot.titleTextSetter = title || '';
-                    newHotspot.soundSetter = dataSound || ''; // Assign dataSound for setter
-                    newHotspot.soundClickSetter = dataSoundClick || ''; // Assign new soundClickSetter for setter
-                    newHotspot.infoTextSetter = dataInfo || '';
-                    newHotspot.infoTextSetter2 = dataInfo2 || '';
-                    // Assign setter-specific condition fields
-                    newHotspot.setterConditionVariable = dataConditionVar || '';
-                    newHotspot.setterConditionValue = dataConditionVal || '';
-                    newHotspot.setterFailInfo = dataFailInfoClic || '';
-                    newHotspot.setterFailInfoEnter = dataFailInfoEnter || '';
-                    newHotspot.setterSoundFail = dataSoundFail || '';
-                    newHotspot.setterSoundClickFail = dataSoundClickFail || ''; // Assign new soundClickFail for setter
                 }
-                hotspots.push(newHotspot);
-            });
-            hotspotIdCounter = maxHotspotId;
-
-            renderHotspots();
-            generateTwineCode();
+            }
+            
+            // IMPORTANT: If we need images OR the image src is defined but not yet visible, ask for folder
+            if (missingImages) {
+                pendingParseCode = code;
+                document.getElementById('folderRequestModal').style.display = 'flex';
+                // The code will be processed by folderInput listener or cancelFolderButton handler
+            } else {
+                // If no images are missing (all images either local or not needed)
+                processTwineCode(code);
+            }
         }
-
-        // Initial rendering and code generation on page load
-        renderHotspots();
-        generateTwineCode();
-        // Add event listener for window resize to re-render hotspots
-        window.addEventListener('resize', renderHotspots);
         
-        // --- JAVASCRIPT PER A LA INTERACCIÓ DEL HOTSPOT ---
-        // Global modal elements for confirmation
-        let confirmationModal = null;
-        let confirmDeleteButton = null;
-        let cancelDeleteButton = null;
-        let confirmMessage = null;
-        let currentHotspotToDeleteId = null;
+        function processTwineCode(code) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(code, 'text/html'); 
 
-        // Initialize modal elements once when the script loads
-        function setupConfirmationModal() {
-            confirmationModal = document.createElement('div');
-            confirmationModal.id = 'confirmationModal';
-            confirmationModal.style.display = 'none'; // Hidden by default
+            const imgElement = doc.querySelector('.twine-image-wrapper img[usemap]'); 
+            if (!imgElement) {
+                alert("No se ha encontrado ninguna etiqueta <img> con usemap dentro de .twine-image-wrapper.");
+                return;
+            }
+            
+            // --- 1. Load Main Image ---
+            const mainSrc = imgElement.getAttribute('src');
+            let needsRerender = false; 
+            let currentMainFilename = null; 
 
-            const modalContent = document.createElement('div');
-            confirmMessage = document.createElement('p');
-            confirmMessage.style.marginBottom = '20px';
-            modalContent.appendChild(confirmMessage);
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.display = 'flex';
-            buttonContainer.style.justifyContent = 'space-around';
-
-            cancelDeleteButton = document.createElement('button');
-            cancelDeleteButton.id = 'cancelDeleteButton';
-            cancelDeleteButton.textContent = 'No!';
-            cancelDeleteButton.addEventListener('click', hideConfirmationModal);
-            buttonContainer.appendChild(cancelDeleteButton);
-
-            confirmDeleteButton = document.createElement('button');
-            confirmDeleteButton.id = 'confirmDeleteButton';
-            confirmDeleteButton.textContent = 'Eliminar';
-            confirmDeleteButton.addEventListener('click', () => {
-                if (currentHotspotToDeleteId !== null) {
-                    removeHotspot(currentHotspotToDeleteId);
+            if (mainSrc) {
+                currentMainFilename = mainSrc.split(/[/\\]/).pop(); 
+                
+                // Determine the correct source: local file or direct path
+                const newImageSrc = projectImages[currentMainFilename] || mainSrc;
+                
+                if (imageDisplay.src !== newImageSrc) {
+                     imageDisplay.style.display = 'block';
+                     imageDisplay.src = newImageSrc;
+                     needsRerender = true;
+                } else {
+                    imageDisplay.style.display = 'block';
                 }
-                hideConfirmationModal();
-            });
-            buttonContainer.appendChild(confirmDeleteButton);
+            } else {
+                imageDisplay.src = '';
+                imageDisplay.style.display = 'none';
+                drawingInstructions.style.display = 'block';
+                imageEditor.style.height = 'auto';
+                imageEditor.style.minHeight = '400px';
+            }
 
-            modalContent.appendChild(buttonContainer);
-            confirmationModal.appendChild(modalContent);
-            document.body.appendChild(confirmationModal);
-        }
+            // --- 2. Hotspot Parsing Logic ---
+            const parseAndRender = (mainFilename) => {
+                const mapName = imgElement.getAttribute('usemap').substring(1); 
+                const mapElement = doc.querySelector(`map[name="${mapName}"]`);
 
-        function showConfirmationModal(hotspotId, hotspotName) {
-            currentHotspotToDeleteId = hotspotId;
-            confirmMessage.textContent = `Segur que vols eliminar el hotspot ${hotspotName}?`;
-            confirmationModal.style.display = 'flex';
-        }
+                if (!mapElement) {
+                    alert(`No se ha encontrado la etiqueta <map name="${mapName}"> asociada a la imagen.`);
+                    return;
+                }
 
-        function hideConfirmationModal() {
-            confirmationModal.style.display = 'none';
-            currentHotspotToDeleteId = null;
+                hotspots = [];
+                let maxHotspotId = 0;
+                const areaElements = mapElement.querySelectorAll('area'); 
+                
+                let tempHotspotIdCounter = 0;
+
+                areaElements.forEach(area => {
+                    tempHotspotIdCounter++;
+                    maxHotspotId = Math.max(maxHotspotId, tempHotspotIdCounter);
+
+                    const coords = area.getAttribute('coords');
+                    const altText = area.getAttribute('alt');
+                    const dataPassage = area.getAttribute('data-passage');
+                    const dataSetter = area.getAttribute('data-setter'); 
+                    const title = area.getAttribute('title');
+                    const dataSound = area.getAttribute('data-sound'); 
+                    const dataSoundClick = area.getAttribute('data-sound-click'); 
+                    const dataInfo = area.getAttribute('data_info');
+                    const dataInfo2 = area.getAttribute('data_info_2');
+                    const dataAction = area.getAttribute('data-action'); 
+                    
+                    let overlayFilename = area.getAttribute('data-overlay-filename');
+                    if (overlayFilename && overlayFilename.startsWith('imatges/')) {
+                        overlayFilename = overlayFilename.substring(8); 
+                    }
+                    const overlayConditionVar = area.getAttribute('data-overlay-condition-var');
+                    const overlayConditionVal = area.getAttribute('data-overlay-condition-val');
+                    
+                    let overlayImageSrc = null;
+                    
+                    if (overlayFilename && projectImages[overlayFilename]) {
+                         overlayImageSrc = projectImages[overlayFilename];
+                    } else if (overlayFilename) {
+                        overlayImageSrc = `imatges/${overlayFilename}`;
+                    }
+                    
+                    const dataCharacter = area.getAttribute('data-character');
+
+                    const dataConditionVar = area.getAttribute('data-condition-var');
+                    const dataConditionVal = area.getAttribute('data-condition-val');
+                    const dataFailInfoClic = area.getAttribute('text_fail_clic');
+                    const dataFailInfoEnter = area.getAttribute('text_fail_enter');
+                    const dataSoundFail = area.getAttribute('data-sound-fail'); 
+                    const dataSoundClickFail = area.getAttribute('data-sound-click-fail'); 
+                    
+                    const dataTransition = area.getAttribute('data-transition-depart'); 
+                    const dataTransitionArrive = area.getAttribute('data-transition-arrive'); 
+
+                    const visitLimit = area.getAttribute('data-visit-limit');
+                    const visitLimitTextEnter = area.getAttribute('data-visit-limit-enter');
+                    const visitLimitTextClic = area.getAttribute('data-visit-limit-clic');
+
+                    const dataVariable = area.getAttribute('data_variable');
+                    const dataValor = area.getAttribute('data_valor');
+                    const dataVariable2 = area.getAttribute('data-variable-2');
+                    const dataValor2 = area.getAttribute('data-valor-2');
+
+
+                    let newHotspot = {
+                        id: tempHotspotIdCounter,
+                        coords: coords,
+                        name: altText || `Hotspot ${tempHotspotIdCounter}`,
+                        type: 'passage', 
+                        value: '',
+                        titleText: '', sound: '', soundClick: '', infoText: '', infoText2: '',
+                        transition: '', transitionArrive: '',
+                        variable: '', valor: '', titleTextSetter: '', soundSetter: '', hotspotSoundClickSetter: '',
+                        infoTextSetter: '', infoTextSetter2: '',
+
+                        characterName: '',
+                        jsonContent: '',
+                        jsonFileName: '',
+                        infoTextDialog: '', soundDialog: '', titleTextDialog: '',
+                        dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
+                        dialogSoundFail: '', dialogSoundClickFail: '',
+                        
+                        passageConditionVariable: '', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
+                        passageSoundFail: '', passageSoundClickFail: '',
+                        setterConditionVariable: '', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
+                        setterSoundFail: '', setterSoundClickFail: '',
+                        visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
+                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false,
+                        
+                        overlayFilename: overlayFilename || null,
+                        overlayConditionVariable: overlayConditionVar || '',
+                        overlayConditionValue: overlayConditionVal || '',
+                        overlayImage: overlayImageSrc 
+                    };
+                    
+                    if (dataAction === 'dialog') {
+                        newHotspot.type = 'dialog';
+                        newHotspot.characterName = dataCharacter || '';
+                        if (dataCharacter) {
+                             const scriptTag = doc.getElementById(dataCharacter);
+                             if (scriptTag) {
+                                 newHotspot.jsonContent = scriptTag.textContent.trim();
+                                 newHotspot.jsonFileName = 'Dades carregades del codi';
+                             }
+                        }
+                        newHotspot.infoTextDialog = dataInfo || '';
+                        newHotspot.soundDialog = dataSound || '';
+                        newHotspot.titleTextDialog = title || '';
+                        newHotspot.dialogConditionVariable = dataConditionVar || '';
+                        newHotspot.dialogConditionValue = dataConditionVal || '';
+                        newHotspot.dialogFailInfo = dataFailInfoClic || '';
+                        newHotspot.dialogFailInfoEnter = dataFailInfoEnter || '';
+                        newHotspot.dialogSoundFail = dataSoundFail || '';
+                        newHotspot.dialogSoundClickFail = dataSoundClickFail || '';
+                        newHotspot.variable2 = dataVariable2 || '';
+                        newHotspot.valor2 = dataValor2 || '';
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
+                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+
+                    } else if (dataPassage) {
+                        newHotspot.type = 'passage';
+                        newHotspot.value = dataPassage;
+                        newHotspot.titleText = title || '';
+                        newHotspot.sound = dataSound || ''; 
+                        newHotspot.soundClick = dataSoundClick || ''; 
+                        newHotspot.infoText = dataInfo || '';
+                        newHotspot.infoText2 = dataInfo2 || '';
+                        newHotspot.transition = dataTransition || '';
+                        newHotspot.transitionArrive = dataTransitionArrive || ''; 
+                        newHotspot.passageConditionVariable = dataConditionVar || '';
+                        newHotspot.passageConditionValue = dataConditionVal || '';
+                        newHotspot.passageFailInfo = dataFailInfoClic || '';
+                        newHotspot.passageFailInfoEnter = dataFailInfoEnter || '';
+                        newHotspot.passageSoundFail = dataSoundFail || '';
+                        newHotspot.passageSoundClickFail = dataSoundClickFail || ''; 
+                        newHotspot.variable2 = dataVariable2 || '';
+                        newHotspot.valor2 = dataValor2 || '';
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
+                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+                    } else if (dataSetter) {
+                        newHotspot.type = 'setter';
+                        newHotspot.variable = dataVariable || ''; 
+                        newHotspot.valor = dataValor || '';       
+                        newHotspot.titleTextSetter = title || '';
+                        newHotspot.soundSetter = dataSound || ''; 
+                        newHotspot.soundClickSetter = dataSoundClick || ''; 
+                        newHotspot.infoTextSetter = dataInfo || '';
+                        newHotspot.infoTextSetter2 = dataInfo2 || '';
+                        newHotspot.setterConditionVariable = dataConditionVar || '';
+                        newHotspot.setterConditionValue = dataConditionVal || '';
+                        newHotspot.setterFailInfo = dataFailInfoClic || '';
+                        newHotspot.setterFailInfoEnter = dataFailInfoEnter || '';
+                        newHotspot.setterSoundFail = dataSoundFail || '';
+                        newHotspot.setterSoundClickFail = dataSoundClickFail || ''; 
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
+                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+                    }
+                    
+                    newHotspot.visitLimit = visitLimit || '';
+                    newHotspot.visitLimitTextEnter = visitLimitTextEnter || '';
+                    newHotspot.visitLimitTextClic = visitLimitTextClic || '';
+                    newHotspot.enableVisitLimit = (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false;
+
+                    hotspots.push(newHotspot);
+                });
+                hotspotIdCounter = maxHotspotId;
+
+                // Set mainImageFilename for correct Twine output if loading from existing code
+                if (mainFilename) {
+                     mainImageFilename = mainFilename;
+                }
+                
+                // Finally render inputs and code
+                renderHotspots();
+                generateTwineCode();
+            };
+
+            // If the image source changed, wait for it to load before calculating visual coordinates
+            if (needsRerender) {
+                // Ensure the previous onload is handled, then set the new one
+                 imageDisplay.onload = () => {
+                     imageDisplay.onload = null; // Clear handler
+                     const extraSpace = 80;
+                     imageEditor.style.minHeight = imageDisplay.offsetHeight + extraSpace + 'px';
+                     imageEditor.style.height = imageDisplay.offsetHeight + extraSpace + 'px';
+                     parseAndRender(currentMainFilename); 
+                 };
+            } else {
+                // Image source did not change, or it's already loaded (first time load, etc.)
+                // Need to ensure the dimensions are set if it was previously hidden/empty
+                if (imageDisplay.src && imageDisplay.style.display !== 'none') {
+                    imageDisplay.style.display = 'block';
+                    drawingInstructions.style.display = 'none';
+                    editorImageInfoDisplay.style.display = 'none';
+                }
+                parseAndRender(currentMainFilename); 
+            }
         }
 
         // Call setupConfirmationModal on page load
