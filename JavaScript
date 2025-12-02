@@ -65,7 +65,10 @@ window.AdventureEngine = (function() {
             const keys = Object.keys(currentVars); 
             const values = Object.values(currentVars); 
             
-            const safeCode = code.replace(/([^=])=([^=])/g, '$1==$2');
+            // FIX: Regex millorada per NO trencar >=, <= o !=
+            // Només substitueix "=" per "==" si no té <, >, ! o = al davant.
+            const safeCode = code.replace(/(^|[^<>!=])=([^=])/g, '$1==$2');
+            
             const fn = new Function(...keys, `return ${safeCode};`); 
             return fn(...values); 
         } catch (e) { 
@@ -132,22 +135,33 @@ window.AdventureEngine = (function() {
         // --- GESTIÓ D'EXPRESSIONS FACIALS ---
         let currentAvatarUrl = char.avatarUrl; // Per defecte: avatar base
         
-        // Busquem si hi ha definida una expressió en múltiples claus possibles per robustesa
+        // 1. Determinar expressió base del NODE (suportant la llista condicional 'expressionOptions')
+        let nodeExpressionName = node.expression || node.Expression || node.characterExpression || node.CharacterExpression;
+        
+        const exprOpts = node.expressionOptions || node.ExpressionOptions;
+        if (exprOpts && Array.isArray(exprOpts)) {
+            // Busquem la primera expressió que compleixi la condició
+            const validExpr = exprOpts.find(e => evaluate(e.condition));
+            
+            // FIX: Només sobreescrivim si l'expressió NO és buida. 
+            // Això evita que opcions buides com { expression: "", condition: "" } amaguin "Enfadat"
+            if (validExpr && validExpr.expression && validExpr.expression.trim() !== "") {
+                nodeExpressionName = validExpr.expression;
+            }
+        }
+
+        // 2. Prioritat: Expressió del text > Expressió del node
         const expressionName = chosenTextObj.expression || 
                                chosenTextObj.Expression || 
                                chosenTextObj.characterExpression || 
                                chosenTextObj.CharacterExpression || 
-                               node.expression || 
-                               node.Expression ||
-                               node.characterExpression ||
-                               node.CharacterExpression;
+                               nodeExpressionName;
 
         if (expressionName && char.expressions && Array.isArray(char.expressions)) {
             // Busquem l'expressió pel nom (ignorant majúscules/minúscules)
             const expressionObj = char.expressions.find(e => e.name.trim().toLowerCase() === expressionName.trim().toLowerCase());
             if (expressionObj && expressionObj.url) {
                 currentAvatarUrl = expressionObj.url;
-                // Debug per verificar que s'aplica
                 console.log(`AdventureEngine: Aplicant expressió "${expressionObj.name}" -> ${expressionObj.url}`);
             } else {
                 console.warn(`AdventureEngine: Expressió "${expressionName}" no trobada per al personatge ${char.name}`);
@@ -323,7 +337,14 @@ jQuery(document).ready(function () {
         jQuery('.hotspot-item').each(function() {
             const el = jQuery(this);
             const varName = el.data('overlay-condition-var');
-            const val = el.data('overlay-condition-val');
+            // FIX: Llegir l'operador explícit si existeix
+            let val = el.data('overlay-condition-val');
+            const op = el.data('overlay-condition-op');
+            
+            if (op && val !== undefined) {
+                val = op + String(val);
+            }
+            
             const overlayFile = el.data('overlay-filename');
             
             const alt = el.attr('alt') || 'hotspot-' + Math.random().toString(36).substr(2, 9);
@@ -442,7 +463,8 @@ jQuery(document).ready(function () {
         statements.forEach(stmt => {
             const trimmedStmt = stmt.trim();
             if (!trimmedStmt) return;
-            const match = trimmedStmt.match(/^\s*(\$\w+)\s*(=|\+=|-=|\*=|\/=)\s*(.*)\s*$/);
+            // FIX: Actualitzat regex per acceptar 'to'
+            const match = trimmedStmt.match(/^\s*(\$\w+)\s*(=|\+=|-=|\*=|\/=|to)\s*(.*)\s*$/);
             if (!match) return;
 
             const varName = match[1].substring(1);
@@ -462,7 +484,9 @@ jQuery(document).ready(function () {
             if (currentVal === undefined) currentVal = (typeof value === 'number') ? 0 : "";
 
             switch (operator) {
-                case '=': setGameVar(varName, value); break;
+                case '=': 
+                case 'to': // AFEGIT SUPORT PER 'to'
+                    setGameVar(varName, value); break;
                 case '+=': setGameVar(varName, currentVal + value); break;
                 case '-=': setGameVar(varName, currentVal - value); break;
                 case '*=': setGameVar(varName, currentVal * value); break;
@@ -488,7 +512,12 @@ jQuery(document).ready(function () {
             return;
         }
 
-        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+        // FIX: Incloure l'operador explícit si n'hi ha
+        let val = el.data('condition-val');
+        const op = el.data('condition-op');
+        if (op && val !== undefined) val = op + String(val);
+
+        if (evaluateCondition(el.data('condition-var'), val)) {
             toggleImageInfo(el.attr('data_info'));
             playHotspotSound(el.data('sound'));
         } else {
@@ -532,7 +561,12 @@ jQuery(document).ready(function () {
             return;
         }
 
-        if (!evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+        // FIX: Incloure l'operador explícit si n'hi ha
+        let val = el.data('condition-val');
+        const op = el.data('condition-op');
+        if (op && val !== undefined) val = op + String(val);
+
+        if (!evaluateCondition(el.data('condition-var'), val)) {
             toggleImageInfo(el.attr('text_fail_clic'));
             playHotspotSound(el.data('sound-click-fail'));
             return;
@@ -545,12 +579,10 @@ jQuery(document).ready(function () {
         }
         playHotspotSound(el.data('sound-click'));
         
-        // FIX: Refrescar missatge amb noves dades
         const info2 = el.attr('data_info_2');
         if (info2) {
              toggleImageInfo(info2);
         } else {
-             // Si no hi ha info2, refresquem el data_info normal perquè mostri el valor nou
              toggleImageInfo(el.attr('data_info'));
         }
 
@@ -571,7 +603,12 @@ jQuery(document).ready(function () {
         const el = jQuery(this);
         const passage = el.data('passage');
         
-        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+        // FIX: Incloure l'operador explícit si n'hi ha
+        let val = el.data('condition-val');
+        const op = el.data('condition-op');
+        if (op && val !== undefined) val = op + String(val);
+
+        if (evaluateCondition(el.data('condition-var'), val)) {
             executeHotspotSetters(this);
             playHotspotSound(el.data('sound-click'));
             
@@ -607,7 +644,12 @@ jQuery(document).ready(function () {
              return;
         }
 
-        if (evaluateCondition(el.data('condition-var'), el.data('condition-val'))) {
+        // FIX: Incloure l'operador explícit si n'hi ha
+        let val = el.data('condition-val');
+        const op = el.data('condition-op');
+        if (op && val !== undefined) val = op + String(val);
+
+        if (evaluateCondition(el.data('condition-var'), val)) {
             executeHotspotSetters(this);
             if (!isNaN(limit)) {
                 clicks[id] = (clicks[id] || 0) + 1;
