@@ -408,6 +408,32 @@
         #folderRequestModal #confirmFolderButton {
              background-color: #007bff;
         }
+
+        /* Styling for the new conditional builder */
+        .conditional-builder, .setter-builder {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            align-items: center;
+        }
+        .setter-builder input, .conditional-builder input, .conditional-builder select {
+             margin-bottom: 0px !important;
+        }
+        .setter-builder input[data-field$="Value"] {
+            grid-column: span 2;
+        }
+        .overlay-toggle-container {
+             margin-bottom: 10px;
+        }
+        .overlay-toggle-container label {
+             font-weight: bold;
+             display: flex;
+             align-items: center;
+        }
+        .overlay-toggle-container input[type="checkbox"] {
+             margin-right: 8px;
+             width: auto;
+        }
     </style>
 </head>
 <body>
@@ -449,6 +475,27 @@
     </div>
 
     <script>
+        // --- CONSTANTS ---
+        const CONDITION_OPERATORS = [
+            { value: 'is', label: 'Igual (is)' },
+            { value: '==', label: 'Igual (==)' },
+            { value: '>', label: 'Major (>)' },
+            { value: '<', label: 'Menor (<)' },
+            { value: '>=', label: 'Major o igual (>=)' },
+            { value: '<=', label: 'Menor o igual (<=)' },
+            { value: 'not', label: 'No igual (not)' },
+            { value: '!=', label: 'No igual (!=)' }
+        ];
+
+        const SETTER_OPERATORS = [
+            { value: 'to', label: 'Assignar (=)' },
+            { value: '=', label: 'Assignar (old)' },
+            { value: '+=', label: 'Sumar (+=)' },
+            { value: '-=', label: 'Restar (-=)' },
+            { value: '*=', label: 'Multiplicar (*=)' },
+            { value: '/=', label: 'Dividir (/=)' }
+        ];
+
         // --- DOM Elements ---
         const imageUpload = document.getElementById('imageUpload');
         const imageDisplay = document.getElementById('imageDisplay');
@@ -520,19 +567,72 @@
             }
             return varName;
         }
-
-        function buildConditionString(variable, value) {
-            if (!variable || !value) return "";
-            let val = value.trim();
-            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => val.startsWith(op));
+        
+        // Build the condition string for Harlowe (e.g., "$clau is 'espasa'")
+        function buildConditionString(variable, operator, value) {
+            if (!variable || !operator || !value) return "";
             
-            if (!isNaN(val) && !startsWithOperator && val !== '') {
-                val = `is ${val}`;
-            } else if (isNaN(val) && !startsWithOperator && val !== '') {
-                val = `is "${val.replace(/"/g, '\\"')}"`;
+            const formattedVariable = formatVariable(variable.trim());
+            const trimmedValue = value.trim();
+
+            let formattedValue = trimmedValue;
+            
+            // Si el valor no és numèric, o si s'utilitza l'operador 'is', s'ha de posar entre cometes
+            // Excepció: si s'utilitza un operador de comparació (>, <, >=, <=) amb un número
+            const isNumeric = !isNaN(trimmedValue) && trimmedValue !== '';
+            const needsQuotes = !isNumeric || ['is', 'not'].includes(operator.toLowerCase()); // For non-numeric or explicit text comparisons
+            const isLogical = ['is', 'not', '==', '!=', '>=', '<=', '>', '<'].includes(operator.toLowerCase()); // Check for comparison operators
+
+            // In Harlowe, numeric comparisons usually don't need quotes if the value is purely numeric
+            if (needsQuotes && !/^(["']).*\1$/.test(trimmedValue)) {
+                // If it's a numeric comparison operator but the value isn't numeric, we quote it
+                if (isLogical && !isNumeric) {
+                     formattedValue = `'${trimmedValue.replace(/'/g, "\\'")}'`; // Use single quotes internally
+                }
+                // If it's 'is' or 'not', we always quote the value unless it starts with a $ (variable)
+                if (['is', 'not'].includes(operator.toLowerCase()) && !formattedValue.startsWith('$')) {
+                     formattedValue = `'${trimmedValue.replace(/'/g, "\\'")}'`; 
+                }
             }
-            return `${formatVariable(variable)} ${val}`;
+
+
+            // Harlowe style: (if: $var is 'value')
+            if (['is', 'not'].includes(operator.toLowerCase())) {
+                return `${formattedVariable} ${operator} ${formattedValue}`;
+            }
+
+            // Standard comparison style: (if: $var > 10)
+            return `${formattedVariable} ${operator} ${formattedValue}`;
         }
+        
+        // Build the setter string for Harlowe (e.g., "$var to 10" or "$var += 5")
+        function buildSetterValue(variable, operator, value) {
+             if (!variable || !operator || !value) return "";
+
+            const formattedVariable = formatVariable(variable.trim());
+            const trimmedValue = value.trim();
+            const arithmeticOperators = ['+=', '-=', '*=', '/='];
+
+            // Valor de la dreta
+            let formattedValue = trimmedValue;
+            const isNumeric = !isNaN(trimmedValue) && trimmedValue !== '';
+
+            // Si és assignació simple (to, =), posem cometes al text, però no als números ni a variables (que haurien de començar per $)
+            if (operator === 'to' || operator === '=') {
+                if (!isNumeric && !formattedValue.startsWith('$') && !/^(["']).*\1$/.test(formattedValue)) {
+                    formattedValue = `'${trimmedValue.replace(/'/g, "\\'")}'`; // Use single quotes internally
+                }
+            }
+            
+            // Si és una operació aritmètica (+=, -=, etc.)
+            if (arithmeticOperators.includes(operator)) {
+                return `${formattedVariable} ${operator} ${trimmedValue}`;
+            }
+
+            // Assignació simple (to/set o =)
+            return `${formattedVariable} ${operator} ${formattedValue}`;
+        }
+
 
         // --- MODAL LOGIC ---
         function setupConfirmationModal() {
@@ -891,27 +991,37 @@
                         value: '',
                         titleText: '', sound: '', soundClick: '', infoText: '', infoText2: '',
                         transition: '', transitionArrive: '',
-                        variable: '', valor: '', titleTextSetter: '', soundSetter: '', hotspotSoundClickSetter: '',
-                        infoTextSetter: '', infoTextSetter2: '',
+                        
+                        // Setter Builder fields
+                        setterVariable: '', setterOperator: 'to', setterValue: '',
+                        
+                        // Secondary Variable fields
+                        variable2: '', operator2: 'to', valor2: '', 
+
                         // Dialog fields
                         characterName: '',
                         jsonContent: '',
                         jsonFileName: '',
                         infoTextDialog: '', soundDialog: '', titleTextDialog: '',
-                        dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
+                        
+                        // Conditional Builder fields:
+                        dialogConditionVariable: '', dialogConditionOperator: 'is', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
                         dialogSoundFail: '', dialogSoundClickFail: '',
                         
-                        passageConditionVariable: '', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
+                        passageConditionVariable: '', passageConditionOperator: 'is', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
                         passageSoundFail: '', passageSoundClickFail: '',
-                        setterConditionVariable: '', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
+                        setterConditionVariable: '', setterConditionOperator: 'is', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
                         setterSoundFail: '', setterSoundClickFail: '',
+                        
                         visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
-                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false,
+                        enableSecondaryVariable: false, enableConditionVariable: false,
                         
                         // Overlay fields
+                        enableOverlay: false, // NEW: Overlay toggle
                         overlayImage: null, // Base64
                         overlayFilename: null,
                         overlayConditionVariable: '',
+                        overlayConditionOperator: 'is',
                         overlayConditionValue: ''
                     });
                 }
@@ -953,6 +1063,12 @@
             const passageSection = itemElement.querySelector('.passage-specific-fields');
             const setterSection = itemElement.querySelector('.setter-specific-fields');
             const dialogSection = itemElement.querySelector('.dialog-specific-fields');
+            const overlayContent = itemElement.querySelector('.overlay-content-area'); // New selector for overlay content
+
+            // Overlay visibility
+            if (overlayContent) {
+                overlayContent.classList.toggle('hidden-field', !hotspot.enableOverlay);
+            }
 
             // Generic function to update visibility for any section
             const updateSectionVisibility = (section) => {
@@ -985,6 +1101,27 @@
             updateSectionVisibility(dialogSection);
         }
 
+        // Helper to generate operator options HTML
+        function getOperatorOptionsHtml(options, selectedValue) {
+            return options.map(op => 
+                `<option value="${op.value}" ${op.value === selectedValue ? 'selected' : ''}>${op.label}</option>`
+            ).join('');
+        }
+        
+        // Helper to generate secondary variable builder HTML (NEW)
+        const generateSecondaryVariableBuilder = (prefix, hotspot) => `
+            <div style="margin-bottom: 5px;">
+                <label class="darkblue-label">Assignació Secundària:</label>
+                <div class="setter-builder">
+                    <input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Variable (sense $)" style="grid-column: 1 / 2;">
+                    <select data-field="operator2" style="grid-column: 2 / 3;">
+                        ${getOperatorOptionsHtml(SETTER_OPERATORS, hotspot.operator2 || 'to')}
+                    </select>
+                    <input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Valor" style="grid-column: 3 / 4;">
+                </div>
+            </div>
+        `;
+
         // Function to render hotspots in the image editor and configuration panel
         function renderHotspots() {
             hotspotsContainerEl.innerHTML = ''; 
@@ -1010,8 +1147,8 @@
                     visRect.style.width = `${(coordsArr[2] - coordsArr[0]) * scaleX}px`;
                     visRect.style.height = `${(coordsArr[3] - coordsArr[1]) * scaleY}px`;
 
-                    // Render overlay image if exists inside the hotspot div
-                    if (hotspot.overlayImage) {
+                    // Render overlay image if enabled and exists inside the hotspot div
+                    if (hotspot.enableOverlay && hotspot.overlayImage) {
                         const img = document.createElement('img');
                         img.src = hotspot.overlayImage;
                         img.className = 'hotspot-overlay-img';
@@ -1057,6 +1194,35 @@
                 <option value="fade-up">Esvaïment Amunt</option>
                 <option value="fade-down">Esvaïment Avall</option>
             `;
+            
+            // Helper function to generate conditional builder HTML
+            const generateConditionBuilder = (prefix, hotspot) => `
+                <div style="margin-bottom: 5px;">
+                    <label>Constructor de condicionals:</label>
+                    <div class="conditional-builder">
+                        <input type="text" data-field="${prefix}ConditionVariable" value="${escapeHtml(hotspot[`${prefix}ConditionVariable`] || '')}" placeholder="Variable (sense $)">
+                        <select data-field="${prefix}ConditionOperator">
+                            ${getOperatorOptionsHtml(CONDITION_OPERATORS, hotspot[`${prefix}ConditionOperator`] || 'is')}
+                        </select>
+                        <input type="text" data-field="${prefix}ConditionValue" value="${escapeHtml(hotspot[`${prefix}ConditionValue`] || '')}" placeholder="Valor">
+                    </div>
+                </div>
+            `;
+            
+            // Helper function to generate setter builder HTML
+            const generateSetterBuilder = (prefix, hotspot) => `
+                <div style="margin-bottom: 5px;">
+                    <label>Valor de la variable:</label>
+                    <div class="setter-builder">
+                        <input type="text" data-field="${prefix}Variable" value="${escapeHtml(hotspot[`${prefix}Variable`] || '')}" placeholder="Variable (sense $)" style="grid-column: 1 / 2;">
+                        <select data-field="${prefix}Operator" style="grid-column: 2 / 3;">
+                            ${getOperatorOptionsHtml(SETTER_OPERATORS, hotspot[`${prefix}Operator`] || 'to')}
+                        </select>
+                        <input type="text" data-field="${prefix}Value" value="${escapeHtml(hotspot[`${prefix}Value`] || '')}" placeholder="Valor" style="grid-column: 3 / 4;">
+                    </div>
+                </div>
+            `;
+
 
             // Render configuration items for each hotspot
             hotspots.forEach(hotspot => {
@@ -1065,18 +1231,27 @@
                 item.dataset.hotspotId = hotspot.id;
 
                 let overlaySectionHtml = `
-                    <div class="overlay-config-section">
-                        <label class="bold-label">Imatge Superposada (Personatge/Objecte):</label>
+                    <div class="overlay-toggle-container">
+                        <label>
+                            <input type="checkbox" data-field="enableOverlay" ${hotspot.enableOverlay ? 'checked' : ''}>
+                            Afegir personatge/objecte
+                        </label>
+                    </div>
+                    <div class="overlay-config-section overlay-content-area ${hotspot.enableOverlay ? '' : 'hidden-field'}">
+                        <label class="bold-label">Imatge Superposada:</label>
                         ${hotspot.overlayImage ? 
                             `<img src="${hotspot.overlayImage}" class="overlay-preview-img">
                              <button class="remove-overlay-btn">Eliminar imatge</button>` : 
                             `<input type="file" class="overlay-file-input" accept="image/*">`
                         }
-                        <div style="margin-top: 5px;">
+                        <div style="margin-top: 15px;">
                             <label>Condició de visibilitat (imtg/hotspot):</label>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" data-field="overlayConditionVariable" value="${escapeHtml(hotspot.overlayConditionVariable || '')}" placeholder="Variable (ex: $clau)" style="flex: 1;">
-                                <input type="text" data-field="overlayConditionValue" value="${escapeHtml(hotspot.overlayConditionValue || '')}" placeholder="Valor (ex: true)" style="flex: 1;">
+                            <div class="conditional-builder">
+                                <input type="text" data-field="overlayConditionVariable" value="${escapeHtml(hotspot.overlayConditionVariable || '')}" placeholder="Variable (sense $)">
+                                <select data-field="overlayConditionOperator">
+                                    ${getOperatorOptionsHtml(CONDITION_OPERATORS, hotspot.overlayConditionOperator || 'is')}
+                                </select>
+                                <input type="text" data-field="overlayConditionValue" value="${escapeHtml(hotspot.overlayConditionValue || '')}" placeholder="Valor">
                             </div>
                         </div>
                     </div>
@@ -1097,8 +1272,8 @@
                     <div class="hotspot-section setter-specific-fields ${hotspot.type==='setter'?'':'hidden-field'}">
                         <div class="two-column-layout">
                             <div class="column">
-                                <div style="height: 1.5em;"></div> <div style="height: 1.5em;"></div> <label>Nom de la variable (ej: $nom_variable):</label><input type="text" data-field="variable" value="${escapeHtml(hotspot.variable || '')}" placeholder="Ej: $punts">
-                                <label>Valor de la variable (Número o text. Es pot sumar. Ej: +=100):</label><input type="text" data-field="valor" value="${escapeHtml(hotspot.valor || '')}" placeholder="Ej: 1000 o &quot;text&quot;">
+                                <div style="height: 1.5em;"></div> <div style="height: 1.5em;"></div> 
+                                ${generateSetterBuilder('setter', hotspot)}
                                 
                                 <label>Text (mouse enter):</label><textarea data-field="infoTextSetter">${escapeHtml(hotspot.infoTextSetter)}</textarea>
                                 <label class="text-alternatiu-label">Text al fer clic (sota imatge - suporta Harlowe):</label><textarea data-field="infoTextSetter2">${escapeHtml(hotspot.infoTextSetter2)}</textarea>
@@ -1113,8 +1288,8 @@
                                     </label>
                                 </div>
                                 <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
-                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="setterConditionVariable" value="${escapeHtml(hotspot.setterConditionVariable || '')}" placeholder="Ej: $clau">
-                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="setterConditionValue" value="${escapeHtml(hotspot.setterConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Condició:</label>
+                                    ${generateConditionBuilder('setter', hotspot)}
                                     <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="setterFailInfoEnter">${escapeHtml(hotspot.setterFailInfoEnter)}</textarea>
                                     <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="setterFailInfo">${escapeHtml(hotspot.setterFailInfo)}</textarea>
                                     <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="setterSoundClickFail" value="${escapeHtml(hotspot.setterSoundClickFail || '')}">
@@ -1136,8 +1311,7 @@
                                     </label>
                                 </div>
                                 <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
-                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
-                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                    ${generateSecondaryVariableBuilder('setter', hotspot)}
                                 </div>
                             </div>
                         </div>
@@ -1166,8 +1340,8 @@
                                     </label>
                                 </div>
                                 <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
-                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="dialogConditionVariable" value="${escapeHtml(hotspot.dialogConditionVariable || '')}" placeholder="Ej: $clau">
-                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="dialogConditionValue" value="${escapeHtml(hotspot.dialogConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Condició:</label>
+                                    ${generateConditionBuilder('dialog', hotspot)}
                                     <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="dialogFailInfoEnter">${escapeHtml(hotspot.dialogFailInfoEnter)}</textarea>
                                     <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="dialogFailInfo">${escapeHtml(hotspot.dialogFailInfo)}</textarea>
                                     <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="dialogSoundClickFail" value="${escapeHtml(hotspot.dialogSoundClickFail || '')}">
@@ -1189,8 +1363,7 @@
                                     </label>
                                 </div>
                                 <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
-                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
-                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                    ${generateSecondaryVariableBuilder('dialog', hotspot)}
                                 </div>
                             </div>
                         </div>
@@ -1222,8 +1395,8 @@
                                     </label>
                                 </div>
                                 <div class="condition-fields-container ${hotspot.enableConditionVariable ? '' : 'hidden-field'}">
-                                    <label class="condition-label">Variable (Condició):</label><input type="text" data-field="passageConditionVariable" value="${escapeHtml(hotspot.passageConditionVariable || '')}" placeholder="Ej: $clau">
-                                    <label class="condition-label">Valor (Condició):</label><input type="text" data-field="passageConditionValue" value="${escapeHtml(hotspot.passageConditionValue || '')}" placeholder="Ej: true o 1">
+                                    <label class="condition-label">Condició:</label>
+                                    ${generateConditionBuilder('passage', hotspot)}
                                     <label class="condition-label">Text de condició no assolida (mouse enter):</label><textarea data-field="passageFailInfoEnter">${escapeHtml(hotspot.passageFailInfoEnter)}</textarea>
                                     <label class="condition-label">Text de condició no assolida (clic):</label><textarea data-field="passageFailInfo">${escapeHtml(hotspot.passageFailInfo)}</textarea>
                                     <label class="condition-label">So (clic - mentre no s'assoleix la condició):</label><input type="text" data-field="passageSoundClickFail" value="${escapeHtml(hotspot.passageSoundClickFail || '')}">
@@ -1245,8 +1418,7 @@
                                     </label>
                                 </div>
                                 <div class="secondary-variable-fields ${hotspot.enableSecondaryVariable ? '' : 'hidden-field'}">
-                                    <label class="darkblue-label">Nom de la variable (secundària):</label><input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Ej: $objecte_agafat">
-                                    <label class="darkblue-label">Valor de la variable (secundària):</label><input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Ej: &quot;espasa&quot;">
+                                    ${generateSecondaryVariableBuilder('passage', hotspot)}
                                 </div>
                             </div>
                         </div>
@@ -1277,6 +1449,26 @@
 
                 const deleteConfigButton = item.querySelector('.delete-config-button');
 
+                const overlayContentArea = item.querySelector('.overlay-content-area');
+
+                const enableOverlayCheckbox = item.querySelector('[data-field="enableOverlay"]');
+                if (enableOverlayCheckbox) {
+                    enableOverlayCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableOverlay = e.target.checked;
+                        if (!e.target.checked) {
+                            // Clear content if deactivated
+                            hotspot.overlayImage = null;
+                            hotspot.overlayFilename = null;
+                            hotspot.overlayConditionVariable = '';
+                            hotspot.overlayConditionOperator = 'is';
+                            hotspot.overlayConditionValue = '';
+                        }
+                        renderHotspots(); // Re-render to update the visual state and UI controls
+                        generateTwineCode();
+                    });
+                }
+
+
                 const overlayInput = item.querySelector('.overlay-file-input');
                 const removeOverlayBtn = item.querySelector('.remove-overlay-btn');
                 
@@ -1305,22 +1497,19 @@
                     });
                 }
                 
-                const overlayCondVarInput = item.querySelector('input[data-field="overlayConditionVariable"]');
-                const overlayCondValInput = item.querySelector('input[data-field="overlayConditionValue"]');
-                
-                if (overlayCondVarInput) {
-                    overlayCondVarInput.addEventListener('input', (e) => {
-                        hotspot.overlayConditionVariable = e.target.value;
-                        generateTwineCode();
-                    });
-                }
-                if (overlayCondValInput) {
-                    overlayCondValInput.addEventListener('input', (e) => {
-                        hotspot.overlayConditionValue = e.target.value;
-                        generateTwineCode();
-                    });
-                }
+                // --- Overlay Condition Listeners ---
+                ['overlayConditionVariable', 'overlayConditionOperator', 'overlayConditionValue'].forEach(f => {
+                    const element = item.querySelector(`[data-field="${f}"]`);
+                    if (element) {
+                        element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
+                            hotspot[f] = e.target.value;
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
 
+                // --- Common Hotspot Listeners ---
                 const charNameInput = dFields.querySelector('input[data-field="characterName"]');
                 if (charNameInput) {
                     charNameInput.addEventListener('input', e => {
@@ -1414,10 +1603,11 @@
                     hideCopyFeedback();
                 });
                 
-                ['value','sound','soundClick', 'titleText'].forEach(f => {
+                // --- Passage Fields Listeners ---
+                ['value','sound','soundClick', 'titleText', 'infoText', 'infoText2', 'transition', 'transitionArrive'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
-                        element.addEventListener('input', e => {
+                        element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
                             hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
@@ -1425,57 +1615,19 @@
                     }
                 });
 
-                ['infoText', 'infoText2'].forEach(f => {
-                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-
-                const passageTransitionSelect = item.querySelector('.passage-specific-fields [data-field="transition"]');
-                if (passageTransitionSelect) {
-                    passageTransitionSelect.addEventListener('change', e => {
-                        hotspot.transition = e.target.value;
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-
-                const passageTransitionArriveSelect = item.querySelector('.passage-specific-fields [data-field="transitionArrive"]');
-                if (passageTransitionArriveSelect) {
-                    passageTransitionArriveSelect.addEventListener('change', e => {
-                        hotspot.transitionArrive = e.target.value;
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-
-                ['variable', 'valor', 'soundSetter','soundClickSetter', 'titleTextSetter'].forEach(f => {
+                // --- Setter Fields Listeners ---
+                ['setterVariable', 'setterOperator', 'setterValue', 'soundSetter','soundClickSetter', 'titleTextSetter', 'infoTextSetter', 'infoTextSetter2'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
-                        element.addEventListener('input', e => {
+                        element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
                             hotspot[f] = e.target.value;
                             generateTwineCode();
                             hideCopyFeedback();
                         });
                     }
                 });
-
-                ['infoTextSetter','infoTextSetter2'].forEach(f => {
-                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-
+                
+                // --- Dialog Info Fields Listeners ---
                 ['infoTextDialog', 'soundDialog', 'titleTextDialog'].forEach(f => {
                     const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
                     if (element) {
@@ -1487,206 +1639,93 @@
                     }
                 });
 
-                ['dialogConditionVariable', 'dialogConditionValue', 'dialogSoundFail', 'dialogSoundClickFail'].forEach(f => {
-                    const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-                ['dialogFailInfo', 'dialogFailInfoEnter'].forEach(f => {
-                    const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-
-                const pEnableSecondaryVariableCheckbox = pFields.querySelector('[data-field="enableSecondaryVariable"]');
-                if (pEnableSecondaryVariableCheckbox) {
-                    pEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableSecondaryVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const sEnableSecondaryVariableCheckbox = sFields.querySelector('[data-field="enableSecondaryVariable"]');
-                if (sEnableSecondaryVariableCheckbox) {
-                    sEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableSecondaryVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const dEnableSecondaryVariableCheckbox = dFields.querySelector('[data-field="enableSecondaryVariable"]');
-                if (dEnableSecondaryVariableCheckbox) {
-                    dEnableSecondaryVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableSecondaryVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-
-                const pVariable2Input = pFields.querySelector('[data-field="variable2"]');
-                const pValor2Input = pFields.querySelector('[data-field="valor2"]');
-                const sVariable2Input = sFields.querySelector('[data-field="variable2"]');
-                const sValor2Input = sFields.querySelector('[data-field="valor2"]');
-                const dVariable2Input = dFields.querySelector('[data-field="variable2"]');
-                const dValor2Input = dFields.querySelector('[data-field="valor2"]');
-
-                if (pVariable2Input) pVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (pValor2Input) pValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (sVariable2Input) sVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (sValor2Input) sValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (dVariable2Input) dVariable2Input.addEventListener('input', e => { hotspot.variable2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (dValor2Input) dValor2Input.addEventListener('input', e => { hotspot.valor2 = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-
-                ['passageConditionVariable', 'passageConditionValue', 'passageSoundFail', 'passageSoundClickFail'].forEach(f => {
-                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-                ['passageFailInfo', 'passageFailInfoEnter'].forEach(f => {
-                    const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-
-                ['setterConditionVariable', 'setterConditionValue', 'setterSoundFail', 'setterSoundClickFail'].forEach(f => {
-                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
-                ['setterFailInfo', 'setterFailInfoEnter'].forEach(f => {
-                    const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
-                    if (element) {
-                        element.addEventListener('input', e => {
-                            hotspot[f] = e.target.value;
-                            generateTwineCode();
-                            hideCopyFeedback();
-                        });
-                    }
-                });
+                // --- Conditional/Fail Fields Listeners (Dialog, Passage, Setter) ---
+                const conditionFields = [
+                    { prefix: 'dialog', fields: ['ConditionVariable', 'ConditionOperator', 'ConditionValue', 'FailInfo', 'FailInfoEnter', 'SoundFail', 'SoundClickFail'] },
+                    { prefix: 'passage', fields: ['ConditionVariable', 'ConditionOperator', 'ConditionValue', 'FailInfo', 'FailInfoEnter', 'SoundFail', 'SoundClickFail'] },
+                    { prefix: 'setter', fields: ['ConditionVariable', 'ConditionOperator', 'ConditionValue', 'FailInfo', 'FailInfoEnter', 'SoundFail', 'SoundClickFail'] }
+                ];
                 
-                const pEnableVisitLimitCheckbox = pFields.querySelector('[data-field="enableVisitLimit"]');
-                if (pEnableVisitLimitCheckbox) {
-                    pEnableVisitLimitCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableVisitLimit = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
+                conditionFields.forEach(({ prefix, fields }) => {
+                    fields.forEach(field => {
+                        const element = item.querySelector(`[data-field="${prefix}${field}"]`);
+                        if (element) {
+                            element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
+                                hotspot[`${prefix}${field}`] = e.target.value;
+                                generateTwineCode();
+                                hideCopyFeedback();
+                            });
+                        }
                     });
-                }
-                const sEnableVisitLimitCheckbox = sFields.querySelector('[data-field="enableVisitLimit"]');
-                if (sEnableVisitLimitCheckbox) {
-                    sEnableVisitLimitCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableVisitLimit = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const dEnableVisitLimitCheckbox = dFields.querySelector('[data-field="enableVisitLimit"]');
-                if (dEnableVisitLimitCheckbox) {
-                    dEnableVisitLimitCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableVisitLimit = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
+                });
 
-                const pVisitLimitInput = pFields.querySelector('[data-field="visitLimit"]');
-                if (pVisitLimitInput) {
-                    pVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value;
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const sVisitLimitInput = sFields.querySelector('[data-field="visitLimit"]');
-                if (sVisitLimitInput) {
-                    sVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value;
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const dVisitLimitInput = dFields.querySelector('[data-field="visitLimit"]');
-                if (dVisitLimitInput) {
-                    dVisitLimitInput.addEventListener('input', (e) => {
-                        hotspot.visitLimit = e.target.value;
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
+                // --- Secondary Variable Listeners (Common) ---
+                const enableSecondaryCheckboxSelector = '[data-field="enableSecondaryVariable"]';
+                [pFields, sFields, dFields].forEach(section => {
+                    const checkbox = section ? section.querySelector(enableSecondaryCheckboxSelector) : null;
+                    if (checkbox) {
+                        checkbox.addEventListener('change', (e) => {
+                            hotspot.enableSecondaryVariable = e.target.checked;
+                            updateInnerFieldVisibility(hotspot, item);
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
 
-                const pVisitLimitTextEnter = pFields.querySelector('[data-field="visitLimitTextEnter"]');
-                const pVisitLimitTextClic = pFields.querySelector('[data-field="visitLimitTextClic"]');
-                const sVisitLimitTextEnter = sFields.querySelector('[data-field="visitLimitTextEnter"]');
-                const sVisitLimitTextClic = sFields.querySelector('[data-field="visitLimitTextClic"]');
-                const dVisitLimitTextEnter = dFields.querySelector('[data-field="visitLimitTextEnter"]');
-                const dVisitLimitTextClic = dFields.querySelector('[data-field="visitLimitTextClic"]');
-
-                if (pVisitLimitTextEnter) pVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (pVisitLimitTextClic) pVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (sVisitLimitTextEnter) sVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (sVisitLimitTextClic) sVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (dVisitLimitTextEnter) dVisitLimitTextEnter.addEventListener('input', e => { hotspot.visitLimitTextEnter = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-                if (dVisitLimitTextClic) dVisitLimitTextClic.addEventListener('input', e => { hotspot.visitLimitTextClic = e.target.value; generateTwineCode(); hideCopyFeedback(); });
-
-                const pEnableConditionVariableCheckbox = pFields.querySelector('[data-field="enableConditionVariable"]');
-                if (pEnableConditionVariableCheckbox) {
-                    pEnableConditionVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableConditionVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
+                // Secondary Variable Builder Listeners
+                ['variable2', 'operator2', 'valor2'].forEach(f => {
+                    [pFields, sFields, dFields].forEach(section => {
+                        const element = section ? section.querySelector(`[data-field="${f}"]`) : null;
+                        if (element) {
+                            element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
+                                hotspot[f] = e.target.value;
+                                generateTwineCode();
+                                hideCopyFeedback();
+                            });
+                        }
                     });
-                }
-                const sEnableConditionVariableCheckbox = sFields.querySelector('[data-field="enableConditionVariable"]');
-                if (sEnableConditionVariableCheckbox) {
-                    sEnableConditionVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableConditionVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
-                const dEnableConditionVariableCheckbox = dFields.querySelector('[data-field="enableConditionVariable"]');
-                if (dEnableConditionVariableCheckbox) {
-                    dEnableConditionVariableCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableConditionVariable = e.target.checked;
-                        updateInnerFieldVisibility(hotspot, item);
-                        generateTwineCode();
-                        hideCopyFeedback();
-                    });
-                }
+                });
 
+                // --- Visit Limit Listeners (Common) ---
+                const enableVisitLimitCheckboxSelector = '[data-field="enableVisitLimit"]';
+                [pFields, sFields, dFields].forEach(section => {
+                    const checkbox = section ? section.querySelector(enableVisitLimitCheckboxSelector) : null;
+                    if (checkbox) {
+                        checkbox.addEventListener('change', (e) => {
+                            hotspot.enableVisitLimit = e.target.checked;
+                            updateInnerFieldVisibility(hotspot, item);
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                const visitLimitInputs = ['visitLimit', 'visitLimitTextEnter', 'visitLimitTextClic'];
+                [pFields, sFields, dFields].forEach(section => {
+                    visitLimitInputs.forEach(f => {
+                        const element = section ? section.querySelector(`[data-field="${f}"]`) : null;
+                        if (element) {
+                            element.addEventListener('input', e => { hotspot[f] = e.target.value; generateTwineCode(); hideCopyFeedback(); });
+                        }
+                    });
+                });
+
+                // --- Enable Condition Listeners (Common) ---
+                const enableConditionCheckboxSelector = '[data-field="enableConditionVariable"]';
+                [pFields, sFields, dFields].forEach(section => {
+                    const checkbox = section ? section.querySelector(enableConditionCheckboxSelector) : null;
+                    if (checkbox) {
+                        checkbox.addEventListener('change', (e) => {
+                            hotspot.enableConditionVariable = e.target.checked;
+                            updateInnerFieldVisibility(hotspot, item);
+                            generateTwineCode();
+                            hideCopyFeedback();
+                        });
+                    }
+                });
+
+                // --- General Buttons ---
                 item.querySelector('.delete-config-button').addEventListener('click', () => { 
                     showConfirmationModal(hotspot.id, hotspot.name || `Hotspot ${hotspot.id}`);
                     hideCopyFeedback();
@@ -1702,13 +1741,6 @@
             hotspots = hotspots.filter(h => h.id !== id);
             renderHotspots();
             generateTwineCode();
-        }
-
-        function formatVariable(varName) {
-            if (varName && typeof varName === 'string' && !varName.startsWith('$')) {
-                return '$' + varName;
-            }
-            return varName;
         }
 
         function generateTwineCode() {
@@ -1729,7 +1761,8 @@
             const dispH = imageDisplay.naturalHeight;
 
             hotspots.forEach(hotspot => {
-                if (hotspot.overlayImage && dispW && dispH) {
+                // --- Overlay Image Generation ---
+                if (hotspot.enableOverlay && hotspot.overlayImage && dispW && dispH) {
                     const coords = hotspot.coords.split(',').map(Number);
                     const width = coords[2] - coords[0];
                     const height = coords[3] - coords[1];
@@ -1745,7 +1778,7 @@
                     
                     let imgTag = `    <img src="imatges/${filename}" class="twine-overlay" data-hotspot-id="${hotspot.id}" style="position:absolute; left:${leftPercent}%; top:${topPercent}%; width:${widthPercent}%; height:${heightPercent}%; pointer-events:none;">\n`;
                     
-                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionValue);
+                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionOperator, hotspot.overlayConditionValue);
 
                     if (overlayConditionString) {
                         imgTag = `(if: ${overlayConditionString})[${imgTag}]`;
@@ -1767,21 +1800,45 @@
                 areaTag += `            alt="${altText}"\n`;
                 areaTag += `            class="hotspot-item"\n`;
                 
-                if (hotspot.overlayFilename) {
+                // --- Overlay Data ---
+                if (hotspot.enableOverlay && hotspot.overlayFilename) {
                     let finalOverlayName = hotspot.overlayFilename;
                     if (!finalOverlayName.startsWith('imatges/')) {
                         finalOverlayName = `imatges/${finalOverlayName}`;
                     }
                     areaTag += `            data-overlay-filename="${escapeHtml(finalOverlayName)}"\n`;
                 }
-                
-                if (hotspot.overlayConditionVariable) {
-                    areaTag += `            data-overlay-condition-var="${escapeHtml(hotspot.overlayConditionVariable)}"\n`;
-                }
-                if (hotspot.overlayConditionValue) {
-                    areaTag += `            data-overlay-condition-val="${escapeHtml(hotspot.overlayConditionValue)}"\n`;
+
+                // Global Condition Vars (saved for parsing/editing)
+                if (hotspot.enableOverlay) {
+                    // Overlay activation status
+                    areaTag += `            data-overlay-enabled="true"\n`;
+
+                    // Overlay Condition for Interaction (Hotspot activation)
+                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionOperator, hotspot.overlayConditionValue);
+                    if (overlayConditionString) {
+                        areaTag += `            data-overlay-condition="${escapeHtml(overlayConditionString)}"\n`;
+                    }
+                    
+                    // Vars for re-parsing
+                    if (hotspot.overlayConditionVariable) areaTag += `            data-overlay-condition-var="${escapeHtml(hotspot.overlayConditionVariable)}"\n`;
+                    if (hotspot.overlayConditionOperator) areaTag += `            data-overlay-condition-op="${escapeHtml(hotspot.overlayConditionOperator)}"\n`;
+                    if (hotspot.overlayConditionValue) areaTag += `            data-overlay-condition-val="${escapeHtml(hotspot.overlayConditionValue)}"\n`;
                 }
 
+
+                // --- Secondary Variable (Common) ---
+                if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.operator2 && hotspot.valor2) {
+                    const secondarySetter = buildSetterValue(hotspot.variable2, hotspot.operator2, hotspot.valor2);
+                    areaTag += `            data-variable-2-setter="${escapeHtml(secondarySetter)}"\n`;
+                    
+                    // Vars for re-parsing
+                    areaTag += `            data-variable-2-var="${escapeHtml(hotspot.variable2)}"\n`;
+                    areaTag += `            data-variable-2-op="${escapeHtml(hotspot.operator2)}"\n`;
+                    areaTag += `            data-variable-2-val="${escapeHtml(hotspot.valor2)}"\n`;
+                }
+                
+                // --- Dialog Action ---
                 if (hotspot.type === 'dialog') {
                      areaTag += `            data-action="dialog"\n`;
                      if (hotspot.characterName) areaTag += `            data-character="${escapeHtml(hotspot.characterName)}"\n`;
@@ -1790,25 +1847,33 @@
                      if (hotspot.soundDialog) areaTag += `            data-sound="${escapeHtml(hotspot.soundDialog)}"\n`; 
                      if (hotspot.titleTextDialog) areaTag += `            title="${escapeHtml(hotspot.titleTextDialog)}"\n`;
 
-                     if (hotspot.enableConditionVariable && hotspot.dialogConditionVariable && hotspot.dialogConditionValue) {
-                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.dialogConditionVariable))}"\n`;
+                     if (hotspot.enableConditionVariable && hotspot.dialogConditionVariable && hotspot.dialogConditionOperator && hotspot.dialogConditionValue) {
+                        const conditionString = buildConditionString(hotspot.dialogConditionVariable, hotspot.dialogConditionOperator, hotspot.dialogConditionValue);
+                        areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
+                        
+                        // Vars for re-parsing
+                        areaTag += `            data-condition-var="${escapeHtml(hotspot.dialogConditionVariable)}"\n`;
+                        areaTag += `            data-condition-op="${escapeHtml(hotspot.dialogConditionOperator)}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.dialogConditionValue)}"\n`;
+                        
                         if (hotspot.dialogFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.dialogFailInfo)}"\n`;
                         if (hotspot.dialogFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.dialogFailInfoEnter)}"\n`;
                         if (hotspot.dialogSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.dialogSoundFail)}"\n`;
                         if (hotspot.dialogSoundClickFail) areaTag += `            data-sound-click-fail="${escapeHtml(hotspot.dialogSoundClickFail)}"\n`;
                     }
-                    
-                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
-                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
-                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
-                    }
                 }
                 
+                // --- Passage Action ---
                 if (hotspot.type === 'passage') {
-                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
-                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.passageConditionVariable))}"\n`;
+                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionOperator && hotspot.passageConditionValue) {
+                        const conditionString = buildConditionString(hotspot.passageConditionVariable, hotspot.passageConditionOperator, hotspot.passageConditionValue);
+                        areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
+                        
+                        // Vars for re-parsing
+                        areaTag += `            data-condition-var="${escapeHtml(hotspot.passageConditionVariable)}"\n`;
+                        areaTag += `            data-condition-op="${escapeHtml(hotspot.passageConditionOperator)}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
+                        
                         if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
                         if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
                         if (hotspot.passageSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.passageSoundFail)}"\n`;
@@ -1822,16 +1887,19 @@
                     if (hotspot.transition) areaTag += `            data-transition-depart="${escapeHtml(hotspot.transition)}"\n`; 
                     if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`;
                     if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`;
-
-                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
-                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
-                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
-                    }
-
-                } else if (hotspot.type === 'setter') {
-                    if (hotspot.enableConditionVariable && hotspot.setterConditionVariable && hotspot.setterConditionValue) {
-                        areaTag += `            data-condition-var="${escapeHtml(formatVariable(hotspot.setterConditionVariable))}"\n`;
+                } 
+                
+                // --- Setter Action ---
+                else if (hotspot.type === 'setter') {
+                    if (hotspot.enableConditionVariable && hotspot.setterConditionVariable && hotspot.setterConditionOperator && hotspot.setterConditionValue) {
+                        const conditionString = buildConditionString(hotspot.setterConditionVariable, hotspot.setterConditionOperator, hotspot.setterConditionValue);
+                        areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
+                        
+                        // Vars for re-parsing
+                        areaTag += `            data-condition-var="${escapeHtml(hotspot.setterConditionVariable)}"\n`;
+                        areaTag += `            data-condition-op="${escapeHtml(hotspot.setterConditionOperator)}"\n`;
                         areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
+                        
                         if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
                         if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
                         if (hotspot.setterSoundFail) areaTag += `            data-sound-fail="${escapeHtml(hotspot.setterSoundFail)}"\n`;
@@ -1839,45 +1907,24 @@
                     }
                     if (hotspot.soundSetter) areaTag += `            data-sound="${escapeHtml(hotspot.soundSetter)}"\n`;
                     if (hotspot.soundClickSetter) areaTag += `            data-sound-click="${escapeHtml(hotspot.soundClickSetter)}"\n`;
-                    let setMacroContent = '';
-                    const valorRaw = hotspot.valor;
-                    const valorTrimmed = valorRaw.trim();
-                    const arithmeticOperators = ['+', '-', '*', '/', '%'];
-                    const startsWithArithmeticOperator = arithmeticOperators.some(op => valorTrimmed.startsWith(op));
-                    const hasOtherOperator = ['>', '<', 'is', '=', 'to'].some(op => valorTrimmed.startsWith(op));
-
-                    const formattedVariableName = formatVariable(hotspot.variable);
-
-                    if (formattedVariableName) {
-                        let formattedValorForMacro = valorTrimmed;
-                        
-                        if (startsWithArithmeticOperator) {
-                            setMacroContent = `${formattedVariableName} ${valorTrimmed}`;
-                        } else if (!isNaN(valorTrimmed) && valorTrimmed !== '') {
-                            formattedValorForMacro = !hasOtherOperator ? `"${valorTrimmed.replace(/"/g, '\\"')}"` : formattedValorForMacro;
-                            setMacroContent = `${formattedVariableName} = ${formattedValorForMacro}`;
-                        } else {
-                            if (!hasOtherOperator) {
-                                formattedValorForMacro = `"${valorTrimmed.replace(/"/g, '\\"')}"`;
-                            }
-                            setMacroContent = `${formattedVariableName} = ${formattedValorForMacro}`;
-                        }
+                    
+                    // Setter Macro Content
+                    if (hotspot.setterVariable && hotspot.setterOperator && hotspot.setterValue) {
+                        const setMacroContent = buildSetterValue(hotspot.setterVariable, hotspot.setterOperator, hotspot.setterValue);
+                        areaTag += `            data-setter="${escapeHtml(setMacroContent)}"\n`;
                     }
                     
-                    if (setMacroContent) areaTag += `            data-setter="${escapeHtml(setMacroContent)}"\n`;
+                    // Vars for re-parsing
+                    if (hotspot.setterVariable) areaTag += `            data-variable-name="${escapeHtml(hotspot.setterVariable)}"\n`;
+                    if (hotspot.setterOperator) areaTag += `            data-setter-op="${escapeHtml(hotspot.setterOperator)}"\n`;
+                    if (hotspot.setterValue) areaTag += `            data-setter-val="${escapeHtml(hotspot.setterValue)}"\n`;
+                    
                     if (hotspot.infoTextSetter) areaTag += `            data_info="${escapeHtml(hotspot.infoTextSetter)}"\n`;
                     if (hotspot.infoTextSetter2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoTextSetter2)}"\n`;
                     if (hotspot.titleTextSetter) areaTag += `            title="${escapeHtml(hotspot.titleTextSetter)}"\n`;
-                    
-                    if (formattedVariableName) areaTag += `            data_variable="${escapeHtml(formattedVariableName)}"\n`;
-                    if (hotspot.valor) areaTag += `            data_valor="${escapeHtml(hotspot.valor)}"\n`;
-
-                    if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.valor2) {
-                        areaTag += `            data-variable-2="${escapeHtml(formatVariable(hotspot.variable2))}"\n`;
-                        areaTag += `            data-valor-2="${escapeHtml(hotspot.valor2)}"\n`;
-                    }
                 }
 
+                // --- Visit Limit (Common) ---
                 if (hotspot.enableVisitLimit) {
                     if (hotspot.visitLimit) areaTag += `            data-visit-limit="${escapeHtml(hotspot.visitLimit)}"\n`;
                     if (hotspot.visitLimitTextEnter) areaTag += `            data-visit-limit-enter="${escapeHtml(hotspot.visitLimitTextEnter)}"\n`;
@@ -1892,6 +1939,7 @@
             twineCode += `    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>\n`;
             twineCode += '</div>\n\n';
 
+            // --- Harlowe Link Block (for Passage) ---
             twineCode += '(live: 0.1s)[\n';
             twineCode += '    <span id="Ocult" style="display:none;">\n';
             hotspots.forEach(hotspot => {
@@ -1917,13 +1965,13 @@
                     
                     let activeCondition = "";
                     
-                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionValue) {
-                        activeCondition = buildConditionString(hotspot.passageConditionVariable, hotspot.passageConditionValue);
+                    if (hotspot.enableConditionVariable && hotspot.passageConditionVariable && hotspot.passageConditionOperator && hotspot.passageConditionValue) {
+                        activeCondition = buildConditionString(hotspot.passageConditionVariable, hotspot.passageConditionOperator, hotspot.passageConditionValue);
                     }
                     
-                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionValue);
+                    const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionOperator, hotspot.overlayConditionValue);
                     
-                    if (overlayConditionString) {
+                    if (hotspot.enableOverlay && overlayConditionString) {
                         if (activeCondition) {
                             activeCondition = `(${activeCondition}) and (${overlayConditionString})`;
                         } else {
@@ -1942,15 +1990,22 @@
             twineCode += '    </span>\n';
             twineCode += ']\n';
 
-            let hasJson = false;
+            // --- JSON Dialog Block ---
+            const DIALOG_LAYOUT_KEYS_TO_REMOVE = [
+                "scale", "panOffset", "interactionMode", "draggingNodeId", 
+                "resizingNodeId", "draggingOption", "dragOffset", "connectionStart", 
+                "dragAllowed", "connectionStyle", "draggingCP", "panStart", 
+                "resizeStart", "resizeInitialDim"
+            ];
+
+
             hotspots.forEach(h => {
                 if (h.type === 'dialog' && h.jsonContent) {
-                    hasJson = true;
                     twineCode += `\n<!-- Dades de diàleg per a ${escapeHtml(h.characterName)} -->\n`;
                     twineCode += `<script type="application/json" id="${escapeHtml(h.characterName)}">\n`;
                     
                     try {
-                        const jsonRaw = JSON.parse(h.jsonContent);
+                        let jsonRaw = JSON.parse(h.jsonContent);
                         
                         const removeLayoutProps = (obj) => {
                             if (Array.isArray(obj)) {
@@ -1958,7 +2013,14 @@
                             } else if (typeof obj === 'object' && obj !== null) {
                                 const newObj = {};
                                 Object.keys(obj).forEach(key => {
-                                    if (key !== 'x' && key !== 'y' && key !== 'width' && key !== 'height') {
+                                    if (key !== 'x' && key !== 'y' && key !== 'width' && key !== 'height' && !DIALOG_LAYOUT_KEYS_TO_REMOVE.includes(key)) {
+                                        
+                                        // Specific recursive check for sub-objects
+                                        if (key === 'connectionStart' || key === 'resizeInitialDim') {
+                                             // Ensure these are removed, even if defined as sub-objects
+                                             return;
+                                        }
+
                                         newObj[key] = removeLayoutProps(obj[key]);
                                     }
                                 });
@@ -1971,6 +2033,8 @@
                             if (Array.isArray(obj)) {
                                 return obj.map(cleanJsonData);
                             } else if (typeof obj === 'object' && obj !== null) {
+                                
+                                // Clean avatarUrl/url paths for Twine
                                 if (obj.avatarUrl && typeof obj.avatarUrl === 'string' && obj.avatarUrl.startsWith('data:image')) {
                                      if (obj.avatarFileName && typeof obj.avatarFileName === 'string') {
                                          obj.avatarUrl = `imatges/${obj.avatarFileName}`;
@@ -1982,9 +2046,10 @@
                                      }
                                 }
                                 
+                                // Recursively clean nested objects
                                 for (const key in obj) {
-                                    if (typeof obj[key] === 'object') {
-                                        cleanJsonData(obj[key]);
+                                    if (typeof obj[key] === 'object' && obj[key] !== null) {
+                                        obj[key] = cleanJsonData(obj[key]);
                                     }
                                 }
                                 return obj;
@@ -2008,18 +2073,56 @@
             outputCode.value = twineCode;
         }
         
-        function buildConditionString(variable, value) {
-            if (!variable || !value) return "";
-            let val = value.trim();
-            const startsWithOperator = ['>', '<', 'is', '=', 'not', 'contains'].some(op => val.startsWith(op));
-            
-            if (!isNaN(val) && !startsWithOperator && val !== '') {
-                val = `is ${val}`;
-            } else if (isNaN(val) && !startsWithOperator && val !== '') {
-                val = `is "${val.replace(/"/g, '\\"')}"`;
+        // --- Code Parsing Logic ---
+        function copySetterValue(dataSetter) {
+            if (!dataSetter || typeof dataSetter !== 'string') return { variable: '', operator: 'to', value: '' };
+
+            const pattern = /^\$(\w+)\s*(to|set|==|!=|>=|<=|>|<|\+=|-=|\*=|(?:\/=|)=?)\s*(.*)/i;
+            const match = dataSetter.match(pattern);
+
+            if (match) {
+                let variable = match[1] || '';
+                let operator = (match[2] || 'to').toLowerCase();
+                let value = match[3] || '';
+
+                // Clean quotes from value
+                if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
+                    value = value.slice(1, -1);
+                }
+                
+                // Special case for 'set' -> 'to'
+                if (operator === 'set') operator = 'to';
+                // Special case for simple '=' (old style)
+                if (operator === '=') operator = 'to';
+
+
+                return { variable, operator, value };
             }
-            return `${formatVariable(variable)} ${val}`;
+            // If it doesn't match the standard pattern, fall back to simple assignment
+            return { variable: dataSetter, operator: 'to', value: '' };
         }
+
+        function copyConditionValue(dataCondition) {
+            if (!dataCondition || typeof dataCondition !== 'string') return { variable: '', operator: 'is', value: '' };
+
+            const conditionPattern = /^\s*(\$[\w\d]+)\s*(is|==|!=|>=|<=|>|<|not)\s*(.*)/i;
+            const match = dataCondition.match(conditionPattern);
+
+            if (match) {
+                let variable = match[1] ? match[1].substring(1) : ''; // Remove $
+                let operator = (match[2] || 'is').toLowerCase();
+                let value = match[3] || '';
+
+                // Clean quotes from value
+                if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
+                    value = value.slice(1, -1);
+                }
+
+                return { variable, operator, value };
+            }
+            return { variable: '', operator: 'is', value: '' };
+        }
+
 
         copyCodeButton.addEventListener('click', () => {
             outputCode.select(); 
@@ -2153,56 +2256,65 @@
                 
                 let tempHotspotIdCounter = 0;
 
-                areaElements.forEach(area => {
+                areaElements.forEach(area => { // Línia 2718 (aproximada, inici del forEach)
                     tempHotspotIdCounter++;
                     maxHotspotId = Math.max(maxHotspotId, tempHotspotIdCounter);
 
+                    // --- Common Data Attributes ---
                     const coords = area.getAttribute('coords');
                     const altText = area.getAttribute('alt');
+                    const title = area.getAttribute('title');
                     const dataPassage = area.getAttribute('data-passage');
                     const dataSetter = area.getAttribute('data-setter'); 
-                    const title = area.getAttribute('title');
+                    const dataAction = area.getAttribute('data-action'); 
                     const dataSound = area.getAttribute('data-sound'); 
                     const dataSoundClick = area.getAttribute('data-sound-click'); 
                     const dataInfo = area.getAttribute('data_info');
                     const dataInfo2 = area.getAttribute('data_info_2');
-                    const dataAction = area.getAttribute('data-action'); 
+                    
+                    // --- Dialog Specific ---
+                    const dataCharacter = area.getAttribute('data-character'); 
+                    
+                    // --- Overlay Condition ---
+                    const overlayEnabled = area.getAttribute('data-overlay-enabled') === 'true'; // NEW: overlay enabled
                     
                     let overlayFilename = area.getAttribute('data-overlay-filename');
                     if (overlayFilename && overlayFilename.startsWith('imatges/')) {
                         overlayFilename = overlayFilename.substring(8); 
                     }
-                    const overlayConditionVar = area.getAttribute('data-overlay-condition-var');
-                    const overlayConditionVal = area.getAttribute('data-overlay-condition-val');
+                    
+                    const overlayCondVar = area.getAttribute('data-overlay-condition-var') || '';
+                    const overlayCondOp = area.getAttribute('data-overlay-condition-op') || 'is';
+                    const overlayCondVal = area.getAttribute('data-overlay-condition-val') || '';
                     
                     let overlayImageSrc = null;
-                    
                     if (overlayFilename && projectImages[overlayFilename]) {
                          overlayImageSrc = projectImages[overlayFilename];
                     } else if (overlayFilename) {
                         overlayImageSrc = `imatges/${overlayFilename}`;
                     }
-                    
-                    const dataCharacter = area.getAttribute('data-character');
 
-                    const dataConditionVar = area.getAttribute('data-condition-var');
-                    const dataConditionVal = area.getAttribute('data-condition-val');
-                    const dataFailInfoClic = area.getAttribute('text_fail_clic');
-                    const dataFailInfoEnter = area.getAttribute('text_fail_enter');
-                    const dataSoundFail = area.getAttribute('data-sound-fail'); 
-                    const dataSoundClickFail = area.getAttribute('data-sound-click-fail'); 
+                    // --- Secondary Variables ---
+                    const dataVariable2Var = area.getAttribute('data-variable-2-var');
+                    const dataVariable2Op = area.getAttribute('data-variable-2-op');
+                    const dataVariable2Val = area.getAttribute('data-variable-2-val');
                     
-                    const dataTransition = area.getAttribute('data-transition-depart'); 
-                    const dataTransitionArrive = area.getAttribute('data-transition-arrive'); 
-
+                    // --- Visit Limit ---
                     const visitLimit = area.getAttribute('data-visit-limit');
                     const visitLimitTextEnter = area.getAttribute('data-visit-limit-enter');
                     const visitLimitTextClic = area.getAttribute('data-visit-limit-clic');
+                    
+                    // --- General Conditional Fields ---
+                    const dataConditionVar = area.getAttribute('data-condition-var');
+                    const dataConditionOp = area.getAttribute('data-condition-op');
+                    const dataConditionVal = area.getAttribute('data-condition-val');
+                    // Fallback for old system (data-condition)
+                    const dataCondition = area.getAttribute('data-condition');
 
-                    const dataVariable = area.getAttribute('data_variable');
-                    const dataValor = area.getAttribute('data_valor');
-                    const dataVariable2 = area.getAttribute('data-variable-2');
-                    const dataValor2 = area.getAttribute('data-valor-2');
+                    // --- Setter Builder Fields ---
+                    const dataVariableName = area.getAttribute('data-variable-name');
+                    const dataSetterOp = area.getAttribute('data-setter-op');
+                    const dataSetterVal = area.getAttribute('data-setter-val');
 
 
                     let newHotspot = {
@@ -2213,33 +2325,51 @@
                         value: '',
                         titleText: '', sound: '', soundClick: '', infoText: '', infoText2: '',
                         transition: '', transitionArrive: '',
-                        variable: '', valor: '', titleTextSetter: '', soundSetter: '', hotspotSoundClickSetter: '',
-                        infoTextSetter: '', infoTextSetter2: '',
+                        
+                        // Setter Builder defaults:
+                        setterVariable: '', setterOperator: 'to', setterValue: '', 
+                        
+                        // Secondary Variable fields (UPDATED)
+                        variable2: dataVariable2Var || '', 
+                        operator2: dataVariable2Op || 'to', 
+                        valor2: dataVariable2Val || '', 
 
                         characterName: '',
                         jsonContent: '',
                         jsonFileName: '',
                         infoTextDialog: '', soundDialog: '', titleTextDialog: '',
-                        dialogConditionVariable: '', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
-                        dialogSoundFail: '', dialogSoundClickFail: '',
                         
-                        passageConditionVariable: '', passageConditionValue: '', passageFailInfo: '', passageFailInfoEnter: '',
-                        passageSoundFail: '', passageSoundClickFail: '',
-                        setterConditionVariable: '', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
-                        setterSoundFail: '', setterSoundClickFail: '',
-                        visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
-                        variable2: '', valor2: '', enableSecondaryVariable: false, enableConditionVariable: false,
+                        // Conditional Builder fields (Dialog)
+                        dialogConditionVariable: dataConditionVar || '', dialogConditionOperator: dataConditionOp || 'is', dialogConditionValue: dataConditionVal || '', 
+                        dialogFailInfo: '', dialogFailInfoEnter: '', dialogSoundFail: '', dialogSoundClickFail: '',
                         
+                        // Conditional Builder fields (Passage)
+                        passageConditionVariable: dataConditionVar || '', passageConditionOperator: dataConditionOp || 'is', passageConditionValue: dataConditionVal || '', 
+                        passageFailInfo: '', passageFailInfoEnter: '', passageSoundFail: '', passageSoundClickFail: '',
+                        
+                        // Conditional Builder fields (Setter)
+                        setterConditionVariable: dataConditionVar || '', setterConditionOperator: dataConditionOp || 'is', setterConditionValue: dataConditionVal || '', 
+                        setterFailInfo: '', setterFailInfoEnter: '', setterSoundFail: '', setterSoundClickFail: '',
+                        
+                        visitLimit: visitLimit || '', visitLimitTextEnter: visitLimitTextEnter || '', visitLimitTextClic: visitLimitTextClic || '', 
+                        enableVisitLimit: (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false,
+                        enableSecondaryVariable: (dataVariable2Var || dataVariable2Val) ? true : false, 
+                        enableConditionVariable: (dataConditionVar || dataConditionVal || dataCondition) ? true : false,
+                        
+                        // Overlay Fields
+                        enableOverlay: overlayEnabled || (overlayFilename ? true : false), // NEW: Load status (activate if filename is present)
                         overlayFilename: overlayFilename || null,
-                        overlayConditionVariable: overlayConditionVar || '',
-                        overlayConditionValue: overlayConditionVal || '',
+                        overlayConditionVariable: overlayCondVar,
+                        overlayConditionOperator: overlayCondOp,
+                        overlayConditionValue: overlayCondVal,
                         overlayImage: overlayImageSrc 
                     };
                     
                     if (dataAction === 'dialog') {
                         newHotspot.type = 'dialog';
                         newHotspot.characterName = dataCharacter || '';
-                        if (dataCharacter) {
+                        
+                        if (dataCharacter) { 
                              const scriptTag = doc.getElementById(dataCharacter);
                              if (scriptTag) {
                                  newHotspot.jsonContent = scriptTag.textContent.trim();
@@ -2249,16 +2379,20 @@
                         newHotspot.infoTextDialog = dataInfo || '';
                         newHotspot.soundDialog = dataSound || '';
                         newHotspot.titleTextDialog = title || '';
-                        newHotspot.dialogConditionVariable = dataConditionVar || '';
-                        newHotspot.dialogConditionValue = dataConditionVal || '';
-                        newHotspot.dialogFailInfo = dataFailInfoClic || '';
-                        newHotspot.dialogFailInfoEnter = dataFailInfoEnter || '';
-                        newHotspot.dialogSoundFail = dataSoundFail || '';
-                        newHotspot.dialogSoundClickFail = dataSoundClickFail || '';
-                        newHotspot.variable2 = dataVariable2 || '';
-                        newHotspot.valor2 = dataValor2 || '';
-                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
-                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+                        
+                        // Conditional (override defaults)
+                        if (dataCondition) {
+                            const { variable, operator, value } = copyConditionValue(dataCondition);
+                            newHotspot.dialogConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.dialogConditionOperator = dataConditionOp || operator;
+                            newHotspot.dialogConditionValue = dataConditionVal || value;
+                        }
+                        newHotspot.dialogFailInfo = area.getAttribute('text_fail_clic') || '';
+                        newHotspot.dialogFailInfoEnter = area.getAttribute('text_fail_enter') || '';
+                        newHotspot.dialogSoundFail = area.getAttribute('data-sound-fail') || '';
+                        newHotspot.dialogSoundClickFail = area.getAttribute('data-sound-click-fail') || '';
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataCondition) ? true : false;
+                        
 
                     } else if (dataPassage) {
                         newHotspot.type = 'passage';
@@ -2268,42 +2402,53 @@
                         newHotspot.soundClick = dataSoundClick || ''; 
                         newHotspot.infoText = dataInfo || '';
                         newHotspot.infoText2 = dataInfo2 || '';
-                        newHotspot.transition = dataTransition || '';
-                        newHotspot.transitionArrive = dataTransitionArrive || ''; 
-                        newHotspot.passageConditionVariable = dataConditionVar || '';
-                        newHotspot.passageConditionValue = dataConditionVal || '';
-                        newHotspot.passageFailInfo = dataFailInfoClic || '';
-                        newHotspot.passageFailInfoEnter = dataFailInfoEnter || '';
-                        newHotspot.passageSoundFail = dataSoundFail || '';
-                        newHotspot.passageSoundClickFail = dataSoundClickFail || ''; 
-                        newHotspot.variable2 = dataVariable2 || '';
-                        newHotspot.valor2 = dataValor2 || '';
-                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
-                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+                        newHotspot.transition = area.getAttribute('data-transition-depart') || '';
+                        newHotspot.transitionArrive = area.getAttribute('data-transition-arrive') || ''; 
+                        
+                        // Conditional (override defaults)
+                        if (dataCondition) {
+                            const { variable, operator, value } = copyConditionValue(dataCondition);
+                            newHotspot.passageConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.passageConditionOperator = dataConditionOp || operator;
+                            newHotspot.passageConditionValue = dataConditionVal || value;
+                        }
+                        newHotspot.passageFailInfo = area.getAttribute('text_fail_clic') || '';
+                        newHotspot.passageFailInfoEnter = area.getAttribute('text_fail_enter') || '';
+                        newHotspot.passageSoundFail = area.getAttribute('data-sound-fail') || '';
+                        newHotspot.passageSoundClickFail = area.getAttribute('data-sound-click-fail') || '';
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataCondition) ? true : false;
+
                     } else if (dataSetter) {
                         newHotspot.type = 'setter';
-                        newHotspot.variable = dataVariable || ''; 
-                        newHotspot.valor = dataValor || '';       
                         newHotspot.titleTextSetter = title || '';
                         newHotspot.soundSetter = dataSound || ''; 
                         newHotspot.soundClickSetter = dataSoundClick || ''; 
                         newHotspot.infoTextSetter = dataInfo || '';
                         newHotspot.infoTextSetter2 = dataInfo2 || '';
-                        newHotspot.setterConditionVariable = dataConditionVar || '';
-                        newHotspot.setterConditionValue = dataConditionVal || '';
-                        newHotspot.setterFailInfo = dataFailInfoClic || '';
-                        newHotspot.setterFailInfoEnter = dataFailInfoEnter || '';
-                        newHotspot.setterSoundFail = dataSoundFail || '';
-                        newHotspot.setterSoundClickFail = dataSoundClickFail || ''; 
-                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataFailInfoClic || dataFailInfoEnter || dataSoundFail || dataSoundClickFail) ? true : false;
-                        newHotspot.enableSecondaryVariable = (dataVariable2 || dataValor2) ? true : false;
+                        
+                        // Setter Builder Fields
+                        const { variable: oldVar, operator: oldOp, value: oldVal } = copySetterValue(dataSetter);
+                        
+                        // CORRECCIÓ: Si dataVariableName existeix, ja ve sense el $ (perquè l'usuari l'hauria introduit sense)
+                        // Si no existeix, utilitzem oldVar, que ja ve netejat de $ per copySetterValue si la va trobar.
+                        newHotspot.setterVariable = dataVariableName || oldVar; 
+                        newHotspot.setterOperator = dataSetterOp || oldOp;
+                        newHotspot.setterValue = dataSetterVal || oldVal;
+                        
+                        // Conditional (override defaults)
+                        if (dataCondition) {
+                            const { variable, operator, value } = copyConditionValue(dataCondition);
+                            newHotspot.setterConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.setterConditionOperator = dataConditionOp || operator;
+                            newHotspot.setterConditionValue = dataConditionVal || value;
+                        }
+                        newHotspot.setterFailInfo = area.getAttribute('text_fail_clic') || '';
+                        newHotspot.setterFailInfoEnter = area.getAttribute('text_fail_enter') || '';
+                        newHotspot.setterSoundFail = area.getAttribute('data-sound-fail') || '';
+                        newHotspot.setterSoundClickFail = area.getAttribute('data-sound-click-fail') || '';
+                        newHotspot.enableConditionVariable = (dataConditionVar || dataConditionVal || dataCondition) ? true : false;
                     }
                     
-                    newHotspot.visitLimit = visitLimit || '';
-                    newHotspot.visitLimitTextEnter = visitLimitTextEnter || '';
-                    newHotspot.visitLimitTextClic = visitLimitTextClic || '';
-                    newHotspot.enableVisitLimit = (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false;
-
                     hotspots.push(newHotspot);
                 });
                 hotspotIdCounter = maxHotspotId;
