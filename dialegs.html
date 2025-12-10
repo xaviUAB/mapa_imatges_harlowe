@@ -103,8 +103,9 @@
     <!-- CAPÇALERA -->
     <header class="bg-slate-800 text-white h-14 px-4 flex justify-between items-center shadow-lg z-50">
         <div class="flex items-center gap-3">
+            <button onclick="ui.toggleSidebar()" class="text-slate-300 hover:text-white transition p-1 rounded hover:bg-slate-700" title="Mostrar/Amagar Tauler"><i class="fa-solid fa-bars text-xl"></i></button>
             <i class="fa-solid fa-diagram-project text-xl text-blue-400"></i>
-            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v6.6</span></h1>
+            <h1 class="text-lg font-bold tracking-wide">Editor de Diàlegs Pro <span class="text-xs font-normal opacity-50 ml-2">v7.3</span></h1>
         </div>
         
         <div class="flex gap-2 bg-slate-700 p-1 rounded-lg">
@@ -140,20 +141,20 @@
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <!-- BARRA LATERAL -->
-        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col z-40 shadow-md relative">
-            <div class="flex border-b border-gray-200">
+        <!-- BARRA LATERAL (Dinàmica) -->
+        <aside id="main-sidebar" class="w-80 bg-white border-r border-gray-200 flex flex-col z-40 shadow-md relative transition-all duration-300 ease-in-out overflow-hidden">
+            <div class="flex border-b border-gray-200 min-w-[320px]">
                 <button onclick="ui.switchTab('chars')" id="tab-chars" class="flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50">Personatges</button>
                 <button onclick="ui.switchTab('vars')" id="tab-vars" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:text-gray-700">Variables</button>
             </div>
-            <div id="panel-chars" class="flex-1 flex flex-col overflow-hidden">
+            <div id="panel-chars" class="flex-1 flex flex-col overflow-hidden min-w-[320px]">
                 <div class="p-3 border-b bg-gray-50 text-xs text-gray-500 text-center italic">Gestiona les expressions dels personatges</div>
                 <div class="p-2 bg-gray-50 border-b">
                     <button onclick="characterManager.addCharacter()" class="w-full bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-solid fa-user-plus"></i> Nou Personatge</button>
                 </div>
                 <div id="character-list" class="flex-1 overflow-y-auto p-3 space-y-3 thin-scrollbar"></div>
             </div>
-            <div id="panel-vars" class="flex-1 flex flex-col overflow-hidden hidden">
+            <div id="panel-vars" class="flex-1 flex flex-col overflow-hidden hidden min-w-[320px]">
                 <div class="p-3 border-b bg-gray-50">
                     <div class="flex gap-2 mb-2"><input type="text" id="new-var-name" placeholder="Nom (ex: or)" class="flex-1 border rounded px-2 py-1 text-sm code-input text-black"><select id="new-var-type" class="border rounded text-sm bg-white"><option value="number">Num</option><option value="boolean">Bool</option><option value="string">Text</option></select></div>
                     <div class="flex gap-2"><input type="text" id="new-var-val" placeholder="Valor inicial" class="flex-1 border rounded px-2 py-1 text-sm"><button onclick="variableManager.addVariable()" class="bg-green-600 text-white px-3 rounded hover:bg-green-500"><i class="fa-solid fa-plus"></i></button></div>
@@ -196,7 +197,7 @@
                 <button onclick="editor.togglePreview()" class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-red-600/80 bg-black/50 px-4 py-2 rounded-full transition z-50"><i class="fa-solid fa-times mr-2"></i> Tancar</button>
                 <div class="absolute top-4 left-4 bg-black/60 text-green-400 p-2 rounded text-xs font-mono pointer-events-none"><div class="font-bold border-b border-gray-600 mb-1">ESTAT</div><div id="preview-debug-vars"></div></div>
             </div>
-            <div class="h-auto min-h-[35%] max-h-[50%] bg-slate-900 border-t-4 border-slate-700 p-6 flex gap-8 shrink-0 relative z-10">
+            <div class="h-auto min-h-[35%] max-h-[50%] bg-slate-900 border-t-4 border-slate-700 p-6 flex gap-8 shrink-0 relative z-10 items-start">
                 <div class="relative shrink-0"><div id="preview-portrait" class="w-32 h-32 rounded-xl shadow-lg flex items-center justify-center text-5xl font-bold text-white border-4 border-slate-600 bg-slate-800 overflow-hidden -mt-12 transition-all duration-500"><span id="preview-portrait-initial">?</span><img id="preview-portrait-img" src="" class="w-full h-full object-cover hidden"></div></div>
                 <div class="flex-1 flex flex-col min-h-0">
                     <div id="preview-text-container" class="mb-4 overflow-y-auto thin-scrollbar pr-2 flex-1 transition-opacity duration-500"><h3 id="preview-char-name" class="text-yellow-400 font-bold text-xl mb-1 retro-text tracking-wide">Personatge</h3><p id="preview-text" class="text-slate-200 text-lg leading-relaxed font-light font-sans">...</p></div>
@@ -307,6 +308,7 @@
             nodes: [{
                 id: 'node_start', title: "Inici", type: "start", characterId: 'char_1',
                 characterExpression: 'Normal', 
+                imageAlign: 'left', // New property default
                 expressionOptions: [{expression: 'Normal', condition: ''}],
                 textOptions: [ { text: "", condition: "" } ], options: [], x: 2200, y: 2200, width: 450, height: null 
             }],
@@ -393,6 +395,18 @@
             closeLogicBuilder() {
                 document.getElementById('logic-modal').classList.add('hidden');
                 this.logicTargetInput = null;
+            },
+            toggleSidebar() {
+                const sb = document.getElementById('main-sidebar');
+                if (sb.classList.contains('w-80')) {
+                    sb.classList.remove('w-80');
+                    sb.classList.add('w-0');
+                    sb.classList.remove('border-r');
+                } else {
+                    sb.classList.remove('w-0');
+                    sb.classList.add('w-80');
+                    sb.classList.add('border-r');
+                }
             }
         };
 
@@ -519,9 +533,11 @@
                 if(x===undefined){const c=document.getElementById('workspace-container');x=(c.clientWidth/2-appState.panOffset.x)/appState.scale;y=(c.clientHeight/2-appState.panOffset.y)/appState.scale;} 
                 historySystem.pushState(); 
                 const id='node_'+Date.now(); 
+                // NEW NODE CREATION - SETS DEFAULT EXPRESSION TO 'Normal'
                 appState.nodes.push({
                     id, title: "Nou Node", type: "normal", characterId: appState.characters[0].id,
                     characterExpression: 'Normal', 
+                    imageAlign: 'left',
                     expressionOptions: [{expression: "Normal", condition: ""}], 
                     textOptions: [{text: "", condition: ""}],
                     x, y, width: 450, height: null, options: []
@@ -530,7 +546,7 @@
                 return id; 
             },
             deleteNodeConfirmed(id) { appState.nodes=appState.nodes.filter(n=>n.id!==id); appState.nodes.forEach(n=>{n.options.forEach(opt=>{if(opt.targetNodeId===id)opt.targetNodeId=null;if(opt.altTargetNodeId===id)opt.altTargetNodeId=null;});}); this.renderNodes(); },
-            updateNode(id,f,v) { const n=appState.nodes.find(x=>x.id===id); if(n){ n[f]=v; if(f==='title')this.updateTitleRefs(id,v); if(f==='characterId'||f==='type')this.renderNodes(); } },
+            updateNode(id,f,v) { const n=appState.nodes.find(x=>x.id===id); if(n){ n[f]=v; if(f==='title')this.updateTitleRefs(id,v); if(f==='characterId'||f==='type'||f==='imageAlign')this.renderNodes(); } },
             saveState() { historySystem.pushState(); },
             updateTitleRefs(id,t) { document.querySelectorAll(`.target-opt-${id}`).forEach(e=>e.innerText=t||'Sense Títol'); },
             addTextVar(nid) { const n=appState.nodes.find(x=>x.id===nid); historySystem.pushState(); n.textOptions.push({text:"",condition:""}); this.renderNodes(); },
@@ -634,8 +650,15 @@
                         </div>
                         <div class="p-3 flex flex-col flex-1 min-h-0 gap-2">
                             <div class="flex gap-4">
-                                <div class="w-24 h-24 rounded-lg shadow-md flex items-center justify-center text-white font-bold text-4xl shrink-0 overflow-hidden border-2 border-gray-100 self-start" style="background-color:${char.color}">
-                                    ${displayAvatar ? `<img src="${displayAvatar}" class="w-full h-full object-cover">` : char.name[0]}
+                                <div class="flex flex-col items-center">
+                                    <div class="w-24 h-24 rounded-lg shadow-md flex items-center justify-center text-white font-bold text-4xl shrink-0 overflow-hidden border-2 border-gray-100 self-start" style="background-color:${char.color}">
+                                        ${displayAvatar ? `<img src="${displayAvatar}" class="w-full h-full object-cover">` : char.name[0]}
+                                    </div>
+                                    <!-- IMAGE ALIGN TICKS -->
+                                    <div class="flex justify-center w-full mt-1 gap-2">
+                                        <button onclick="editor.updateNode('${node.id}','imageAlign','left');editor.saveState()" class="${node.imageAlign!=='right'?'text-blue-600':'text-gray-300'} hover:text-blue-400 transition" title="Imatge a l'Esquerra"><i class="fa-solid fa-align-left text-lg"></i></button>
+                                        <button onclick="editor.updateNode('${node.id}','imageAlign','right');editor.saveState()" class="${node.imageAlign==='right'?'text-blue-600':'text-gray-300'} hover:text-blue-400 transition" title="Imatge a la Dreta"><i class="fa-solid fa-align-right text-lg"></i></button>
+                                    </div>
                                 </div>
                                 
                                 <div class="flex-1 flex flex-col gap-2 min-w-0">
@@ -680,7 +703,9 @@
                     cv.appendChild(div);
                 });
                 this.drawConnections(); 
+                this.renderMinimap();
             },
+            // ... rest of methods unchanged
             startResize(e,nid){e.stopPropagation();appState.interactionMode='resizing_node';appState.resizingNodeId=nid;const n=appState.nodes.find(x=>x.id===nid);appState.resizeStart={x:e.clientX,y:e.clientY};appState.resizeInitialDim={w:n.width||450,h:n.height||(document.getElementById(nid).clientHeight)};},
             drawConnections(){
                 const svg=document.getElementById('connections-layer');
@@ -801,6 +826,42 @@
                     });
                 });
             },
+            renderMinimap(){
+                const cv=document.getElementById('minimap-canvas');
+                if(!cv) return; 
+                const ctx=cv.getContext('2d');
+                const w=cv.width=cv.clientWidth;
+                const h=cv.height=cv.clientHeight;
+                ctx.clearRect(0,0,w,h);
+
+                if (!appState.minimapMetrics) return;
+
+                const { minX, minY, mapW, mapH } = appState.minimapMetrics;
+                const ratio = Math.min(w/mapW, h/mapH);
+                appState.minimapMetrics.ratio = ratio;
+
+                const nodeColors = { start: '#22c55e', end: '#ef4444', logic: '#a855f7', decision: '#f97316', normal: '#64748b' };
+
+                appState.nodes.forEach(n=>{
+                    let color = nodeColors[n.type] || '#64748b';
+                    ctx.fillStyle = color;
+                    ctx.fillRect((n.x - minX) * ratio, (n.y - minY) * ratio, (n.width||450) * ratio, (n.height||200) * ratio);
+                });
+                
+                const wc=document.getElementById('workspace-container');
+                const vx=(-appState.panOffset.x/appState.scale);
+                const vy=(-appState.panOffset.y/appState.scale);
+                const vw=wc.clientWidth/appState.scale;
+                const vh=wc.clientHeight/appState.scale;
+                
+                const ve=document.getElementById('minimap-viewport');
+                if(ve) {
+                    ve.style.left=((vx - minX) * ratio) + 'px';
+                    ve.style.top=((vy - minY) * ratio) + 'px';
+                    ve.style.width=(vw * ratio) + 'px';
+                    ve.style.height=(vh * ratio) + 'px';
+                }
+            },
             setupCanvasEvents(){
                 const c=document.getElementById('workspace-container');
                 c.addEventListener('wheel',(e)=>{e.preventDefault();const i=0.1,d=-Math.sign(e.deltaY),os=appState.scale,ns=Math.min(Math.max(0.1,os+(d*i)),2);const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,lx=(mx-appState.panOffset.x)/os,ly=(my-appState.panOffset.y)/os;appState.panOffset.x=mx-(lx*ns);appState.panOffset.y=my-(ly*ns);appState.scale=ns;this.applyTransform();},{passive:false});
@@ -839,8 +900,48 @@
                     
                     appState.interactionMode='default';appState.draggingNodeId=null;appState.resizingNodeId=null;appState.draggingCP=null;document.body.style.cursor='';
                 });
+
+                // Minimap interaction (Safety Check if removed from HTML)
+                const mm = document.getElementById('minimap-container');
+                if(mm) {
+                    const updateMinimapPan = (e) => {
+                        if (!appState.minimapMetrics || !appState.minimapMetrics.ratio) return;
+                        const rect = mm.getBoundingClientRect();
+                        const mx = e.clientX - rect.left;
+                        const my = e.clientY - rect.top;
+                        
+                        // Logic coords under mouse
+                        const logicalX = (mx / appState.minimapMetrics.ratio) + appState.minimapMetrics.minX;
+                        const logicalY = (my / appState.minimapMetrics.ratio) + appState.minimapMetrics.minY;
+                        
+                        // Center viewport on logic coords
+                        const c = document.getElementById('workspace-container');
+                        appState.panOffset.x = (c.clientWidth / 2) - (logicalX * appState.scale);
+                        appState.panOffset.y = (c.clientHeight / 2) - (logicalY * appState.scale);
+                        
+                        this.applyTransform();
+                    };
+
+                    mm.addEventListener('mousedown', (e) => {
+                        appState.interactionMode = 'panning_minimap';
+                        updateMinimapPan(e);
+                    });
+
+                    // Use window mousemove to handle drag outside minimap if started inside
+                    window.addEventListener('mousemove', (e) => {
+                        if (appState.interactionMode === 'panning_minimap') {
+                            updateMinimapPan(e);
+                        }
+                    });
+                    
+                    window.addEventListener('mouseup', () => {
+                        if (appState.interactionMode === 'panning_minimap') {
+                            appState.interactionMode = 'default';
+                        }
+                    });
+                }
             },
-            applyTransform(){const el=document.getElementById('canvas-area');el.style.transform=`translate(${appState.panOffset.x}px,${appState.panOffset.y}px) scale(${appState.scale})`;},
+            applyTransform(){const el=document.getElementById('canvas-area');el.style.transform=`translate(${appState.panOffset.x}px,${appState.panOffset.y}px) scale(${appState.scale})`;document.getElementById('zoom-level').innerText=Math.round(appState.scale*100)+'%';this.renderMinimap();},
             resetView(){appState.scale=1;appState.panOffset={x:-2000,y:-2000};this.applyTransform();},
             togglePreview(){const m=document.getElementById('preview-modal');if(m.classList.contains('hidden')){m.classList.remove('hidden');previewEngine.start();}else{m.classList.add('hidden');}}
         };
@@ -866,7 +967,17 @@
                 if(n.type === 'end') { pb.style.display='none';document.getElementById('preview-text-container').style.display='none';this.showEnd("Fi."); return; }
 
                 pb.style.display='flex';document.getElementById('preview-text-container').style.display='block';
+                // Background
                 if(n.bgImage){bg.style.backgroundImage=`url('${n.bgImage}')`;document.getElementById('preview-default-bg').style.display='none';}else{bg.style.backgroundImage='none';document.getElementById('preview-default-bg').style.display='block';}
+                
+                // Image Align Logic
+                const dialogContainer = pb.parentElement.parentElement;
+                if(n.imageAlign === 'right') {
+                    dialogContainer.style.flexDirection = 'row-reverse';
+                } else {
+                    dialogContainer.style.flexDirection = 'row';
+                }
+
                 pb.style.backgroundColor=c.color;
                 
                 let avatar = c.avatarUrl;
@@ -911,6 +1022,7 @@
                     if (!n.width) n.width = 450; 
                     if(!n.expressionOptions || n.expressionOptions.length === 0) n.expressionOptions=[{expression: "Normal", condition:""}];
                     if(!n.type) n.type = 'normal';
+                    if(!n.imageAlign) n.imageAlign = 'left'; // Default align
                 }); 
                 appState.characters.forEach(c=>{ if(!c.expressions) c.expressions=[]; }); 
             },
