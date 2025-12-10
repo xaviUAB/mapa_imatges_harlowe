@@ -7,6 +7,7 @@ Plantilla so i mapes v3 1
   "ifid": "5a630f41-0bdb-4ec1-8358-8b722e3eba30",
   "format": "Harlowe",
   "format-version": "3.3.9",
+  "start": "laboratori",
   "tag-colors": {
     "No-tocar": "red",
     "Editar": "orange",
@@ -111,11 +112,194 @@ Exemple:  (track: 'lemur', 'stop')
 ->
 
 
-:: Pasaje sin título {"position":"375,275","size":"100,100"}
+:: Per llegir [Llegir] {"position":"50,25","size":"100,100"}
+Els passatges marcats en ''verd'' donen informació
+Els passatges en ''taronja'' es poden editar
+Els passatges ''vermells'' ''NO ES  PODEN MODIFICAR''
+
+''ATENCIÓ''!
+El "JavaScript" i el "Stylesheet" (dins de "Story") estan programats perquè tot funcioni correctament. 
+Modificar el contingut és possible però cal saber què es fa. Cnaviar alguna cosa pot suposar que el sistema deixi de funcionar
+
+
+:: Pis superior {"position":"675,500","size":"100,100"}
+<div class="twine-image-wrapper" style="min-width:1344px;">
+<div id="inventory-container"></div>
+<div id="cursor-label"></div>
+    <img src="imatges/pis_superior.png" usemap="#hotspotmap" alt="Imatge amb hotspots">
+    <map name="hotspotmap">
+    <!-- Escala -->
+        <area shape="rect"
+            coords="422,610,566,692"
+            alt="Escala"
+            class="hotspot-item"
+            data-passage="cabana"
+            data_info="Anar a baix"
+        >
+
+    </map>
+    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
+</div>
+
+(live: 0.1s)[
+    <span id="Ocult" style="display:none;">
+    (link: "cabana")[(goto: "cabana")]
+    </span>
+]
+
+
+
+:: StoryInit [startup] {"position":"175,275","size":"100,100"}
+(set:_comentari to "No esborrar la variable tempInfoDisplay")\
+(set: $tempInfoDisplay to "")\
+(set:_comentari to "A partir d'aquí, posa els valors inicials a les variables del joc")\
+(set: num-type $diners_peixera to 1502)
+(set: $passa to 0)
+(set: num-type $rom to 0)
+
+
+:: beure {"position":"1150,150","size":"100,100"}
+Beure
+[[laboratori2]]
+
+
+:: cabana {"position":"500,525","size":"100,100"}
+<div class="twine-image-wrapper" style="min-width:1344px;">
+<div id="inventory-container"></div>
+<div id="cursor-label"></div>
+    <img src="imatges/cabana.png" usemap="#hotspotmap" alt="Imatge amb hotspots">
+    <img src="imatges/botes.png" class="twine-overlay" data-hotspot-id="1" style="position:absolute; left:41.22%; top:57.03%; width:6.25%; height:17.71%; pointer-events:none;">
+    <map name="hotspotmap">
+    <!-- Botes -->
+        <area shape="rect"
+            coords="554,438,638,574"
+            alt="Botes"
+            class="hotspot-item"
+            data-overlay-enabled="true"
+            data-overlay-filename="imatges/botes.png"
+            data-overlay-inventoriable="true"
+            data-overlay-remove-from-scene="true"
+            data-overlay-condition-op="is"
+            data-inventory-interactions='[{"targetHotspot":"pirata","text":"Jo no vull botes de pescar","var1":"","op1":"to","val1":"","var2":"","op2":"to","val2":""},{"targetHotspot":"Escala","text":"No deixis les botes al mig","var1":"","op1":"to","val1":"","var2":"","op2":"to","val2":""},{"targetHotspot":"Finestra","text":"Per què voldries llençar les botes per la finestra?","var1":"","op1":"to","val1":"","var2":"","op2":"to","val2":""}]'
+            data-setter="$res to 0"
+            data-variable-name="res"
+            data-setter-op="to"
+            data-setter-val="0"
+            data_info="Unes velles botes de pescador"
+            data_info_2="Les agafes"
+            data-info-setter-inventori="Són unes botes velles de pescador que fan una olor... peculiar"
+            data-info-setter-2-inventori="Un parell de botes de pescador "
+            data-sound-click-setter-inventori="pc_error"
+            data-sound-setter-inventori="pc_ok"
+            data-title-text-setter-inventori="Botes de pescar"
+        >
+
+    <!-- caixa -->
+        <area shape="rect"
+            coords="33,635,183,761"
+            alt="caixa"
+            class="hotspot-item"
+            data-passage="laboratori"
+        >
+
+    <!-- Escala -->
+        <area shape="rect"
+            coords="654,384,789,521"
+            alt="Escala"
+            class="hotspot-item"
+            data-passage="Pis superior"
+            data_info="Anar a dalt"
+            data_info_2="Puja"
+        >
+
+    <!-- Escala -->
+        <area shape="rect"
+            coords="661,310,753,384"
+            alt="Escala"
+            class="hotspot-item"
+            data-passage="Pis superior"
+            data_info="Anar a dalt"
+            data_info_2="Puja"
+        >
+
+    <!-- Finestra -->
+        <area shape="rect"
+            coords="773,215,912,381"
+            alt="Finestra"
+            class="hotspot-item"
+            data-passage="finestra"
+            data_info="Quines vistes!"
+        >
+
+    </map>
+    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
+</div>
+
+(live: 0.1s)[
+    <span id="Ocult" style="display:none;">
+    (link: "laboratori")[(goto: "laboratori")]
+    (link: "Pis superior")[(goto: "Pis superior")]
+    (link: "Pis superior")[(goto: "Pis superior")]
+    (link: "finestra")[(goto: "finestra")]
+    </span>
+]
+
+
+
+:: finestra {"position":"950,325","size":"100,100"}
+<div class="twine-image-wrapper" style="min-width:1344px;">
+<div id="inventory-container"></div>
+<div id="cursor-label"></div>
+    <img src="imatges/llac.png" usemap="#hotspotmap" alt="Imatge amb hotspots">
+    <map name="hotspotmap">
+    <!-- Porta -->
+        <area shape="rect"
+            coords="286,391,315,450"
+            alt="Porta"
+            class="hotspot-item"
+            data-passage="cabana"
+            data_info="Entra a la cabana"
+        >
+
+    </map>
+    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
+</div>
+
+(live: 0.1s)[
+    <span id="Ocult" style="display:none;">
+    (link: "cabana")[(goto: "cabana")]
+    </span>
+]
+
+
+Diners Peixera: ''(print: $diners_peixera)
+Diners: ''(print: $diners)''
+Titol: ''(print: $llibre)
+[[laboratori2]]
+
+
+:: foc {"position":"750,350","size":"100,100"}
+Foc
+Diners Peixera: (print: $diners_peixera)
+(track: 'ocellet' , 'playwhenpossible')
+(t8n-arrive: "rumble")+(t8n-depart: "zoom")[[laboratori2]]
+
+
+:: hal.tracks [Editar] {"position":"50,275","size":"100,100"}
+ocellet:https://static.wixstatic.com/mp3/d2f47f_742a2f12b2d745cd9abe728ce9f5671f.mp3
+lemur:https://static.wixstatic.com/mp3/d2f47f_c7599443d69947c6b97b8d6efc8af3d7.mp3
+pc_ok:sons/pc_ok.mp3
+pc_error:sons/pc_error.mp3
+
+
+:: laboratori {"position":"400,400","size":"100,100"}
 <div class="twine-image-wrapper" style="min-width:1472px;">
+<div id="inventory-container"></div>
+<div id="cursor-label"></div>
     <img src="imatges/laboratori.jpg" usemap="#hotspotmap" alt="Imatge amb hotspots">
 (if: $passa < 2)[    <img src="imatges/pirata sense fons.png" class="twine-overlay" data-hotspot-id="8" style="position:absolute; left:11.68%; top:47.84%; width:22.21%; height:52.40%; pointer-events:none;">
-]    <map name="hotspotmap">
+]    <img src="imatges/2ampolles.png" class="twine-overlay" data-hotspot-id="9" style="position:absolute; left:79.14%; top:51.80%; width:7.40%; height:19.23%; pointer-events:none;">
+    <map name="hotspotmap">
     <!-- flama -->
         <area shape="rect"
             coords="510,350,574,496"
@@ -199,7 +383,7 @@ Exemple:  (track: 'lemur', 'stop')
             data-condition-val="1"
             text_fail_clic="Busca unes ulleres"
             text_fail_enter="No puc llegir bé. Necessito ulleres"
-            data-setter="$llibre to &#039;Platero y tú&#039;"
+            data-setter="$llibre to Platero y tú"
             data-variable-name="llibre"
             data-setter-op="to"
             data-setter-val="Platero y tú"
@@ -254,33 +438,52 @@ Exemple:  (track: 'lemur', 'stop')
             coords="172,398,499,834"
             alt="Pirata"
             class="hotspot-item"
-            data-overlay-filename="imatges/pirata sense fons.png"
             data-overlay-enabled="true"
+            data-overlay-filename="imatges/pirata sense fons.png"
             data-overlay-condition="$passa &lt; 2"
             data-overlay-condition-var="passa"
             data-overlay-condition-op="&lt;"
             data-overlay-condition-val="2"
+            data-variable-2-setter="$conversa to 1"
+            data-variable-2-var="conversa"
+            data-variable-2-op="to"
+            data-variable-2-val="1"
             data-action="dialog"
             data-character="Pirata"
             data_info="Un vell pirata"
         >
 
-    <!-- Rom -->
+    <!-- Ampolles -->
         <area shape="rect"
-            coords="742,629,794,717"
-            alt="Rom"
+            coords="1165,431,1274,591"
+            alt="Ampolles"
             class="hotspot-item"
-            data-condition="$rom &lt; 5"
-            data-condition-var="rom"
-            data-condition-op="&lt;"
-            data-condition-val="5"
-            text_fail_enter="Tens $rom ampolles de rom. Ja no en queden més"
-            data-setter="$rom += 1"
+            data-overlay-enabled="true"
+            data-overlay-filename="imatges/2ampolles.png"
+            data-overlay-inventoriable="true"
+            data-overlay-remove-from-scene="true"
+            data-overlay-condition-op="&lt;"
+            data-inventory-interactions='[{"targetHotspot":"Pirata","text":"Pirata: Mmmmm. M&apos;encanta! Gràcies","var1":"passa","op1":"to","val1":"1","var2":"rom","op2":"to","val2":"0","removeItem":true},{"targetHotspot":"flama","text":"No les posis en el foc, que s&apos;escalfarà i no volem fer rom cremat!","var1":"","op1":"to","val1":"","var2":"","op2":"to","val2":""}]'
+            data-variable-2-setter="$Ple to true"
+            data-variable-2-var="Ple"
+            data-variable-2-op="to"
+            data-variable-2-val="true"
+            data-condition="$pista_rom == 1"
+            data-condition-var="pista_rom"
+            data-condition-op="=="
+            data-condition-val="1"
+            text_fail_clic="A mi no m&#039;agrada el rom.
+No sé per què em podrien servir"
+            text_fail_enter="Dues ampolles de rom ($conversa)"
+            data-setter="$rom to 2"
             data-variable-name="rom"
-            data-setter-op="+="
-            data-setter-val="1"
-            data_info="Agafa rom. Tens $rom ampolles de rom."
-            data_info_2="Més rom per a tu"
+            data-setter-op="to"
+            data-setter-val="2"
+            data_info="Dues ampolles de rom més velles que tu i el pirata junts"
+            data_info_2="Has agafat les ampolles"
+            data-info-setter-inventori="Són dues ampolles de rom gran reserva"
+            data-info-setter-2-inventori="2 ampolles de rom"
+            data-title-text-setter-inventori="Ampolles de rom"
         >
 
     </map>
@@ -404,7 +607,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "expression": "Borratxo",
                     "condition": "passa == 1"
                 }
-            ]
+            ],
+            "imageAlign": "right"
         },
         {
             "id": "node_1764409464077",
@@ -472,7 +676,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "condition": ""
                 }
             ],
-            "type": "decision"
+            "type": "decision",
+            "imageAlign": "left"
         },
         {
             "id": "node_1764409594483",
@@ -512,11 +717,12 @@ Exemple:  (track: 'lemur', 'stop')
             "characterExpression": "Enfadat",
             "expressionOptions": [
                 {
-                    "expression": "",
+                    "expression": "Enfadat",
                     "condition": ""
                 }
             ],
-            "type": "normal"
+            "type": "normal",
+            "imageAlign": "left"
         },
         {
             "id": "node_1764409684251",
@@ -547,7 +753,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "expression": "",
                     "condition": ""
                 }
-            ]
+            ],
+            "imageAlign": "left"
         },
         {
             "id": "node_1764409798043",
@@ -589,7 +796,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "condition": ""
                 }
             ],
-            "type": "logic"
+            "type": "normal",
+            "imageAlign": "left"
         },
         {
             "id": "node_1764409934139",
@@ -610,7 +818,7 @@ Exemple:  (track: 'lemur', 'stop')
                     "targetCondition": "",
                     "once": false,
                     "condition": "",
-                    "effect": "rom = 2"
+                    "effect": "pista_rom = 1"
                 }
             ],
             "expressionOptions": [
@@ -619,7 +827,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "condition": ""
                 }
             ],
-            "type": "logic"
+            "type": "normal",
+            "imageAlign": "left"
         },
         {
             "id": "node_1764435679581",
@@ -649,7 +858,8 @@ Exemple:  (track: 'lemur', 'stop')
                     "condition": ""
                 }
             ],
-            "type": "start"
+            "type": "start",
+            "imageAlign": "left"
         }
     ]
 }
@@ -657,77 +867,7 @@ Exemple:  (track: 'lemur', 'stop')
 
 
 
-:: Per llegir [Llegir] {"position":"50,25","size":"100,100"}
-Els passatges marcats en ''verd'' donen informació
-Els passatges en ''taronja'' es poden editar
-Els passatges ''vermells'' ''NO ES  PODEN MODIFICAR''
-
-''ATENCIÓ''!
-El "JavaScript" i el "Stylesheet" (dins de "Story") estan programats perquè tot funcioni correctament. 
-Modificar el contingut és possible però cal saber què es fa. Cnaviar alguna cosa pot suposar que el sistema deixi de funcionar
-
-
-:: StoryInit [startup] {"position":"175,275","size":"100,100"}
-(set:_comentari to "No esborrar la variable tempInfoDisplay")\
-(set: $tempInfoDisplay to "")\
-(set:_comentari to "A partir d'aquí, posa els valors inicials a les variables del joc")\
-(set: num-type $diners_peixera to 1502)
-(set: $passa to 0)
-(set: num-type $rom to 0)
-
-
-:: beure {"position":"1150,150","size":"100,100"}
-Beure
-[[laboratori]]
-
-
-:: finestra {"position":"950,325","size":"100,100"}
-<div class="twine-image-wrapper" style="min-width:1024px;">
-    <img src="imatges/biblio01.jpg" usemap="#hotspotmap" alt="Imatge amb hotspots">
-    <map name="hotspotmap">
-    <!-- Pc -->
-        <area shape="rect"
-            coords="478,277,533,312"
-            alt="Pc"
-            class="hotspot-item"
-            data-sound="pc_ok"
-            data-sound-click="pc_ok"
-            data-passage="laboratori"
-              data-transition-depart="rumble"
-            data-transition-arrive="slide-down"
-        >
-
-    </map>
-    <div id="twineImageInfoDisplay" style="display: none;">(live: 0.1s)[(print: $tempInfoDisplay)]</div>
-</div>
-
-(live: 0.1s)[
-    <span id="Ocult" style="display:none;">
-    (link: "laboratori")[(goto: "laboratori")]
-    </span>
-]
-
-Diners Peixera: ''(print: $diners_peixera)
-Diners: ''(print: $diners)''
-Titol: ''(print: $llibre)
-[[laboratori]]
-
-
-:: foc {"position":"750,350","size":"100,100"}
-Foc
-Diners Peixera: (print: $diners_peixera)
-(track: 'ocellet' , 'playwhenpossible')
-(t8n-arrive: "rumble")+(t8n-depart: "zoom")[[laboratori]]
-
-
-:: hal.tracks [Editar] {"position":"50,275","size":"100,100"}
-ocellet:https://static.wixstatic.com/mp3/d2f47f_742a2f12b2d745cd9abe728ce9f5671f.mp3
-lemur:https://static.wixstatic.com/mp3/d2f47f_c7599443d69947c6b97b8d6efc8af3d7.mp3
-pc_ok:sons/pc_ok.mp3
-pc_error:sons/pc_error.mp3
-
-
-:: laboratori {"position":"475,50","size":"100,100"}
+:: laboratori2 {"position":"475,50","size":"100,100"}
 <div class="twine-image-wrapper" style="min-width:1472px;">
 
     <img src="imatges/laboratori.jpg" usemap="#hotspotmap" alt="Imatge amb hotspots">
@@ -1073,51 +1213,87 @@ pc_error:sons/pc_error.mp3
 :: tancat {"position":"1125,325","size":"100,100"}
 (align:"=><=")[Tancat]
 (align:"=><=")[Euros: (print: $diners)]€
-[[laboratori]]
+[[laboratori2]]
 
 
 :: StoryScript [script]
+// =================================================================
+// ESTRUCTURA DE DADES GLOBAL (SINGLE SOURCE OF TRUTH)
+// =================================================================
+
 window.AdventureGlobalVars = window.AdventureGlobalVars || {}; 
 
-// Inicialització robusta de l'estat compartit
+// Recuperar estat
+try {
+    const savedState = sessionStorage.getItem('AdventureGlobalVars');
+    if (savedState) {
+        window.AdventureGlobalVars = JSON.parse(savedState);
+    }
+} catch (e) { console.error("Error loading state", e); }
+
 if (typeof State === 'undefined') {
-    window.State = { 
-        variables: window.AdventureGlobalVars // REFERÈNCIA DIRECTA, NO CÒPIA
-    };
+    window.State = { variables: window.AdventureGlobalVars };
 } else if (typeof State.variables === 'undefined') {
     State.variables = window.AdventureGlobalVars;
 } else {
-    // Si estem a SugarCube, sincronitzem inicialment
     Object.assign(window.AdventureGlobalVars, State.variables);
 }
 
-// Helpers globals per assegurar lectura/escriptura unificada
-function getGameVar(name) {
-    // Elimina el $ si hi és
+window.activeInventoryItem = null;
+
+window.getGameVar = function(name) {
     const key = name.startsWith('$') ? name.substring(1) : name;
-    if (typeof State !== 'undefined' && State.variables) {
-        return State.variables[key];
-    }
+    if (typeof State !== 'undefined' && State.variables) return State.variables[key];
     return window.AdventureGlobalVars[key];
+};
+
+// SISTEMA D'ACTUALITZACIÓ OPTIMITZAT (DEBOUNCE)
+let _globalUpdateTimer = null;
+
+function requestGlobalUpdate() {
+    if (_globalUpdateTimer) clearTimeout(_globalUpdateTimer);
+    _globalUpdateTimer = setTimeout(function() {
+        if (window.jQuery) jQuery(document).trigger('adventure:state-update');
+    }, 10); 
 }
 
-function setGameVar(name, value) {
+window.setGameVar = function(name, value) {
     const key = name.startsWith('$') ? name.substring(1) : name;
-    
-    // Escrivim a tot arreu per assegurar sincronització
     window.AdventureGlobalVars[key] = value;
-    if (typeof State !== 'undefined' && State.variables) {
-        State.variables[key] = value;
-    }
+    if (typeof State !== 'undefined' && State.variables) State.variables[key] = value;
     
-    // Notifiquem canvi
-    if (window.jQuery) jQuery(document).trigger('adventure:state-update');
+    try {
+        sessionStorage.setItem('AdventureGlobalVars', JSON.stringify(window.AdventureGlobalVars));
+    } catch (e) { }
+    
+    requestGlobalUpdate();
     console.log(`UPDATED VAR: ${key} = ${value}`);
-}
+};
+
+window.updateGameVar = function(name, op, val) {
+    if (!name) return;
+    let currentVal = window.getGameVar(name);
+    let newVal = val;
+    if (!isNaN(Number(val))) newVal = Number(val);
+    else if (val === "true") newVal = true;
+    else if (val === "false") newVal = false;
+
+    if (currentVal === undefined) currentVal = (typeof newVal === 'number') ? 0 : "";
+
+    switch (op) {
+        case '=': 
+        case 'to': window.setGameVar(name, newVal); break;
+        case '+=': window.setGameVar(name, currentVal + newVal); break;
+        case '-=': window.setGameVar(name, currentVal - newVal); break;
+        case '*=': window.setGameVar(name, currentVal * newVal); break;
+        case '/=': if (newVal !== 0) window.setGameVar(name, currentVal / newVal); break;
+        default: window.setGameVar(name, newVal);
+    }
+};
 
 
 // =================================================================
-// ADVENTURE ENGINE (DIÀLEGS)
+// ADVENTURE ENGINE
 // =================================================================
 
 window.AdventureEngine = (function() {
@@ -1128,10 +1304,10 @@ window.AdventureEngine = (function() {
     function interpolateText(text) {
         if (!text) return "";
         return text.replace(/\{(\w+)\}/g, (_, v) => {
-            const val = getGameVar(v);
+            const val = window.getGameVar(v);
             return (val !== undefined && val !== null) ? val : '';
         }).replace(/\$(\w+)/g, (_, v) => {
-            const val = getGameVar(v);
+            const val = window.getGameVar(v);
             return (val !== undefined && val !== null) ? val : '';
         });
     }
@@ -1139,30 +1315,18 @@ window.AdventureEngine = (function() {
     function evaluate(code) { 
         if (!code || !code.trim()) return true; 
         try { 
-            // Construïm un context amb les variables actuals del joc
             const currentVars = (typeof State !== 'undefined' && State.variables) ? State.variables : window.AdventureGlobalVars;
             const keys = Object.keys(currentVars); 
             const values = Object.values(currentVars); 
-            
-            // FIX: Regex millorada per NO trencar >=, <= o !=
-            // Només substitueix "=" per "==" si no té <, >, ! o = al davant.
             const safeCode = code.replace(/(^|[^<>!=])=([^=])/g, '$1==$2');
-            
             const fn = new Function(...keys, `return ${safeCode};`); 
             return fn(...values); 
-        } catch (e) { 
-            console.error("AdventureEngine: Error condició:", code, e); 
-            return false; 
-        } 
+        } catch (e) { return false; } 
     }
     
     function execute(code) { 
         if (!code || !code.trim()) return; 
         try { 
-            const currentVars = (typeof State !== 'undefined' && State.variables) ? State.variables : window.AdventureGlobalVars;
-            const keys = Object.keys(currentVars); 
-            const values = Object.values(currentVars); 
-            
             const parts = code.split(';');
             parts.forEach(part => {
                 if(part.includes('=')) {
@@ -1171,25 +1335,21 @@ window.AdventureEngine = (function() {
                     if(left.endsWith('+')) { op = '+='; left = left.slice(0,-1).trim(); }
                     if(left.endsWith('-')) { op = '-='; left = left.slice(0,-1).trim(); }
                     
-                    // Avaluar right side
                     let rightVal;
                     try {
-                         // Avaluem el valor de la dreta usant les variables actuals
-                         const fnVal = new Function(...keys, `return ${right};`);
-                         rightVal = fnVal(...values);
+                         const fnVal = new Function(...Object.keys(window.AdventureGlobalVars), `return ${right};`);
+                         rightVal = fnVal(...Object.values(window.AdventureGlobalVars));
                     } catch(e) { rightVal = right; }
 
-                    let currentVal = getGameVar(left) || 0;
+                    let currentVal = window.getGameVar(left) || 0;
                     
-                    if (op === '=') setGameVar(left, rightVal);
-                    if (op === '+=') setGameVar(left, currentVal + rightVal);
-                    if (op === '-=') setGameVar(left, currentVal - rightVal);
+                    if (op === '=') window.setGameVar(left, rightVal);
+                    if (op === '+=') window.setGameVar(left, currentVal + rightVal);
+                    if (op === '-=') window.setGameVar(left, currentVal - rightVal);
                 }
             });
 
-        } catch (e) { 
-            console.error("AdventureEngine: Error efecte complex (simplificat):", code, e); 
-        } 
+        } catch (e) { console.error("Effect error", e); } 
     }
 
     function renderNode() {
@@ -1211,48 +1371,40 @@ window.AdventureEngine = (function() {
         const chosenTextObj = validTexts.length > 0 ? validTexts[Math.floor(Math.random() * validTexts.length)] : { text: "..." };
         let finalText = interpolateText(chosenTextObj.text);
 
-        // --- GESTIÓ D'EXPRESSIONS FACIALS ---
-        let currentAvatarUrl = char.avatarUrl; // Per defecte: avatar base
-        
-        // 1. Determinar expressió base del NODE (suportant la llista condicional 'expressionOptions')
+        let currentAvatarUrl = char.avatarUrl; 
         let nodeExpressionName = node.expression || node.Expression || node.characterExpression || node.CharacterExpression;
         
         const exprOpts = node.expressionOptions || node.ExpressionOptions;
         if (exprOpts && Array.isArray(exprOpts)) {
-            // Busquem la primera expressió que compleixi la condició
             const validExpr = exprOpts.find(e => evaluate(e.condition));
-            
-            // FIX: Només sobreescrivim si l'expressió NO és buida. 
-            // Això evita que opcions buides com { expression: "", condition: "" } amaguin "Enfadat"
             if (validExpr && validExpr.expression && validExpr.expression.trim() !== "") {
                 nodeExpressionName = validExpr.expression;
             }
         }
 
-        // 2. Prioritat: Expressió del text > Expressió del node
-        const expressionName = chosenTextObj.expression || 
-                               chosenTextObj.Expression || 
-                               chosenTextObj.characterExpression || 
-                               chosenTextObj.CharacterExpression || 
-                               nodeExpressionName;
+        const expressionName = chosenTextObj.expression || chosenTextObj.Expression || chosenTextObj.characterExpression || chosenTextObj.CharacterExpression || nodeExpressionName;
 
         if (expressionName && char.expressions && Array.isArray(char.expressions)) {
-            // Busquem l'expressió pel nom (ignorant majúscules/minúscules)
             const expressionObj = char.expressions.find(e => e.name.trim().toLowerCase() === expressionName.trim().toLowerCase());
-            if (expressionObj && expressionObj.url) {
-                currentAvatarUrl = expressionObj.url;
-                console.log(`AdventureEngine: Aplicant expressió "${expressionObj.name}" -> ${expressionObj.url}`);
-            } else {
-                console.warn(`AdventureEngine: Expressió "${expressionName}" no trobada per al personatge ${char.name}`);
-            }
+            if (expressionObj && expressionObj.url) currentAvatarUrl = expressionObj.url;
         }
-        // ------------------------------------
+
+        let imageAlign = node.imageAlign || char.imageAlign || "left";
+        imageAlign = imageAlign.toLowerCase();
+
+        const portraitHtml = `
+            <div class="adv-portrait" style="background-color: ${char.color}">
+                ${currentAvatarUrl ? `<img src="${currentAvatarUrl}">` : `<span>${char.name[0]}</span>`}
+            </div>`;
+        
+        const spacerHtml = `<div class="adv-portrait" style="visibility: hidden; border: 3px solid transparent; background: transparent;"></div>`;
+
+        let leftColumn = (imageAlign === 'right') ? spacerHtml : portraitHtml;
+        let rightColumn = (imageAlign === 'right') ? portraitHtml : spacerHtml;
 
         let html = `
         <div class="adv-dialogue-box" style="border-top-color: ${char.color}">
-            <div class="adv-portrait" style="background-color: ${char.color}">
-                ${currentAvatarUrl ? `<img src="${currentAvatarUrl}">` : `<span>${char.name[0]}</span>`}
-            </div>
+            ${leftColumn}
             <div class="adv-content">
                 <h3 class="adv-name" style="color: ${char.color}">${char.name}</h3>
                 <p class="adv-text">${finalText}</p>
@@ -1278,7 +1430,7 @@ window.AdventureEngine = (function() {
                 html += `<button onclick="AdventureEngine.selectOption('${node.id}', ${idx})">${opt.text}</button>`; 
             }); 
         }
-        html += `</div></div></div>`; 
+        html += `</div></div>${rightColumn}</div>`; 
         container.innerHTML = html;
         container.style.display = 'block';
     }
@@ -1301,12 +1453,12 @@ window.AdventureEngine = (function() {
                 
                 const defaultVars = coreData.globalVariables || {};
                 for (const key in defaultVars) {
-                    if (getGameVar(key) === undefined) {
-                        setGameVar(key, defaultVars[key]);
+                    if (window.getGameVar(key) === undefined) {
+                        window.setGameVar(key, defaultVars[key]);
                     }
                 }
                 
-                if (window.jQuery) jQuery(document).trigger('adventure:state-update');
+                requestGlobalUpdate();
 
                 let container = document.getElementById(containerId);
                 if (!container) {
@@ -1314,12 +1466,9 @@ window.AdventureEngine = (function() {
                     container.id = containerId;
                     document.body.appendChild(container);
                 }
-                
                 container.style.display = 'block';
                 if (window.jQuery) jQuery(container).show();
-
                 if (state.nodes.length === 0) return;
-                
                 state.currentNodeId = state.nodes[0].id;
                 toggleActive(true); 
                 setTimeout(renderNode, 10);
@@ -1358,7 +1507,47 @@ window.AdventureEngine = (function() {
 
 jQuery(document).ready(function () {
 
-    // Inicialització de variables de comptatge intern
+    function refreshScene() {
+        if (jQuery('#inventory-container').length === 0) jQuery('body').append('<div id="inventory-container"></div>');
+        if (jQuery('#cursor-label').length === 0) jQuery('body').append('<div id="cursor-label"></div>');
+        requestGlobalUpdate();
+    }
+    
+    refreshScene();
+    
+    // MODIFICACIÓ: Observer intel·ligent que ignora canvis d'UI (tooltips, inventari, cursor) I AUDIO
+    const observer = new MutationObserver(function(mutations) { 
+        let shouldRefresh = false;
+        
+        mutations.forEach(function(mutation) {
+            // 1. Ignorar nodes d'Audio afegits pel sistema de so (Chapel o similar)
+            if (mutation.addedNodes.length > 0) {
+                let isAudio = false;
+                for(let i=0; i<mutation.addedNodes.length; i++) {
+                     const nodeName = mutation.addedNodes[i].nodeName.toUpperCase();
+                     if (nodeName === 'AUDIO' || nodeName === 'SOURCE' || nodeName === 'W-AUDIO') {
+                         isAudio = true;
+                     }
+                }
+                if (isAudio) return; // Saltem aquesta mutació perquè és so
+            }
+
+            // 2. Comprovem si el canvi ve d'elements de la UI que no requereixen un "refresh" total
+            // Si el target NO és (ni està dins de) l'inventari, el tooltip o el cursor, llavors sí refresquem.
+            const target = jQuery(mutation.target);
+            if (target.closest('#inventory-container, #twineImageInfoDisplay, #cursor-label, #dialogue-container').length === 0) {
+                shouldRefresh = true;
+            }
+        });
+
+        if (shouldRefresh) {
+            refreshScene();
+        }
+    });
+
+    const targetNode = document.querySelector('tw-story') || document.body;
+    if (targetNode) observer.observe(targetNode, { childList: true, subtree: true, attributes: true });
+
     if (typeof State !== 'undefined' && State.variables) {
         if (State.variables.hotspotClicks === undefined) State.variables.hotspotClicks = {};
     }
@@ -1367,7 +1556,7 @@ jQuery(document).ready(function () {
         if (!conditionVarName || conditionVal === undefined || conditionVal === null) return true; 
 
         const varName = conditionVarName.startsWith('$') ? conditionVarName.substring(1) : conditionVarName;
-        const currentValue = getGameVar(varName); // USEM EL HELPER UNIFICAT
+        const currentValue = window.getGameVar(varName); 
         
         let operatorUsed = '==';
         let valuePart = String(conditionVal).trim();
@@ -1388,19 +1577,217 @@ jQuery(document).ready(function () {
         catch (e) { return false; }
     }
 
-    // --- FUNCIÓ CLAU: VISIBILITAT I CREACIÓ D'IMATGES (ROBUSTA + FADE 2s) ---
-    function updateHotspotVisibility() {
-        // NOU: Força l'ocultació d'imatges estàtiques que Twine pugui haver injectat
-        jQuery('.twine-image-wrapper img:not([usemap]):not(.hotspot-visual)').hide();
+    function activateCursorLabel(text, itemData, initialEvent) {
+        const label = jQuery('#cursor-label');
+        label.text(text).show();
+        window.activeInventoryItem = itemData;
 
+        const moveHandler = function(e) {
+            label.css({ top: (e.clientY + 15) + 'px', left: (e.clientX + 15) + 'px' });
+        };
+        
+        if (initialEvent) {
+             label.css({ top: (initialEvent.clientY + 15) + 'px', left: (initialEvent.clientX + 15) + 'px' });
+        }
+
+        jQuery(document).off('mousemove.cursorLabel').on('mousemove.cursorLabel', moveHandler);
+    }
+
+    function clearCursorLabel() {
+        jQuery('#cursor-label').hide();
+        jQuery(document).off('mousemove.cursorLabel');
+        window.activeInventoryItem = null;
+    }
+
+    jQuery(document).on('click', function(e) {
+        if (!jQuery(e.target).closest('.hotspot-item, .inventory-item').length) {
+            clearCursorLabel();
+        }
+    });
+
+    function addToInventory(el) {
+        let interactions = el.data('inventory-interactions');
+        if (typeof interactions === 'string') {
+            try { interactions = JSON.parse(interactions); } catch(e) { interactions = []; }
+        }
+
+        const item = {
+            id: el.attr('alt'), 
+            name: el.attr('alt'),
+            image: el.attr('data-overlay-filename'),
+            infoHover: el.attr('data-info-setter-inventori') || el.attr('data-info-inventori') || el.attr('text_fail_enter') || el.attr('data_info') || el.attr('title'),
+            infoClick: el.attr('data-info-setter-2-inventori') || el.attr('data-info-2-inventori'),
+            soundHover: el.attr('data-sound-setter-inventori') || el.attr('data-sound-inventori'),
+            soundClick: el.attr('data-sound-click-setter-inventori') || el.attr('data-sound-click-inventori'),
+            title: el.attr('data-title-text-setter-inventori') || el.attr('data-title-text-inventori'),
+            interactions: interactions,
+            var2: {
+                name: el.data('variable-2-var') || el.attr('data-variable-2'),
+                val: el.data('variable-2-val') || el.attr('data-valor-2'),
+                op: el.data('variable-2-op')
+            }
+        };
+
+        let currentInventory = window.getGameVar('inventory') || [];
+        const exists = currentInventory.some(i => i.id === item.id);
+        if (!exists) {
+            currentInventory.push(item);
+            window.setGameVar('inventory', currentInventory);
+        }
+
+        if (el.data('overlay-remove-from-scene') === true || el.data('overlay-remove-from-scene') === "true") {
+            const id = el.attr('alt');
+            let removed = window.getGameVar('removedItems') || {};
+            removed[id] = true;
+            window.setGameVar('removedItems', removed);
+        }
+    }
+
+    function removeFromInventory(itemId) {
+        let currentInventory = window.getGameVar('inventory') || [];
+        const newInventory = currentInventory.filter(i => i.id !== itemId);
+        window.setGameVar('inventory', newInventory);
+    }
+
+    function updateInventoryUI() {
+        const container = jQuery('#inventory-container');
+        const inventory = window.getGameVar('inventory') || [];
+        
+        // --- MODIFICAT: Separar la lògica de posició de la de renderitzat ---
+        
+        // 1. Calcular i aplicar posició (Sempre es fa per si canvia la mida de finestra)
         const wrapper = document.querySelector('.twine-image-wrapper');
         const mainImg = wrapper ? wrapper.querySelector('img[usemap]') : null;
+        if (mainImg) {
+            const imgRect = mainImg.getBoundingClientRect();
+            container.css({
+                'display': 'flex', 'flex-direction': 'column',
+                'top': imgRect.top + 'px', 'left': (imgRect.right + 5) + 'px'
+            });
+        } else {
+            container.css({ 'top': '10px', 'right': '10px', 'display': 'flex' });
+        }
         
+        if (inventory.length === 0) {
+            container.hide();
+            container.empty();
+            window._lastInventoryState = "[]"; // Resetejar estat
+            return;
+        }
+        container.show();
+
+        // 2. Comprovació de "Caché": Si les dades són iguals que l'últim cop, NO recreem el DOM
+        // Això evita que els listeners es perdin si un so o un altre event dispara un refresh
+        const currentStateStr = JSON.stringify(inventory);
+        if (window._lastInventoryState === currentStateStr && container.children().length > 0) {
+            // No fem res més, els elements ja hi són i estan bé
+            return;
+        }
+
+        // Si arribem aquí, vol dir que l'inventari ha canviat realment o és el primer cop
+        window._lastInventoryState = currentStateStr;
+        container.empty(); 
+
+        inventory.forEach(item => {
+            const itemDiv = jQuery('<div class="inventory-item"></div>');
+            const iconWrapper = jQuery('<div class="inventory-icon-wrapper"></div>');
+            if (item.image) iconWrapper.append(jQuery('<img>').addClass('inventory-icon-img').attr('src', item.image).attr('alt', item.name));
+            else iconWrapper.text(item.name[0]); 
+            itemDiv.append(iconWrapper);
+            itemDiv.append(jQuery('<span class="inventory-name"></span>').text(item.name));
+
+            itemDiv.on('mouseenter', function() {
+                if (item.soundHover) playHotspotSound(item.soundHover);
+                if (item.infoHover) toggleImageInfo(interpolateHotspotText(item.infoHover));
+            });
+            itemDiv.on('mouseleave', function() { toggleImageInfo(''); });
+            itemDiv.on('click', function(e) {
+                e.stopPropagation(); 
+                if (item.soundClick) playHotspotSound(item.soundClick);
+                if (item.infoClick) toggleImageInfo(interpolateHotspotText(item.infoClick));
+                if (item.title) activateCursorLabel(interpolateHotspotText(item.title), item, e);
+            });
+            container.append(itemDiv);
+        });
+    }
+
+    jQuery(document).on('adventure:state-update', updateInventoryUI);
+    
+    let resizeTimer;
+    jQuery(window).on('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            updateInventoryUI();
+            updateHotspotVisibility();
+        }, 250);
+    });
+
+    function handleInventoryInteraction(hotspotEl) {
+        if (!window.activeInventoryItem) return false;
+        const item = window.activeInventoryItem;
+        // NORMALITZACIÓ: Fem servir minúscules i trim per evitar errors de majúscules/espais
+        const targetName = (hotspotEl.attr('alt') || '').trim(); 
+        const targetNameLower = targetName.toLowerCase();
+        
+        // Helper per executar la interacció i evitar codi duplicat
+        const executeInteraction = (interaction) => {
+             if (interaction.text) toggleImageInfo(interpolateHotspotText(interaction.text));
+             if (interaction.var1) window.updateGameVar(interaction.var1, interaction.op1, interaction.val1);
+             if (interaction.var2) window.updateGameVar(interaction.var2, interaction.op2, interaction.val2);
+                
+             if (interaction.removeItem === true) {
+                  removeFromInventory(item.id);
+                  clearCursorLabel(); 
+                  return true;
+             }
+             return true; 
+        };
+
+        // 1. Interaccions definides a l'OBJECTE (Item) - Lògica original
+        if (item.interactions && Array.isArray(item.interactions)) {
+            // Busquem coincidència insensible a majúscules/minúscules
+            const interaction = item.interactions.find(i => 
+                (i.targetHotspot || '').trim().toLowerCase() === targetNameLower
+            );
+            if (interaction) return executeInteraction(interaction);
+        }
+        
+        // 2. Interaccions definides al HOTSPOT (Destí) - NOVA LÒGICA
+        // Això permet definir l'acció en el hotspot actual, referenciant l'item necessari
+        let hotspotInteractions = hotspotEl.data('inventory-interactions');
+        if (typeof hotspotInteractions === 'string') {
+            try { hotspotInteractions = JSON.parse(hotspotInteractions); } catch(e) { hotspotInteractions = []; }
+        }
+
+        if (hotspotInteractions && Array.isArray(hotspotInteractions)) {
+            // Busquem una interacció que requereixi l'item actual (per requiredItem o item)
+            // També normalitzem IDs per seguretat
+            const interaction = hotspotInteractions.find(i => {
+                const reqItem = (i.requiredItem || i.item || '').trim().toLowerCase();
+                const itemId = (item.id || '').trim().toLowerCase();
+                return reqItem === itemId;
+            });
+            if (interaction) return executeInteraction(interaction);
+        }
+
+        toggleImageInfo("Això no es pot fer");
+        return true; 
+    }
+
+    function updateHotspotVisibility() {
+        jQuery('.twine-image-wrapper img:not([usemap]):not(.hotspot-visual)').hide();
+        const wrapper = document.querySelector('.twine-image-wrapper');
+        const mainImg = wrapper ? wrapper.querySelector('img[usemap]') : null;
         if (!wrapper || !mainImg) return;
+
+        // COMROVACIÓ EXTRA PER CÀRREGA D'IMATGE
+        if (!mainImg.complete || mainImg.naturalWidth === 0 || mainImg.width === 0) {
+            setTimeout(updateHotspotVisibility, 50);
+            return;
+        }
 
         const wrapperRect = wrapper.getBoundingClientRect();
         const imgRect = mainImg.getBoundingClientRect();
-
         const offsetX = imgRect.left - wrapperRect.left;
         const offsetY = imgRect.top - wrapperRect.top;
 
@@ -1408,48 +1795,40 @@ jQuery(document).ready(function () {
         if (mainImg.naturalWidth > 0) {
             scaleX = imgRect.width / mainImg.naturalWidth;
             scaleY = imgRect.height / mainImg.naturalHeight;
-        } else {
-            mainImg.onload = updateHotspotVisibility;
-            return;
         }
 
         jQuery('.hotspot-item').each(function() {
             const el = jQuery(this);
-            const varName = el.data('overlay-condition-var');
-            // FIX: Llegir l'operador explícit si existeix
-            let val = el.data('overlay-condition-val');
-            const op = el.data('overlay-condition-op');
-            
-            if (op && val !== undefined) {
-                val = op + String(val);
+            const alt = el.attr('alt') || 'hotspot-' + Math.random().toString(36).substr(2, 9);
+            const removed = window.getGameVar('removedItems') || {};
+            if (removed[alt]) {
+                el.hide();
+                jQuery('#visual-' + alt.replace(/\s+/g, '-')).hide(); 
+                return; 
             }
             
-            const overlayFile = el.data('overlay-filename');
+            const varName = el.data('overlay-condition-var');
+            let val = el.data('overlay-condition-val');
+            const op = el.data('overlay-condition-op');
+            if (op && val !== undefined) val = op + String(val);
             
-            const alt = el.attr('alt') || 'hotspot-' + Math.random().toString(36).substr(2, 9);
+            const overlayFile = el.data('overlay-filename');
             const imgId = 'visual-' + alt.replace(/\s+/g, '-');
 
             let shouldShow = true;
-            if (varName !== undefined) {
-                 shouldShow = evaluateCondition(varName, val);
-            }
+            if (varName !== undefined) shouldShow = evaluateCondition(varName, val);
 
             if (shouldShow) {
                 el.show();
-
                 if (overlayFile) {
                     let img = document.getElementById(imgId);
-                    
                     if (!img) {
                         img = document.createElement('img');
                         img.id = imgId;
                         img.src = overlayFile;
                         img.className = 'hotspot-visual';
-                        // IMPORTANT: No establim display:block forçat, deixem que fadeIn controli
-                        img.style.display = 'none'; 
                         jQuery('.twine-image-wrapper').append(img);
                     }
-                    
                     const coords = el.attr('coords').split(',').map(Number);
                     if (coords.length === 4) {
                         const [x1, y1, x2, y2] = coords;
@@ -1458,30 +1837,23 @@ jQuery(document).ready(function () {
                         img.style.width = ((x2 - x1) * scaleX) + 'px';
                         img.style.height = ((y2 - y1) * scaleY) + 'px';
                     }
-                    
-                    // Si ja està visible, no fem res. Si està ocult, fem fadeIn.
-                    if (!jQuery(img).is(':visible')) {
-                        jQuery(img).stop(true, false).fadeIn(2000);
-                    }
+                    // MODIFICAT: show() directe
+                    jQuery(img).show(); 
                 }
             } else {
                 el.hide();
                 const img = document.getElementById(imgId);
-                if (img && jQuery(img).is(':visible')) {
-                    jQuery(img).stop(true, false).fadeOut(2000);
-                }
+                if (img) jQuery(img).hide();
             }
         });
     }
 
     jQuery(document).on('adventure:state-update', updateHotspotVisibility);
-    jQuery(window).on('resize', updateHotspotVisibility);
-    jQuery(window).on('load', updateHotspotVisibility);
-
+    
     function interpolateHotspotText(text) {
         if (!text) return "";
         return text.replace(/\$(\w+)/g, function(_, varName) {
-            const val = getGameVar(varName);
+            const val = window.getGameVar(varName);
             return (val !== undefined && val !== null) ? val : '';
         });
     }
@@ -1520,20 +1892,17 @@ jQuery(document).ready(function () {
         const el = jQuery(hotspotElement);
         let combinedSetterStatements = el.attr('data-setter') || '';
 
-        // FIX: Si existeix data-setter, donem prioritat. Si no, construïm a partir de data-variable
         if (!combinedSetterStatements) {
             const var1 = el.attr('data-variable') || el.attr('data_variable');
             const val1 = el.attr('data-valor') || el.attr('data_valor');
-            if (var1 && val1) {
-                 combinedSetterStatements = `${var1} ${val1}`;
-            }
+            if (var1 && val1) combinedSetterStatements = `${var1} ${val1}`;
         }
-
-        const var2 = el.data('variable-2');
-        const val2 = el.data('valor-2');
-        if (var2 && val2) {
-            const stmt = `${var2} ${val2}`;
-            combinedSetterStatements = combinedSetterStatements ? `${combinedSetterStatements}; ${stmt}` : stmt;
+        
+        const v2_name = el.attr('data-variable-2-var') || el.attr('data-variable-2');
+        const v2_val = el.attr('data-variable-2-val') || el.attr('data-valor-2');
+        if (v2_name && v2_val) {
+            const op = el.attr('data-variable-2-op') || 'to';
+            combinedSetterStatements += `; ${v2_name} ${op} ${v2_val}`;
         }
 
         if (!combinedSetterStatements) return;
@@ -1542,11 +1911,10 @@ jQuery(document).ready(function () {
         statements.forEach(stmt => {
             const trimmedStmt = stmt.trim();
             if (!trimmedStmt) return;
-            // FIX: Actualitzat regex per acceptar 'to'
-            const match = trimmedStmt.match(/^\s*(\$\w+)\s*(=|\+=|-=|\*=|\/=|to)\s*(.*)\s*$/);
+            const match = trimmedStmt.match(/^\s*(\$?\w+)\s*(=|\+=|-=|\*=|\/=|to)\s*(.*)\s*$/);
             if (!match) return;
 
-            const varName = match[1].substring(1);
+            const varName = match[1].startsWith('$') ? match[1].substring(1) : match[1];
             const operator = match[2];
             let valueStr = match[3];
 
@@ -1556,42 +1924,44 @@ jQuery(document).ready(function () {
             else if (valueStr === 'false') value = false;
             else if (valueStr.startsWith('$')) {
                 const targetVarName = valueStr.substring(1);
-                value = getGameVar(targetVarName);
+                value = window.getGameVar(targetVarName);
             } else value = valueStr.replace(/^['"]|['"]$/g, '');
 
-            let currentVal = getGameVar(varName);
+            let currentVal = window.getGameVar(varName);
             if (currentVal === undefined) currentVal = (typeof value === 'number') ? 0 : "";
 
             switch (operator) {
                 case '=': 
-                case 'to': // AFEGIT SUPORT PER 'to'
-                    setGameVar(varName, value); break;
-                case '+=': setGameVar(varName, currentVal + value); break;
-                case '-=': setGameVar(varName, currentVal - value); break;
-                case '*=': setGameVar(varName, currentVal * value); break;
-                case '/=': if (value !== 0) setGameVar(varName, currentVal / value); break;
+                case 'to': window.setGameVar(varName, value); break;
+                case '+=': window.setGameVar(varName, currentVal + value); break;
+                case '-=': window.setGameVar(varName, currentVal - value); break;
+                case '*=': window.setGameVar(varName, currentVal * value); break;
+                case '/=': if (value !== 0) window.setGameVar(varName, currentVal / value); break;
             }
         });
-        
-        updateHotspotVisibility();
     }
-
-    // --- ESDEVENIMENTS MOUSE/CLICK (SEGURS) ---
 
     jQuery(document).on('mouseenter', '.hotspot-item', function () { 
         if (!jQuery(this).is(':visible')) return; 
-
         const el = jQuery(this);
+
+        if (window.activeInventoryItem) {
+            const itemName = window.activeInventoryItem.title || window.activeInventoryItem.name;
+            const hotspotName = el.attr('alt'); 
+            const text = "Usar " + interpolateHotspotText(itemName) + " amb " + interpolateHotspotText(hotspotName);
+            toggleImageInfo(text);
+            return; 
+        }
+
         const limit = parseInt(el.data('visit-limit'));
         const id = el.attr('alt');
         
-        if (!isNaN(limit) && getGameVar('hotspotClicks') && getGameVar('hotspotClicks')[id] >= limit) {
+        if (!isNaN(limit) && window.getGameVar('hotspotClicks') && window.getGameVar('hotspotClicks')[id] >= limit) {
             toggleImageInfo(el.attr('data-visit-limit-enter'));
             playHotspotSound(el.data('sound-fail'));
             return;
         }
 
-        // FIX: Incloure l'operador explícit si n'hi ha
         let val = el.data('condition-val');
         const op = el.data('condition-op');
         if (op && val !== undefined) val = op + String(val);
@@ -1614,25 +1984,13 @@ jQuery(document).ready(function () {
     jQuery(document).on('click', 'area.hotspot-item[data-action="dialog"]', function (e) {
         e.preventDefault(); 
         if (!jQuery(this).is(':visible')) return; 
-
         const el = jQuery(this);
+
+        if (handleInventoryInteraction(el)) return;
+
         const id = el.attr('alt');
-        
-        let targetId = el.data('target');
-        const dialogId = el.data('dialog-id');
-        const charId = el.data('character');
-
-        if (!targetId) {
-            const searchId = dialogId || charId;
-            if (searchId) {
-                if (document.getElementById(searchId)) targetId = searchId;
-                else targetId = 'dialogue-data-' + searchId;
-            }
-        }
-
         const limit = parseInt(el.data('visit-limit'));
-        let clicks = getGameVar('hotspotClicks') || {};
-        if (!getGameVar('hotspotClicks')) setGameVar('hotspotClicks', clicks);
+        let clicks = window.getGameVar('hotspotClicks') || {};
 
         if (!isNaN(limit) && clicks[id] >= limit) {
             toggleImageInfo(el.attr('data-visit-limit-clic'));
@@ -1640,7 +1998,6 @@ jQuery(document).ready(function () {
             return;
         }
 
-        // FIX: Incloure l'operador explícit si n'hi ha
         let val = el.data('condition-val');
         const op = el.data('condition-op');
         if (op && val !== undefined) val = op + String(val);
@@ -1651,25 +2008,28 @@ jQuery(document).ready(function () {
             return;
         }
 
+        if (el.data('overlay-inventoriable') === true || el.data('overlay-inventoriable') === "true") {
+            addToInventory(el);
+        }
+
         executeHotspotSetters(this);
         if (!isNaN(limit)) {
             clicks[id] = (clicks[id] || 0) + 1;
-            setGameVar('hotspotClicks', clicks);
+            window.setGameVar('hotspotClicks', clicks);
         }
+
         playHotspotSound(el.data('sound-click'));
         
         const info2 = el.attr('data_info_2');
-        if (info2) {
-             toggleImageInfo(info2);
-        } else {
-             toggleImageInfo(el.attr('data_info'));
-        }
+        if (info2) toggleImageInfo(info2);
+        else toggleImageInfo(el.attr('data_info'));
 
-        if (targetId) {
-            const scriptEl = document.getElementById(targetId);
-            if (scriptEl && scriptEl.innerHTML) {
-                if (window.AdventureEngine) {
-                    window.AdventureEngine.init(scriptEl.innerHTML);
+        if (el.data('action') === 'dialog') {
+            let targetId = el.data('target') || el.data('dialog-id') || el.data('character');
+            if (targetId) {
+                let scriptEl = document.getElementById(targetId) || document.getElementById('dialogue-data-' + targetId);
+                if (scriptEl && scriptEl.innerHTML) {
+                    if (window.AdventureEngine) window.AdventureEngine.init(scriptEl.innerHTML);
                 }
             }
         }
@@ -1678,25 +2038,26 @@ jQuery(document).ready(function () {
     jQuery(document).on('click', 'area.hotspot-item[data-passage]', function (e) {
         e.preventDefault();
         if (!jQuery(this).is(':visible')) return; 
-
         const el = jQuery(this);
-        const passage = el.data('passage');
+
+        if (handleInventoryInteraction(el)) return;
         
-        // FIX: Incloure l'operador explícit si n'hi ha
+        const passage = el.data('passage');
         let val = el.data('condition-val');
         const op = el.data('condition-op');
         if (op && val !== undefined) val = op + String(val);
 
         if (evaluateCondition(el.data('condition-var'), val)) {
+            if (el.data('overlay-inventoriable') === true || el.data('overlay-inventoriable') === "true") {
+                addToInventory(el);
+            }
+
             executeHotspotSetters(this);
             playHotspotSound(el.data('sound-click'));
             
             const info2 = el.attr('data_info_2');
-            if (info2) {
-                toggleImageInfo(info2);
-            } else {
-                toggleImageInfo(el.attr('data_info'));
-            }
+            if (info2) toggleImageInfo(info2);
+            else toggleImageInfo(el.attr('data_info'));
             
             const link = jQuery("tw-link").filter((i,e) => jQuery(e).text().trim().toLowerCase() === passage.trim().toLowerCase());
             if (link.length) link.click();
@@ -1709,13 +2070,15 @@ jQuery(document).ready(function () {
     jQuery(document).on('click', 'area.hotspot-item[data-setter]:not([data-passage]):not([data-action="dialog"])', function (e) {
         e.preventDefault();
         if (!jQuery(this).is(':visible')) return; 
-
         const el = jQuery(this);
+
+        if (handleInventoryInteraction(el)) return;
+
         const id = el.attr('alt');
         const limit = parseInt(el.data('visit-limit'));
 
-        let clicks = getGameVar('hotspotClicks') || {};
-        if (!getGameVar('hotspotClicks')) setGameVar('hotspotClicks', clicks);
+        let clicks = window.getGameVar('hotspotClicks') || {};
+        if (!window.getGameVar('hotspotClicks')) window.setGameVar('hotspotClicks', clicks);
 
         if (!isNaN(limit) && clicks[id] >= limit) {
              toggleImageInfo(el.attr('data-visit-limit-clic'));
@@ -1723,16 +2086,19 @@ jQuery(document).ready(function () {
              return;
         }
 
-        // FIX: Incloure l'operador explícit si n'hi ha
         let val = el.data('condition-val');
         const op = el.data('condition-op');
         if (op && val !== undefined) val = op + String(val);
 
         if (evaluateCondition(el.data('condition-var'), val)) {
+            if (el.data('overlay-inventoriable') === true || el.data('overlay-inventoriable') === "true") {
+                addToInventory(el);
+            }
+
             executeHotspotSetters(this);
             if (!isNaN(limit)) {
                 clicks[id] = (clicks[id] || 0) + 1;
-                setGameVar('hotspotClicks', clicks);
+                window.setGameVar('hotspotClicks', clicks);
             }
             
             playHotspotSound(el.data('sound-click'));
@@ -1745,8 +2111,14 @@ jQuery(document).ready(function () {
         }
     });
 
-    updateHotspotVisibility();
+    // Initialization
+    requestGlobalUpdate();
+    // Extra updates to catch lazy loading images
+    setTimeout(requestGlobalUpdate, 100);
+    setTimeout(requestGlobalUpdate, 500);
+    setTimeout(requestGlobalUpdate, 1000);
 });
+
 
 
 
@@ -1761,6 +2133,9 @@ jQuery(document).ready(function () {
 /** End of HAL code */
 
 :: StoryStylesheet [stylesheet]
+   /* =========================================
+       ESTILS GENERALS I TWINE
+       ========================================= */
     html, body {
         background-color: black; 
         overflow-x: hidden; 
@@ -1816,6 +2191,9 @@ jQuery(document).ready(function () {
         height: auto;
         max-height: 100vh; 
         margin: 0 auto;
+        /* FIX: Establir capa base per evitar que tapi les superposicions */
+        position: relative; 
+        z-index: 1;
     }
 
     /* =========================================
@@ -1825,22 +2203,119 @@ jQuery(document).ready(function () {
     /* FIX: Ocultar overlays estàtics generats per Twine (per classe o atributs) */
     .twine-overlay, 
     .twine-image-wrapper img[data-hotspot-id],
-    .twine-image-wrapper img:not([usemap]):not(.hotspot-visual) {
+    .twine-image-wrapper img:not([usemap]):not(.hotspot-visual):not(.inventory-icon-img) {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
     }
 
-    /* Classe per a les imatges dinàmiques (JS) */
+    /* FIX: Forçar que les imatges de l'inventari es vegin sempre, fins i tot si estan dins del wrapper */
+    .twine-image-wrapper #inventory-container img,
+    #inventory-container img {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Classe per a les imatges dinàmiques (JS) - SENSE TRANSICIONS */
     .hotspot-visual {
         position: absolute;
         z-index: 5;
         pointer-events: none;
-        display: none; /* Inicialment ocult per permetre el fadeIn */
         object-fit: fill;
         margin: 0 !important; 
         padding: 0 !important;
+        display: none; /* Ocult per defecte, JS fa .show() */
+    }
+
+    /* =========================================
+       INVENTARI
+       ========================================= */
+    #inventory-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        left: auto;      
+        transform: none; 
+        
+        background-color: rgba(30, 41, 59, 0.9);
+        border: 2px solid #475569;
+        border-radius: 8px;
+        padding: 10px;
+        
+        display: flex;
+        flex-direction: column; 
+        gap: 10px;
+        
+        z-index: 11000; 
+        min-width: 70px; 
+        height: auto;    
+        align-items: center;
+        justify-content: flex-start;
+        
+        display: none; 
+    }
+
+    .inventory-item {
+        width: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: help;
+    }
+
+    .inventory-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #94a3b8;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .inventory-icon-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .inventory-name {
+        font-size: 10px;
+        color: white;
+        text-align: center;
+        margin-top: 4px;
+        line-height: 1.2;
+        text-shadow: 1px 1px 2px black;
+        word-wrap: break-word;
+        width: 100%;
+    }
+    
+    /* =========================================
+       CURSOR LABEL (MODIFICAT)
+       ========================================= */
+    #cursor-label {
+        position: fixed;
+        display: none; /* Ocult per defecte */
+        
+        /* Estil igual que twineImageInfoDisplay */
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px 20px;
+        border-radius: 18px;
+        font-size: 1.1em;
+        
+        /* Treiem vores antigues per coincidir */
+        border: none;
+        
+        pointer-events: none; 
+        z-index: 999999; /* Molt alt per estar sobretot */
+        white-space: nowrap;
+        text-align: center;
     }
 
     /* =========================================
@@ -1895,8 +2370,6 @@ jQuery(document).ready(function () {
         flex: 1; 
         display: flex; 
         flex-direction: column; 
-        /* Mantinc l'alçada mínima per evitar que la caixa "salti" massa, 
-           però ara les opcions s'enganxaran al text */
         min-height: 220px; 
     }
 
@@ -1907,7 +2380,6 @@ jQuery(document).ready(function () {
         display: flex; 
         flex-direction: column; 
         gap: 8px; 
-        /* MODIFICAT: Alineació superior amb un petit marge respecte al text */
         margin-top: 20px; 
     }
     
@@ -1969,10 +2441,6 @@ jQuery(document).ready(function () {
         z-index: 10;
         pointer-events: none;
     }
-
-
-
-
 
 /**
  * Harlowe Audio Library (HAL), by Chapel, v2.3.0
