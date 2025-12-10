@@ -107,7 +107,8 @@
             border: 1px solid #ddd;
             padding: 15px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             background-color: #f9f9f9;
         }
         .hotspot-item label {
@@ -219,7 +220,6 @@
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 8px 15px;
-            border-radius: 5px;
             font-size: 1em;
             display: none;
             z-index: 100;
@@ -336,18 +336,36 @@
             padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
-            margin-left: 10px;
         }
         .generate-dialog-btn:hover {
             background-color: #218838;
         }
+        
+        /* Updated Overlay Styles for Split View */
         .overlay-config-section {
             background-color: #e3f2fd;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 15px;
+            border-radius: 8px;
             margin-bottom: 10px;
             border: 1px solid #90caf9;
+            /* Enable Flex for side-by-side */
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
         }
+        .overlay-column-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .overlay-column-right {
+            flex: 1;
+            min-width: 0;
+            border-left: 2px dashed #b3d7f5;
+            padding-left: 15px;
+            display: none; /* Hidden unless Inventariable is checked */
+        }
+        
         .overlay-preview-img {
             max-width: 100px;
             max-height: 100px;
@@ -369,44 +387,6 @@
             color: #666;
             margin-left: 10px;
             font-style: italic;
-        }
-        #confirmationModal, #folderRequestModal {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 9999;
-        }
-        #confirmationModal > div, #folderRequestModal > div {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            text-align: center;
-            max-width: 300px;
-            width: 90%;
-        }
-        #confirmationModal button, #folderRequestModal button {
-            padding: 10px 15px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 44px;
-            cursor: pointer;
-            color: white;
-        }
-        #confirmationModal #cancelDeleteButton, #folderRequestModal #cancelFolderButton {
-            background-color: #6c757d;
-        }
-        #confirmationModal #confirmDeleteButton {
-            background-color: #dc3545;
-        }
-        #folderRequestModal #confirmFolderButton {
-             background-color: #007bff;
         }
 
         /* Styling for the new conditional builder */
@@ -434,6 +414,105 @@
              margin-right: 8px;
              width: auto;
         }
+        .violet-label { 
+             color: #8A2BE2 !important;
+             font-weight: bold;
+        }
+        /* Style to hide the fields when overlayInventoriable is not checked */
+        .hidden-field {
+            display: none !important;
+        }
+        .inventoriable-fields-group {
+             /* Use JS to toggle visibility on the entire group */
+             margin-top: 10px;
+             padding-top: 10px;
+             border-top: 1px dotted #ccc;
+             margin-bottom: 10px;
+        }
+        
+        /* Interaction Item Styles inside the new Right Column */
+        .interaction-item {
+            background-color: #fff;
+            border: 1px solid #b3d7f5;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .interaction-item h5 {
+            margin: 5px 0 10px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .hotspot-select-container {
+             display: flex;
+             gap: 5px;
+             margin-bottom: 8px;
+        }
+        
+        /* MODAL STYLES - FIXED POSITION */
+        #confirmationModal, #folderRequestModal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        #confirmationModal > div, #folderRequestModal > div {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        #confirmationModal button, #folderRequestModal button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 1em;
+        }
+        #confirmationModal #cancelDeleteButton, #folderRequestModal #cancelFolderButton {
+            background-color: #6c757d;
+        }
+        #confirmationModal #confirmDeleteButton {
+            background-color: #dc3545;
+        }
+        #folderRequestModal #confirmFolderButton {
+             background-color: #007bff;
+        }
+
+        /* Custom File Upload Styles */
+        .custom-file-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .custom-file-upload-btn {
+            background-color: #6f42c1; /* Similar color to other buttons */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: normal;
+        }
+        .custom-file-upload-btn:hover {
+            background-color: #59359a;
+        }
+        #imageFileStatus {
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -441,10 +520,16 @@
     <p>1. Carrega una imatge. 2. Dibuixa rectangles sobre les àrees que vulguis fer interactives. 3. Configura cada hotspot. 4. Copia el codi generat i enganxa'l al passatge de Twine.</p>
 
     <div class="container">
+        
         <div class="panel" id="imageConfig">
             <h2>Configuració de la Imatge</h2>
-            <label for="imageUpload">Carregar Imatge:</label>
-            <input type="file" id="imageUpload" accept="image/*">
+            
+            <!-- Replaced native file input with custom button -->
+            <div class="custom-file-upload-container">
+                <label for="imageUpload" class="custom-file-upload-btn">Carregar Imatge</label>
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                <span id="imageFileStatus">Cap fitxer seleccionat</span>
+            </div>
             
             <!-- Hidden input for loading image folder -->
             <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;">
@@ -462,10 +547,11 @@
                 <p>No hi ha hotspots creats.</p>
             </div>
         </div>
+        
     </div>
 
     <div class="panel">
-        <h2>Codi Twine (Harlowe) Generat</h2>
+        <h2 id="outputCodeTitle">Codi Twine (Harlowe) Generat</h2>
         <textarea id="outputCode"></textarea>
         <div class="button-group">
             <button id="copyCodeButton">Copiar Codi</button>
@@ -508,7 +594,11 @@
         const copyFeedback = document.getElementById('copyFeedback');
         const loadCodeButton = document.getElementById('loadCodeButton');
         const folderInput = document.getElementById('folderInput');
-
+        
+        // Text Display Elements
+        const imageFileStatus = document.getElementById('imageFileStatus');
+        const outputCodeTitle = document.getElementById('outputCodeTitle');
+        
         // --- State Variables ---
         let isDrawing = false;
         let isDragging = false;
@@ -562,10 +652,19 @@
         }
 
         function formatVariable(varName) {
+            // Ensures the variable starts with $
             if (varName && typeof varName === 'string' && !varName.startsWith('$')) {
                 return '$' + varName;
             }
             return varName;
+        }
+
+        function cleanVariableName(varName) {
+             // Removes $ if it exists
+             if (varName && typeof varName === 'string' && varName.startsWith('$')) {
+                 return varName.substring(1);
+             }
+             return varName || '';
         }
         
         // Build the condition string for Harlowe (e.g., "$clau is 'espasa'")
@@ -611,7 +710,7 @@
 
             const formattedVariable = formatVariable(variable.trim());
             const trimmedValue = value.trim();
-            const arithmeticOperators = ['+=', '-=', '*=', '/='];
+            const arithmeticOperators = ['+=', '-=', '*=', '/=', 'to', '='];
 
             // Valor de la dreta
             let formattedValue = trimmedValue;
@@ -720,6 +819,8 @@
             const file = e.target.files[0];
             if (file) {
                 mainImageFilename = file.name; // Store the filename when uploading manually
+                imageFileStatus.textContent = file.name; // Update the span
+                
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     // IMPORTANT: Reset logic only for manual image upload
@@ -748,6 +849,7 @@
                 imageEditor.style.minHeight = '400px';
                 hotspots = [];
                 mainImageFilename = null; // Clear filename if image is removed
+                imageFileStatus.textContent = "Cap fitxer seleccionat";
                 renderHotspots();
                 generateTwineCode();
             }
@@ -776,7 +878,8 @@
             if (e.touches && e.touches.length > 0) {
                 return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
             }
-            return { clientX: e.clientX, clientY: e.clientY };
+            // Fix: Use clientY instead of cY which was undefined
+            return { clientX: e.clientX, clientY: e.clientY }; 
         }
 
         function findParentWithClass(element, className) {
@@ -805,7 +908,8 @@
             const { clientX, clientY } = getCoords(e);
 
             startX = clientX;
-            startY = clientY;
+            // Fix: Use clientY instead of cY
+            startY = clientY; 
             hasMovedDuringInteraction = false; 
             initialInteractionTarget = e.target; 
 
@@ -973,7 +1077,7 @@
 
                 const hotspotRectVis = currentRect.getBoundingClientRect(), imageRectVis = imageDisplay.getBoundingClientRect();
                 let l_disp = hotspotRectVis.left - imageRectVis.left, t_disp = hotspotRectVis.top - imageRectVis.top,
-                    w_disp = hotspotRectVis.width, h_disp = hotspotRectVis.height;
+                    w_disp = hotspotRectVis.width, h_disp = currentRect.offsetHeight; // Fixed height logic
                 currentRect.remove(); 
                 currentRect = null; 
 
@@ -991,19 +1095,13 @@
                         value: '',
                         titleText: '', sound: '', soundClick: '', infoText: '', infoText2: '',
                         transition: '', transitionArrive: '',
-                        
-                        // Setter Builder fields
-                        setterVariable: '', setterOperator: 'to', setterValue: '',
-                        
-                        // Secondary Variable fields
-                        variable2: '', operator2: 'to', valor2: '', 
-
+                        variable: '', valor: '', titleTextSetter: '', soundSetter: '', hotspotSoundClickSetter: '',
+                        infoTextSetter: '', infoTextSetter2: '',
                         // Dialog fields
                         characterName: '',
                         jsonContent: '',
                         jsonFileName: '',
                         infoTextDialog: '', soundDialog: '', titleTextDialog: '',
-                        
                         // Conditional Builder fields:
                         dialogConditionVariable: '', dialogConditionOperator: 'is', dialogConditionValue: '', dialogFailInfo: '', dialogFailInfoEnter: '',
                         dialogSoundFail: '', dialogSoundClickFail: '',
@@ -1012,7 +1110,13 @@
                         passageSoundFail: '', passageSoundClickFail: '',
                         setterConditionVariable: '', setterConditionOperator: 'is', setterConditionValue: '', setterFailInfo: '', setterFailInfoEnter: '',
                         setterSoundFail: '', setterSoundClickFail: '',
+
+                        // Setter Builder fields
+                        setterVariable: '', setterOperator: 'to', setterValue: '',
                         
+                        // Secondary Variable fields
+                        variable2: '', operator2: 'to', valor2: '', 
+
                         visitLimit: '', visitLimitTextEnter: '', visitLimitTextClic: '', enableVisitLimit: false,
                         enableSecondaryVariable: false, enableConditionVariable: false,
                         
@@ -1020,9 +1124,14 @@
                         enableOverlay: false, // NEW: Overlay toggle
                         overlayImage: null, // Base64
                         overlayFilename: null,
+                        overlayInventoriable: false, // NEW: Inventoriable toggle
+                        overlayRemoveFromScene: false, // NEW: Remove from scene toggle
                         overlayConditionVariable: '',
                         overlayConditionOperator: 'is',
-                        overlayConditionValue: ''
+                        overlayConditionValue: '',
+                        
+                        // Interactions Array for this hotspot
+                        inventoryInteractions: [] 
                     });
                 }
                 renderHotspots();
@@ -1044,7 +1153,7 @@
                         if (dispW && dispH) {
                             const hotspotRectVis = activeHotspotElement.getBoundingClientRect(), imageRectVis = imageDisplay.getBoundingClientRect();
                             const l_disp = hotspotRectVis.left - imageRectVis.left, t_disp = hotspotRectVis.top - imageRectVis.top,
-                                  w_disp = hotspotRectVis.width, h_disp = hotspotRectVis.height;
+                                  w_disp = hotspotRectVis.width, h_disp = activeHotspotElement.offsetHeight; // Fixed height logic
                             const sX = natW / dispW, sY = natH / dispH;
                             const fL = l_disp * sX, fT = t_disp * sY, fW = w_disp * sX, fH = h_disp * sY;
                             hotspot.coords = [Math.round(fL), Math.round(fT), Math.round(fL + fW), Math.round(fT + fH)].join(',');
@@ -1063,11 +1172,21 @@
             const passageSection = itemElement.querySelector('.passage-specific-fields');
             const setterSection = itemElement.querySelector('.setter-specific-fields');
             const dialogSection = itemElement.querySelector('.dialog-specific-fields');
-            const overlayContent = itemElement.querySelector('.overlay-content-area'); // New selector for overlay content
-
+            const overlayContent = itemElement.querySelector('.overlay-content-area');
+            
+            // Right column visibility inside overlay config
+            const overlayRightCol = itemElement.querySelector('.overlay-column-right');
+            
             // Overlay visibility
             if (overlayContent) {
                 overlayContent.classList.toggle('hidden-field', !hotspot.enableOverlay);
+            }
+            
+            // Inventory Interaction Panel visibility (inside right column)
+            if (overlayRightCol) {
+                 // Only show if overlay enabled AND inventoriable checked
+                 const showInteractions = hotspot.enableOverlay && hotspot.overlayInventoriable;
+                 overlayRightCol.style.display = showInteractions ? 'block' : 'none';
             }
 
             // Generic function to update visibility for any section
@@ -1094,6 +1213,14 @@
                     visitLimitSectionContainer.classList.toggle('hidden-field', !hotspot.enableVisitLimit);
                     enableVisitLimitCheckbox.checked = hotspot.enableVisitLimit;
                 }
+
+                // Inventory visibility inside specific sections
+                const invGroups = itemElement.querySelectorAll('.inventoriable-fields-group');
+                const showInvFields = hotspot.enableOverlay && hotspot.overlayInventoriable;
+
+                invGroups.forEach(group => {
+                    group.classList.toggle('hidden-field', !showInvFields);
+                });
             };
 
             updateSectionVisibility(passageSection);
@@ -1109,18 +1236,30 @@
         }
         
         // Helper to generate secondary variable builder HTML (NEW)
-        const generateSecondaryVariableBuilder = (prefix, hotspot) => `
-            <div style="margin-bottom: 5px;">
-                <label class="darkblue-label">Assignació Secundària:</label>
-                <div class="setter-builder">
-                    <input type="text" data-field="variable2" value="${escapeHtml(hotspot.variable2 || '')}" placeholder="Variable (sense $)" style="grid-column: 1 / 2;">
-                    <select data-field="operator2" style="grid-column: 2 / 3;">
-                        ${getOperatorOptionsHtml(SETTER_OPERATORS, hotspot.operator2 || 'to')}
-                    </select>
-                    <input type="text" data-field="valor2" value="${escapeHtml(hotspot.valor2 || '')}" placeholder="Valor" style="grid-column: 3 / 4;">
+        const generateSecondaryVariableBuilder = (prefix, hotspot) => {
+            let variableKey = 'variable2';
+            let operatorKey = 'operator2';
+            let valueKey = 'valor2';
+            
+            return `
+                <div style="margin-bottom: 5px;">
+                    <label class="darkblue-label">Valor de la variable:</label>
+                    <div class="setter-builder">
+                        <input type="text" data-field="${variableKey}" value="${escapeHtml(hotspot[variableKey] || '')}" placeholder="Variable (sense $)" style="grid-column: 1 / 2;">
+                        <select data-field="${operatorKey}" style="grid-column: 2 / 3;">
+                            ${getOperatorOptionsHtml(SETTER_OPERATORS, hotspot[operatorKey] || 'to')}
+                        </select>
+                        <input type="text" data-field="${valueKey}" value="${escapeHtml(hotspot[valueKey] || '')}" placeholder="Valor" style="grid-column: 3 / 4;">
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        };
+        
+        // Helper to get hotspot name options for the dropdown
+        function getHotspotOptions() {
+             let options = hotspots.map(h => `<option value="${h.name}">${escapeHtml(h.name)}</option>`).join('');
+             return `<select class="hotspot-name-select" style="flex: 1;"><option value="">-- Seleccionar Hotspot --</option>${options}</select>`;
+        }
 
         // Function to render hotspots in the image editor and configuration panel
         function renderHotspots() {
@@ -1230,28 +1369,57 @@
                 item.classList.add('hotspot-item');
                 item.dataset.hotspotId = hotspot.id;
 
+                const isOverlayActive = hotspot.enableOverlay;
+                const isInventoriable = hotspot.overlayInventoriable;
+                const hideOverlayContent = !isOverlayActive ? 'hidden-field' : '';
+
+                const hideInventoriableFields = !isInventoriable ? 'hidden-field' : '';
+
                 let overlaySectionHtml = `
                     <div class="overlay-toggle-container">
                         <label>
-                            <input type="checkbox" data-field="enableOverlay" ${hotspot.enableOverlay ? 'checked' : ''}>
+                            <input type="checkbox" data-field="enableOverlay" ${isOverlayActive ? 'checked' : ''}>
                             Afegir personatge/objecte
                         </label>
                     </div>
-                    <div class="overlay-config-section overlay-content-area ${hotspot.enableOverlay ? '' : 'hidden-field'}">
-                        <label class="bold-label">Imatge Superposada:</label>
-                        ${hotspot.overlayImage ? 
-                            `<img src="${hotspot.overlayImage}" class="overlay-preview-img">
-                             <button class="remove-overlay-btn">Eliminar imatge</button>` : 
-                            `<input type="file" class="overlay-file-input" accept="image/*">`
-                        }
-                        <div style="margin-top: 15px;">
-                            <label>Condició de visibilitat (imtg/hotspot):</label>
-                            <div class="conditional-builder">
-                                <input type="text" data-field="overlayConditionVariable" value="${escapeHtml(hotspot.overlayConditionVariable || '')}" placeholder="Variable (sense $)">
-                                <select data-field="overlayConditionOperator">
-                                    ${getOperatorOptionsHtml(CONDITION_OPERATORS, hotspot.overlayConditionOperator || 'is')}
-                                </select>
-                                <input type="text" data-field="overlayConditionValue" value="${escapeHtml(hotspot.overlayConditionValue || '')}" placeholder="Valor">
+                    <div class="overlay-config-section overlay-content-area ${hideOverlayContent}">
+                        <div class="overlay-column-left">
+                            <label class="bold-label">Imatge Superposada:</label>
+                            ${hotspot.overlayImage ? 
+                                `<img src="${hotspot.overlayImage}" class="overlay-preview-img">
+                                 <button class="remove-overlay-btn">Eliminar imatge</button>` : 
+                                `<input type="file" class="overlay-file-input" accept="image/*">`
+                            }
+                            <div style="margin-top: 15px;">
+                                <div class="overlay-toggle-container">
+                                    <label class="violet-label">
+                                        <input type="checkbox" data-field="overlayInventoriable" ${isInventoriable ? 'checked' : ''}>
+                                        Inventariable
+                                    </label>
+                                </div>
+
+                                <label>Condició de visibilitat (imtg/hotspot):</label>
+                                <div class="conditional-builder">
+                                    <input type="text" data-field="overlayConditionVariable" value="${escapeHtml(hotspot.overlayConditionVariable || '')}" placeholder="Variable (sense $)">
+                                    <select data-field="overlayConditionOperator">
+                                        ${getOperatorOptionsHtml(CONDITION_OPERATORS, hotspot.overlayConditionOperator || 'is')}
+                                    </select>
+                                    <input type="text" data-field="overlayConditionValue" value="${escapeHtml(hotspot.overlayConditionValue || '')}" placeholder="Valor">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overlay-column-right">
+                            <h4 class="violet-label" style="margin-top:0;">Interaccions Especials (Inventariable)</h4>
+                             <div class="overlay-toggle-container">
+                                <label class="violet-label">
+                                    <input type="checkbox" data-field="overlayRemoveFromScene" ${hotspot.overlayRemoveFromScene ? 'checked' : ''}>
+                                    Treure d'escena al passar a l'inventari
+                                </label>
+                            </div>
+                            <p style="font-size:0.9em; color:#666;">Defineix les accions d'ítem:</p>
+                            <button class="add-interaction-btn">Afegir nova interacció</button>
+                            <div class="inventory-interactions-list" id="interactions-list-${hotspot.id}">
+                                <!-- Interaction items will be injected here -->
                             </div>
                         </div>
                     </div>
@@ -1280,6 +1448,14 @@
                                 <label>So (clic - nom àudio enregistrat a hal.tracks):</label><input type="text" data-field="soundClickSetter" value="${escapeHtml(hotspot.soundClickSetter || '')}">
                                 <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="soundSetter" value="${escapeHtml(hotspot.soundSetter || '')}">
                                 <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleTextSetter" value="${escapeHtml(hotspot.titleTextSetter || '')}">
+
+                                <div class="inventoriable-fields-group ${hideInventoriableFields}">
+                                    <label class="violet-label">Inventari: Text (mouse enter):</label><textarea data-field="infoTextSetterInventori">${escapeHtml(hotspot.infoTextSetterInventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: Text al fer clic:</label><textarea data-field="infoTextSetter2Inventori">${escapeHtml(hotspot.infoTextSetter2Inventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: So clic:</label><input type="text" data-field="soundClickSetterInventori" value="${escapeHtml(hotspot.soundClickSetterInventori || '')}">
+                                    <label class="violet-label">Inventari: So (mouse enter):</label><input type="text" data-field="soundSetterInventori" value="${escapeHtml(hotspot.soundSetterInventori || '')}">
+                                    <label class="violet-label">Inventari: Etiqueta:</label><input type="text" data-field="titleTextSetterInventori" value="${escapeHtml(hotspot.titleTextSetterInventori || '')}">
+                                </div>
                             </div>
                             <div class="column condition-inputs-wrapper">
                                 <div class="condition-toggle-container">
@@ -1329,9 +1505,21 @@
                         
                         <div class="two-column-layout">
                             <div class="column">
+                                <div style="height: 1.5em;"></div> 
+                                <div style="height: 1.5em;"></div> 
+                                <div style="height: 1.5em;"></div> 
+
                                 <label>Text (mouse enter):</label><textarea data-field="infoTextDialog">${escapeHtml(hotspot.infoTextDialog)}</textarea>
                                 <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="soundDialog" value="${escapeHtml(hotspot.soundDialog || '')}">
                                 <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleTextDialog" value="${escapeHtml(hotspot.titleTextDialog || '')}">
+
+                                <div class="inventoriable-fields-group ${hideInventoriableFields}">
+                                    <label class="violet-label">Inventari: Text (mouse enter):</label><textarea data-field="infoTextDialogInventori">${escapeHtml(hotspot.infoTextDialogInventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: Text al fer clic:</label><textarea data-field="infoTextDialog2Inventori">${escapeHtml(hotspot.infoTextDialog2Inventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: So clic:</label><input type="text" data-field="soundClickDialogInventori" value="${escapeHtml(hotspot.soundClickDialogInventori || '')}">
+                                    <label class="violet-label">Inventari: So (mouse enter):</label><input type="text" data-field="soundDialogInventori" value="${escapeHtml(hotspot.soundDialogInventori || '')}">
+                                    <label class="violet-label">Inventari: Etiqueta:</label><input type="text" data-field="titleTextDialogInventori" value="${escapeHtml(hotspot.titleTextDialogInventori || '')}">
+                                </div>
                             </div>
                             <div class="column condition-inputs-wrapper">
                                 <div class="condition-toggle-container">
@@ -1387,6 +1575,14 @@
                                 <label>So (clic - nom àudio enregistrat a hal.tracks):</label><input type="text" data-field="soundClick" value="${escapeHtml(hotspot.soundClick || '')}">
                                 <label>So (mouse enter - nom de l'àudio registrat a hal.tracks):</label><input type="text" data-field="sound" value="${escapeHtml(hotspot.sound || '')}">
                                 <label>Etiqueta (apareix quan t'atures sobre):</label><input type="text" data-field="titleText" value="${escapeHtml(hotspot.titleText || '')}">
+
+                                <div class="inventoriable-fields-group ${hideInventoriableFields}">
+                                    <label class="violet-label">Inventari: Text (mouse enter):</label><textarea data-field="infoTextInventori">${escapeHtml(hotspot.infoTextInventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: Text al fer clic:</label><textarea data-field="infoText2Inventori">${escapeHtml(hotspot.infoText2Inventori || '')}</textarea>
+                                    <label class="violet-label">Inventari: So clic:</label><input type="text" data-field="soundClickInventori" value="${escapeHtml(hotspot.soundClickInventori || '')}">
+                                    <label class="violet-label">Inventari: So (mouse enter):</label><input type="text" data-field="soundInventori" value="${escapeHtml(hotspot.soundInventori || '')}">
+                                    <label class="violet-label">Inventari: Etiqueta:</label><input type="text" data-field="titleTextInventori" value="${escapeHtml(hotspot.titleTextInventori || '')}">
+                                </div>
                             </div>
                             <div class="column condition-inputs-wrapper">
                                 <div class="condition-toggle-container">
@@ -1448,27 +1644,26 @@
                 toggle(hotspot.type);
 
                 const deleteConfigButton = item.querySelector('.delete-config-button');
+                
+                // Interaction Area Logic within Render loop
+                const interactionListContainer = item.querySelector(`#interactions-list-${hotspot.id}`);
+                const addInteractionBtn = item.querySelector('.add-interaction-btn');
 
-                const overlayContentArea = item.querySelector('.overlay-content-area');
-
-                const enableOverlayCheckbox = item.querySelector('[data-field="enableOverlay"]');
-                if (enableOverlayCheckbox) {
-                    enableOverlayCheckbox.addEventListener('change', (e) => {
-                        hotspot.enableOverlay = e.target.checked;
-                        if (!e.target.checked) {
-                            // Clear content if deactivated
-                            hotspot.overlayImage = null;
-                            hotspot.overlayFilename = null;
-                            hotspot.overlayConditionVariable = '';
-                            hotspot.overlayConditionOperator = 'is';
-                            hotspot.overlayConditionValue = '';
-                        }
-                        renderHotspots(); // Re-render to update the visual state and UI controls
-                        generateTwineCode();
-                    });
+                // Render existing interactions for this hotspot
+                if (hotspot.inventoryInteractions && hotspot.inventoryInteractions.length > 0) {
+                     hotspot.inventoryInteractions.forEach((inter, index) => {
+                         renderSingleInteraction(inter, index, interactionListContainer, hotspot);
+                     });
                 }
 
-
+                addInteractionBtn.addEventListener('click', () => {
+                    const newInteraction = {}; // Empty object
+                    if (!hotspot.inventoryInteractions) hotspot.inventoryInteractions = [];
+                    hotspot.inventoryInteractions.push(newInteraction);
+                    renderHotspots(); // Re-render to show new item
+                    generateTwineCode();
+                });
+                
                 const overlayInput = item.querySelector('.overlay-file-input');
                 const removeOverlayBtn = item.querySelector('.remove-overlay-btn');
                 
@@ -1492,10 +1687,49 @@
                     removeOverlayBtn.addEventListener('click', () => {
                         hotspot.overlayImage = null;
                         hotspot.overlayFilename = null;
+                        hotspot.overlayInventoriable = false; // Clear invented status
                         renderHotspots();
                         generateTwineCode();
                     });
                 }
+
+                const overlayInventoriableCheckbox = item.querySelector('[data-field="overlayInventoriable"]');
+                if (overlayInventoriableCheckbox) {
+                    overlayInventoriableCheckbox.addEventListener('change', (e) => {
+                        hotspot.overlayInventoriable = e.target.checked;
+                        updateInnerFieldVisibility(hotspot, item); // Trigger visibility change instantly
+                        generateTwineCode();
+                    });
+                }
+                
+                const enableOverlayCheckbox = item.querySelector('[data-field="enableOverlay"]');
+                if (enableOverlayCheckbox) {
+                    enableOverlayCheckbox.addEventListener('change', (e) => {
+                        hotspot.enableOverlay = e.target.checked;
+                         if (!e.target.checked) {
+                            // Clear content if deactivated
+                            hotspot.overlayImage = null;
+                            hotspot.overlayFilename = null;
+                            hotspot.overlayInventoriable = false;
+                            hotspot.overlayConditionVariable = '';
+                            hotspot.overlayConditionOperator = 'is';
+                            hotspot.overlayConditionValue = '';
+                            hotspot.overlayRemoveFromScene = false; // Clear remove scene status
+                            hotspot.inventoryInteractions = []; // Clear interactions too
+                        }
+                        renderHotspots(); // Re-render to update the visual state and UI controls
+                        generateTwineCode();
+                    });
+                }
+
+                const overlayRemoveFromSceneCheckbox = item.querySelector('[data-field="overlayRemoveFromScene"]');
+                if (overlayRemoveFromSceneCheckbox) {
+                    overlayRemoveFromSceneCheckbox.addEventListener('change', (e) => {
+                        hotspot.overlayRemoveFromScene = e.target.checked;
+                        generateTwineCode();
+                    });
+                }
+
                 
                 // --- Overlay Condition Listeners ---
                 ['overlayConditionVariable', 'overlayConditionOperator', 'overlayConditionValue'].forEach(f => {
@@ -1604,7 +1838,7 @@
                 });
                 
                 // --- Passage Fields Listeners ---
-                ['value','sound','soundClick', 'titleText', 'infoText', 'infoText2', 'transition', 'transitionArrive'].forEach(f => {
+                ['value','sound','soundClick', 'titleText', 'infoText', 'infoText2', 'transition', 'transitionArrive', 'infoTextInventori', 'infoText2Inventori', 'soundClickInventori', 'soundInventori', 'titleTextInventori'].forEach(f => {
                     const element = item.querySelector(`.passage-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
@@ -1616,7 +1850,7 @@
                 });
 
                 // --- Setter Fields Listeners ---
-                ['setterVariable', 'setterOperator', 'setterValue', 'soundSetter','soundClickSetter', 'titleTextSetter', 'infoTextSetter', 'infoTextSetter2'].forEach(f => {
+                ['setterVariable', 'setterOperator', 'setterValue', 'soundSetter','soundClickSetter', 'titleTextSetter', 'infoTextSetter', 'infoTextSetter2', 'infoTextSetterInventori', 'infoTextSetter2Inventori', 'soundClickSetterInventori', 'soundSetterInventori', 'titleTextSetterInventori'].forEach(f => {
                     const element = item.querySelector(`.setter-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener(element.tagName === 'SELECT' ? 'change' : 'input', e => {
@@ -1628,7 +1862,7 @@
                 });
                 
                 // --- Dialog Info Fields Listeners ---
-                ['infoTextDialog', 'soundDialog', 'titleTextDialog'].forEach(f => {
+                ['infoTextDialog', 'soundDialog', 'titleTextDialog', 'infoTextDialogInventori', 'infoTextDialog2Inventori', 'soundClickDialogInventori', 'soundDialogInventori', 'titleTextDialogInventori'].forEach(f => {
                     const element = item.querySelector(`.dialog-specific-fields [data-field="${f}"]`);
                     if (element) {
                         element.addEventListener('input', e => {
@@ -1735,6 +1969,100 @@
                     imageEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
             });
+            
+            // --- NEW: Global Visibility Logic for Interaction Panel ---
+            const hasInventoriableHotspot = hotspots.some(h => h.enableOverlay && h.overlayInventoriable);
+            // Removed: inventoryInteractionContainer logic as it is now inside the hotspot
+        }
+        
+        // Helper function to render a single interaction item within a hotspot config
+        function renderSingleInteraction(interaction, index, container, hotspot) {
+            const item = document.createElement('div');
+            item.className = 'interaction-item';
+            item.innerHTML = `
+                <h5 class="violet-label" style="margin-top: 0;">Interacció #${index + 1}</h5>
+                <div class="hotspot-select-container">
+                     ${getHotspotOptions()}
+                     <input type="text" class="hotspot-name-manual" placeholder="o escriu a mà" value="${escapeHtml(interaction.targetHotspot || '')}" style="flex:1;">
+                </div>
+                
+                <label>Text Interacció:</label>
+                <textarea class="interaction-text" placeholder="Missatge...">${escapeHtml(interaction.text || '')}</textarea>
+
+                <div style="margin-top: 10px;">
+                    <p class="bold-label" style="margin-bottom:5px;">Efecte Principal:</p>
+                    <div class="setter-builder">
+                        <input type="text" class="var1" placeholder="Var" value="${escapeHtml(interaction.var1 || '')}">
+                        <select class="op1">${getOperatorOptionsHtml(SETTER_OPERATORS, interaction.op1 || 'to')}</select>
+                        <input type="text" class="val1" placeholder="Val" value="${escapeHtml(interaction.val1 || '')}">
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <p class="bold-label" style="margin-bottom:5px;">Efecte Secundari:</p>
+                    <div class="setter-builder">
+                         <input type="text" class="var2" placeholder="Var" value="${escapeHtml(interaction.var2 || '')}">
+                         <select class="op2">${getOperatorOptionsHtml(SETTER_OPERATORS, interaction.op2 || 'to')}</select>
+                         <input type="text" class="val2" placeholder="Val" value="${escapeHtml(interaction.val2 || '')}">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <label class="violet-label">
+                        <input type="checkbox" class="remove-item-check" ${interaction.removeItem ? 'checked' : ''}>
+                        Eliminar l'ítem de l'inventari
+                    </label>
+                </div>
+
+                <button class="delete-interaction-btn" style="background-color: #dc3545; margin-top: 10px; width: 100%;">Eliminar</button>
+            `;
+            
+            // Set initial value for dropdown if matches
+            const select = item.querySelector('.hotspot-name-select');
+            if (select && interaction.targetHotspot) {
+                 select.value = interaction.targetHotspot;
+                 // If not in dropdown, it might be manual, manual input handles it
+            }
+            
+            // Listeners to update model
+            const updateModel = () => {
+                const manualInput = item.querySelector('.hotspot-name-manual').value;
+                const selectedInput = item.querySelector('.hotspot-name-select').value;
+                
+                interaction.targetHotspot = manualInput || selectedInput; // Prioritize manual input if typed, else dropdown
+                interaction.text = item.querySelector('.interaction-text').value;
+                interaction.var1 = item.querySelector('.var1').value;
+                interaction.op1 = item.querySelector('.op1').value;
+                interaction.val1 = item.querySelector('.val1').value;
+                interaction.var2 = item.querySelector('.var2').value;
+                interaction.op2 = item.querySelector('.op2').value;
+                interaction.val2 = item.querySelector('.val2').value;
+                // removeItem handled separately by checkbox listener
+                generateTwineCode();
+            };
+            
+            item.querySelectorAll('input[type="text"], textarea, select').forEach(el => {
+                el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', updateModel);
+            });
+            
+            // Checkbox listener
+            item.querySelector('.remove-item-check').addEventListener('change', (e) => {
+                interaction.removeItem = e.target.checked;
+                generateTwineCode();
+            });
+            
+            // Sync dropdown and text input
+            select.addEventListener('change', (e) => {
+                 item.querySelector('.hotspot-name-manual').value = e.target.value;
+                 updateModel();
+            });
+            
+            item.querySelector('.delete-interaction-btn').addEventListener('click', () => {
+                 hotspot.inventoryInteractions.splice(index, 1);
+                 renderHotspots(); // Re-render to update list
+                 generateTwineCode();
+            });
+
+            container.appendChild(item);
         }
         
         function removeHotspot(id) {
@@ -1752,9 +2080,16 @@
                 return;
             }
             
+            // Update Title
+            if (outputCodeTitle) {
+                 outputCodeTitle.textContent = `Codi Twine (Harlowe) Generat per ${currentFileName}`;
+            }
+
             let twineCode = '';
             
             twineCode += `<div class="twine-image-wrapper" style="min-width:${imageDisplay.naturalWidth}px;">\n`;
+            twineCode += `<div id="inventory-container"></div>\n`; // Afegeix el contenidor d'inventari
+            twineCode += `<div id="cursor-label"></div>\n`; // Afegeix el contenidor de l'etiqueta del cursor (NOU)
             twineCode += `    <img src="imatges/${currentFileName.replace(/"/g, '&quot;')}" usemap="#hotspotmap" alt="Imatge amb hotspots">\n`;
             
             const dispW = imageDisplay.naturalWidth;
@@ -1801,19 +2136,28 @@
                 areaTag += `            class="hotspot-item"\n`;
                 
                 // --- Overlay Data ---
-                if (hotspot.enableOverlay && hotspot.overlayFilename) {
-                    let finalOverlayName = hotspot.overlayFilename;
-                    if (!finalOverlayName.startsWith('imatges/')) {
-                        finalOverlayName = `imatges/${finalOverlayName}`;
-                    }
-                    areaTag += `            data-overlay-filename="${escapeHtml(finalOverlayName)}"\n`;
-                }
-
-                // Global Condition Vars (saved for parsing/editing)
                 if (hotspot.enableOverlay) {
                     // Overlay activation status
                     areaTag += `            data-overlay-enabled="true"\n`;
+                    
+                    if (hotspot.overlayFilename) {
+                        let finalOverlayName = hotspot.overlayFilename;
+                        if (!finalOverlayName.startsWith('imatges/')) {
+                            finalOverlayName = `imatges/${finalOverlayName}`;
+                        }
+                        areaTag += `            data-overlay-filename="${escapeHtml(finalOverlayName)}"\n`;
+                    }
 
+                    // Inventariable flag
+                    if (hotspot.overlayInventoriable) {
+                         areaTag += `            data-overlay-inventoriable="true"\n`;
+                    }
+                    
+                    // Remove from scene flag
+                    if (hotspot.overlayRemoveFromScene) {
+                         areaTag += `            data-overlay-remove-from-scene="true"\n`;
+                    }
+                    
                     // Overlay Condition for Interaction (Hotspot activation)
                     const overlayConditionString = buildConditionString(hotspot.overlayConditionVariable, hotspot.overlayConditionOperator, hotspot.overlayConditionValue);
                     if (overlayConditionString) {
@@ -1824,8 +2168,15 @@
                     if (hotspot.overlayConditionVariable) areaTag += `            data-overlay-condition-var="${escapeHtml(hotspot.overlayConditionVariable)}"\n`;
                     if (hotspot.overlayConditionOperator) areaTag += `            data-overlay-condition-op="${escapeHtml(hotspot.overlayConditionOperator)}"\n`;
                     if (hotspot.overlayConditionValue) areaTag += `            data-overlay-condition-val="${escapeHtml(hotspot.overlayConditionValue)}"\n`;
+                    
+                    // Interactions Serialization
+                    if (hotspot.inventoryInteractions && hotspot.inventoryInteractions.length > 0) {
+                        // We store this as a JSON string in a data attribute
+                        const interactionsJSON = JSON.stringify(hotspot.inventoryInteractions);
+                        // We need to be careful about escaping quotes inside the attribute
+                        areaTag += `            data-inventory-interactions='${interactionsJSON.replace(/'/g, "&apos;")}'\n`;
+                    }
                 }
-
 
                 // --- Secondary Variable (Common) ---
                 if (hotspot.enableSecondaryVariable && hotspot.variable2 && hotspot.operator2 && hotspot.valor2) {
@@ -1833,9 +2184,9 @@
                     areaTag += `            data-variable-2-setter="${escapeHtml(secondarySetter)}"\n`;
                     
                     // Vars for re-parsing
-                    areaTag += `            data-variable-2-var="${escapeHtml(hotspot.variable2)}"\n`;
-                    areaTag += `            data-variable-2-op="${escapeHtml(hotspot.operator2)}"\n`;
-                    areaTag += `            data-variable-2-val="${escapeHtml(hotspot.valor2)}"\n`;
+                    if (hotspot.variable2) areaTag += `            data-variable-2-var="${escapeHtml(hotspot.variable2)}"\n`;
+                    if (hotspot.operator2) areaTag += `            data-variable-2-op="${escapeHtml(hotspot.operator2)}"\n`;
+                    if (hotspot.valor2) areaTag += `            data-variable-2-val="${escapeHtml(hotspot.valor2)}"\n`;
                 }
                 
                 // --- Dialog Action ---
@@ -1847,14 +2198,22 @@
                      if (hotspot.soundDialog) areaTag += `            data-sound="${escapeHtml(hotspot.soundDialog)}"\n`; 
                      if (hotspot.titleTextDialog) areaTag += `            title="${escapeHtml(hotspot.titleTextDialog)}"\n`;
 
+                     // NEW: Inventariable Dialog Fields
+                     if (hotspot.infoTextDialogInventori) areaTag += `            data-info-dialog-inventori="${escapeHtml(hotspot.infoTextDialogInventori)}"\n`;
+                     if (hotspot.infoTextDialog2Inventori) areaTag += `            data-info-dialog-2-inventori="${escapeHtml(hotspot.infoTextDialog2Inventori)}"\n`;
+                     if (hotspot.soundClickDialogInventori) areaTag += `            data-sound-click-dialog-inventori="${escapeHtml(hotspot.soundClickDialogInventori)}"\n`;
+                     if (hotspot.soundDialogInventori) areaTag += `            data-sound-dialog-inventori="${escapeHtml(hotspot.soundDialogInventori)}"\n`;
+                     if (hotspot.titleTextDialogInventori) areaTag += `            data-title-text-dialog-inventori="${escapeHtml(hotspot.titleTextDialogInventori)}"\n`;
+
+
                      if (hotspot.enableConditionVariable && hotspot.dialogConditionVariable && hotspot.dialogConditionOperator && hotspot.dialogConditionValue) {
                         const conditionString = buildConditionString(hotspot.dialogConditionVariable, hotspot.dialogConditionOperator, hotspot.dialogConditionValue);
                         areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
                         
                         // Vars for re-parsing
-                        areaTag += `            data-condition-var="${escapeHtml(hotspot.dialogConditionVariable)}"\n`;
-                        areaTag += `            data-condition-op="${escapeHtml(hotspot.dialogConditionOperator)}"\n`;
-                        areaTag += `            data-condition-val="${escapeHtml(hotspot.dialogConditionValue)}"\n`;
+                        if (hotspot.dialogConditionVariable) areaTag += `            data-condition-var="${escapeHtml(hotspot.dialogConditionVariable)}"\n`;
+                        if (hotspot.dialogConditionOperator) areaTag += `            data-condition-op="${escapeHtml(hotspot.dialogConditionOperator)}"\n`;
+                        if (hotspot.dialogConditionValue) areaTag += `            data-condition-val="${escapeHtml(hotspot.dialogConditionValue)}"\n`;
                         
                         if (hotspot.dialogFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.dialogFailInfo)}"\n`;
                         if (hotspot.dialogFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.dialogFailInfoEnter)}"\n`;
@@ -1870,9 +2229,9 @@
                         areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
                         
                         // Vars for re-parsing
-                        areaTag += `            data-condition-var="${escapeHtml(hotspot.passageConditionVariable)}"\n`;
-                        areaTag += `            data-condition-op="${escapeHtml(hotspot.passageConditionOperator)}"\n`;
-                        areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
+                        if (hotspot.passageConditionVariable) areaTag += `            data-condition-var="${escapeHtml(hotspot.passageConditionVariable)}"\n`;
+                        if (hotspot.passageConditionOperator) areaTag += `            data-condition-op="${escapeHtml(hotspot.passageConditionOperator)}"\n`;
+                        if (hotspot.passageConditionValue) areaTag += `            data-condition-val="${escapeHtml(hotspot.passageConditionValue)}"\n`;
                         
                         if (hotspot.passageFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.passageFailInfo)}"\n`;
                         if (hotspot.passageFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.passageFailInfoEnter)}"\n`;
@@ -1887,6 +2246,14 @@
                     if (hotspot.transition) areaTag += `            data-transition-depart="${escapeHtml(hotspot.transition)}"\n`; 
                     if (hotspot.transitionArrive) areaTag += `            data-transition-arrive="${escapeHtml(hotspot.transitionArrive)}"\n`;
                     if (hotspot.titleText) areaTag += `            title="${escapeHtml(hotspot.titleText)}"\n`;
+
+                    // NEW: Inventariable Passage Fields
+                    if (hotspot.infoTextInventori) areaTag += `            data-info-inventori="${escapeHtml(hotspot.infoTextInventori)}"\n`;
+                    if (hotspot.infoText2Inventori) areaTag += `            data-info-2-inventori="${escapeHtml(hotspot.infoText2Inventori)}"\n`;
+                    if (hotspot.soundClickInventori) areaTag += `            data-sound-click-inventori="${escapeHtml(hotspot.soundClickInventori)}"\n`;
+                    if (hotspot.soundInventori) areaTag += `            data-sound-inventori="${escapeHtml(hotspot.soundInventori)}"\n`;
+                    if (hotspot.titleTextInventori) areaTag += `            data-title-text-inventori="${escapeHtml(hotspot.titleTextInventori)}"\n`;
+
                 } 
                 
                 // --- Setter Action ---
@@ -1896,9 +2263,9 @@
                         areaTag += `            data-condition="${escapeHtml(conditionString)}"\n`;
                         
                         // Vars for re-parsing
-                        areaTag += `            data-condition-var="${escapeHtml(hotspot.setterConditionVariable)}"\n`;
-                        areaTag += `            data-condition-op="${escapeHtml(hotspot.setterConditionOperator)}"\n`;
-                        areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
+                        if (hotspot.setterConditionVariable) areaTag += `            data-condition-var="${escapeHtml(hotspot.setterConditionVariable)}"\n`;
+                        if (hotspot.setterConditionOperator) areaTag += `            data-condition-op="${escapeHtml(hotspot.setterConditionOperator)}"\n`;
+                        if (hotspot.setterConditionValue) areaTag += `            data-condition-val="${escapeHtml(hotspot.setterConditionValue)}"\n`;
                         
                         if (hotspot.setterFailInfo) areaTag += `            text_fail_clic="${escapeHtml(hotspot.setterFailInfo)}"\n`;
                         if (hotspot.setterFailInfoEnter) areaTag += `            text_fail_enter="${escapeHtml(hotspot.setterFailInfoEnter)}"\n`;
@@ -1922,6 +2289,13 @@
                     if (hotspot.infoTextSetter) areaTag += `            data_info="${escapeHtml(hotspot.infoTextSetter)}"\n`;
                     if (hotspot.infoTextSetter2) areaTag += `            data_info_2="${escapeHtml(hotspot.infoTextSetter2)}"\n`;
                     if (hotspot.titleTextSetter) areaTag += `            title="${escapeHtml(hotspot.titleTextSetter)}"\n`;
+
+                    // NEW: Inventariable Setter Fields
+                    if (hotspot.infoTextSetterInventori) areaTag += `            data-info-setter-inventori="${escapeHtml(hotspot.infoTextSetterInventori)}"\n`;
+                    if (hotspot.infoTextSetter2Inventori) areaTag += `            data-info-setter-2-inventori="${escapeHtml(hotspot.infoTextSetter2Inventori)}"\n`;
+                    if (hotspot.soundClickSetterInventori) areaTag += `            data-sound-click-setter-inventori="${escapeHtml(hotspot.soundClickSetterInventori)}"\n`;
+                    if (hotspot.soundSetterInventori) areaTag += `            data-sound-setter-inventori="${escapeHtml(hotspot.soundSetterInventori)}"\n`;
+                    if (hotspot.titleTextSetterInventori) areaTag += `            data-title-text-setter-inventori="${escapeHtml(hotspot.titleTextSetterInventori)}"\n`;
                 }
 
                 // --- Visit Limit (Common) ---
@@ -2095,11 +2469,12 @@
                 // Special case for simple '=' (old style)
                 if (operator === '=') operator = 'to';
 
-
-                return { variable, operator, value };
+                // NOTE: variable is already clean here due to regex match group 1.
+                return { variable: cleanVariableName(variable), operator, value };
             }
-            // If it doesn't match the standard pattern, fall back to simple assignment
-            return { variable: dataSetter, operator: 'to', value: '' };
+            // Fallback: If data-setter exists but is not in the format $var op val
+            // This fallback is dangerous and should only be used if we cannot rely on data-variable-name attributes
+            return { variable: cleanVariableName(dataSetter), operator: 'to', value: '' };
         }
 
         function copyConditionValue(dataCondition) {
@@ -2222,6 +2597,13 @@
             if (mainSrc) {
                 currentMainFilename = mainSrc.split(/[/\\]/).pop(); 
                 
+                // ACTUALITZACIÓ UI: Mostrar nom de la imatge carregada del codi
+                if (imageFileStatus) {
+                    imageFileStatus.textContent = currentMainFilename;
+                }
+                // Netejar l'input file per coherència
+                imageUpload.value = ""; 
+                
                 // Determine the correct source: local file or direct path
                 const newImageSrc = projectImages[currentMainFilename] || mainSrc;
                 
@@ -2238,6 +2620,8 @@
                 drawingInstructions.style.display = 'block';
                 imageEditor.style.height = 'auto';
                 imageEditor.style.minHeight = '400px';
+                
+                if (imageFileStatus) imageFileStatus.textContent = "Cap fitxer seleccionat";
             }
 
             // --- 2. Hotspot Parsing Logic ---
@@ -2277,6 +2661,8 @@
                     
                     // --- Overlay Condition ---
                     const overlayEnabled = area.getAttribute('data-overlay-enabled') === 'true'; // NEW: overlay enabled
+                    const overlayInventoriable = area.getAttribute('data-overlay-inventoriable') === 'true'; // NEW: inventoriable
+                    const overlayRemoveFromScene = area.getAttribute('data-overlay-remove-from-scene') === 'true'; // NEW: remove from scene flag
                     
                     let overlayFilename = area.getAttribute('data-overlay-filename');
                     if (overlayFilename && overlayFilename.startsWith('imatges/')) {
@@ -2316,6 +2702,17 @@
                     const dataSetterOp = area.getAttribute('data-setter-op');
                     const dataSetterVal = area.getAttribute('data-setter-val');
 
+                    // --- Inventory Interactions ---
+                    let interactions = [];
+                    const interactionsData = area.getAttribute('data-inventory-interactions');
+                    if (interactionsData) {
+                        try {
+                            interactions = JSON.parse(interactionsData);
+                        } catch (e) {
+                            console.warn("Failed to parse inventory interactions", e);
+                        }
+                    }
+
 
                     let newHotspot = {
                         id: tempHotspotIdCounter,
@@ -2330,7 +2727,7 @@
                         setterVariable: '', setterOperator: 'to', setterValue: '', 
                         
                         // Secondary Variable fields (UPDATED)
-                        variable2: dataVariable2Var || '', 
+                        variable2: dataVariable2Var ? cleanVariableName(dataVariable2Var) : '', 
                         operator2: dataVariable2Op || 'to', 
                         valor2: dataVariable2Val || '', 
 
@@ -2338,18 +2735,38 @@
                         jsonContent: '',
                         jsonFileName: '',
                         infoTextDialog: '', soundDialog: '', titleTextDialog: '',
+                        // NEW: Inventariable fields
+                        infoTextDialogInventori: area.getAttribute('data-info-dialog-inventori') || '', 
+                        infoTextDialog2Inventori: area.getAttribute('data-info-dialog-2-inventori') || '', 
+                        soundClickDialogInventori: area.getAttribute('data-sound-click-dialog-inventori') || '', 
+                        soundDialogInventori: area.getAttribute('data-sound-dialog-inventori') || '', 
+                        titleTextDialogInventori: area.getAttribute('data-title-text-dialog-inventori') || '',
                         
                         // Conditional Builder fields (Dialog)
-                        dialogConditionVariable: dataConditionVar || '', dialogConditionOperator: dataConditionOp || 'is', dialogConditionValue: dataConditionVal || '', 
+                        dialogConditionVariable: dataConditionVar ? cleanVariableName(dataConditionVar) : '', 
+                        dialogConditionOperator: dataConditionOp || 'is', 
+                        dialogConditionValue: dataConditionVal || '', 
                         dialogFailInfo: '', dialogFailInfoEnter: '', dialogSoundFail: '', dialogSoundClickFail: '',
                         
                         // Conditional Builder fields (Passage)
                         passageConditionVariable: dataConditionVar || '', passageConditionOperator: dataConditionOp || 'is', passageConditionValue: dataConditionVal || '', 
                         passageFailInfo: '', passageFailInfoEnter: '', passageSoundFail: '', passageSoundClickFail: '',
+                        // NEW: Inventariable fields
+                        infoTextInventori: area.getAttribute('data-info-inventori') || '', 
+                        infoText2Inventori: area.getAttribute('data-info-2-inventori') || '', 
+                        soundClickInventori: area.getAttribute('data-sound-click-inventori') || '', 
+                        soundInventori: area.getAttribute('data-sound-inventori') || '', 
+                        titleTextInventori: area.getAttribute('data-title-text-inventori') || '',
                         
                         // Conditional Builder fields (Setter)
                         setterConditionVariable: dataConditionVar || '', setterConditionOperator: dataConditionOp || 'is', setterConditionValue: dataConditionVal || '', 
                         setterFailInfo: '', setterFailInfoEnter: '', setterSoundFail: '', setterSoundClickFail: '',
+                        // NEW: Inventariable fields
+                        infoTextSetterInventori: area.getAttribute('data-info-setter-inventori') || '', 
+                        infoTextSetter2Inventori: area.getAttribute('data-info-setter-2-inventori') || '', 
+                        soundClickSetterInventori: area.getAttribute('data-sound-click-setter-inventori') || '', 
+                        soundSetterInventori: area.getAttribute('data-sound-setter-inventori') || '', 
+                        titleTextSetterInventori: area.getAttribute('data-title-text-setter-inventori') || '',
                         
                         visitLimit: visitLimit || '', visitLimitTextEnter: visitLimitTextEnter || '', visitLimitTextClic: visitLimitTextClic || '', 
                         enableVisitLimit: (visitLimit || visitLimitTextEnter || visitLimitTextClic) ? true : false,
@@ -2359,10 +2776,15 @@
                         // Overlay Fields
                         enableOverlay: overlayEnabled || (overlayFilename ? true : false), // NEW: Load status (activate if filename is present)
                         overlayFilename: overlayFilename || null,
+                        overlayInventoriable: overlayInventoriable, // NEW: Load inventoriable status
+                        overlayRemoveFromScene: overlayRemoveFromScene, // NEW: Load remove scene status
                         overlayConditionVariable: overlayCondVar,
                         overlayConditionOperator: overlayCondOp,
                         overlayConditionValue: overlayCondVal,
-                        overlayImage: overlayImageSrc 
+                        overlayImage: overlayImageSrc,
+                        
+                        // Inventory Interactions
+                        inventoryInteractions: interactions
                     };
                     
                     if (dataAction === 'dialog') {
@@ -2383,7 +2805,7 @@
                         // Conditional (override defaults)
                         if (dataCondition) {
                             const { variable, operator, value } = copyConditionValue(dataCondition);
-                            newHotspot.dialogConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.dialogConditionVariable = dataConditionVar ? cleanVariableName(dataConditionVar) : variable;
                             newHotspot.dialogConditionOperator = dataConditionOp || operator;
                             newHotspot.dialogConditionValue = dataConditionVal || value;
                         }
@@ -2408,7 +2830,7 @@
                         // Conditional (override defaults)
                         if (dataCondition) {
                             const { variable, operator, value } = copyConditionValue(dataCondition);
-                            newHotspot.passageConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.passageConditionVariable = dataConditionVar ? cleanVariableName(dataConditionVar) : variable;
                             newHotspot.passageConditionOperator = dataConditionOp || operator;
                             newHotspot.passageConditionValue = dataConditionVal || value;
                         }
@@ -2429,8 +2851,6 @@
                         // Setter Builder Fields
                         const { variable: oldVar, operator: oldOp, value: oldVal } = copySetterValue(dataSetter);
                         
-                        // CORRECCIÓ: Si dataVariableName existeix, ja ve sense el $ (perquè l'usuari l'hauria introduit sense)
-                        // Si no existeix, utilitzem oldVar, que ja ve netejat de $ per copySetterValue si la va trobar.
                         newHotspot.setterVariable = dataVariableName || oldVar; 
                         newHotspot.setterOperator = dataSetterOp || oldOp;
                         newHotspot.setterValue = dataSetterVal || oldVal;
@@ -2438,7 +2858,7 @@
                         // Conditional (override defaults)
                         if (dataCondition) {
                             const { variable, operator, value } = copyConditionValue(dataCondition);
-                            newHotspot.setterConditionVariable = dataConditionVar ? dataConditionVar.substring(1) : variable;
+                            newHotspot.setterConditionVariable = dataConditionVar ? cleanVariableName(dataConditionVar) : variable;
                             newHotspot.setterConditionOperator = dataConditionOp || operator;
                             newHotspot.setterConditionValue = dataConditionVal || value;
                         }
