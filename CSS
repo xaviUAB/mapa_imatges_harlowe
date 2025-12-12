@@ -1,4 +1,4 @@
-   /* =========================================
+/* =========================================
        ESTILS GENERALS I TWINE
        ========================================= */
     html, body {
@@ -286,7 +286,12 @@
         padding: 20px 20px;
         border-radius: 18px;
         z-index: 1000;
-        white-space: nowrap;
+        
+        /* MODIFICAT: Permetre multilínia */
+        white-space: normal;      /* Abans era nowrap */
+        line-height: 1.5;         /* Afegit per evitar superposició vertical */
+        word-wrap: break-word;    /* Per seguretat si hi ha paraules llargues */
+        
         max-width: 80%;
         box-sizing: border-box;
         text-align: center;
@@ -306,6 +311,11 @@
         z-index: 10;
         pointer-events: none;
     }
+
+
+
+
+
 
 /**
  * Harlowe Audio Library (HAL), by Chapel, v2.3.0
