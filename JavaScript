@@ -28,6 +28,30 @@ window.getGameVar = function(name) {
     return window.AdventureGlobalVars[key];
 };
 
+// --- NOVA FUNCIÓ GLOBAL D'AVALUACIÓ ---
+// Permet executar expressions complexes (ex: "$p1 * $p2 == 1") de manera segura
+window.evaluateAdventureCode = function(code) {
+    if (!code || !code.trim()) return true;
+    try {
+         const currentVars = (typeof State !== 'undefined' && State.variables) ? State.variables : window.AdventureGlobalVars;
+         const keys = Object.keys(currentVars);
+         const values = Object.values(currentVars);
+         
+         // 1. Convertir assignacions "=" en igualtats "==" si estem en un context de condició
+         // (Això és un comportament legacy de Twine/AdventureEngine)
+         let safeCode = code.replace(/(^|[^<>!=])=([^=])/g, '$1==$2');
+         
+         // 2. Permetre l'ús de $var eliminant el $ perquè coincideixi amb les claus de l'objecte JS
+         safeCode = safeCode.replace(/\$(\w+)/g, '$1');
+         
+         const fn = new Function(...keys, `return ${safeCode};`);
+         return fn(...values);
+    } catch (e) {
+        // Silenciem errors d'avaluació per evitar spam a la consola si la variable encara no existeix
+        return false;
+    }
+};
+
 // SISTEMA D'ACTUALITZACIÓ OPTIMITZAT (DEBOUNCE)
 let _globalUpdateTimer = null;
 
@@ -93,16 +117,9 @@ window.AdventureEngine = (function() {
         });
     }
 
+    // Aquesta funció interna ara delega a la global per consistència
     function evaluate(code) { 
-        if (!code || !code.trim()) return true; 
-        try { 
-            const currentVars = (typeof State !== 'undefined' && State.variables) ? State.variables : window.AdventureGlobalVars;
-            const keys = Object.keys(currentVars); 
-            const values = Object.values(currentVars); 
-            const safeCode = code.replace(/(^|[^<>!=])=([^=])/g, '$1==$2');
-            const fn = new Function(...keys, `return ${safeCode};`); 
-            return fn(...values); 
-        } catch (e) { return false; } 
+        return window.evaluateAdventureCode(code);
     }
     
     function execute(code) { 
@@ -118,8 +135,10 @@ window.AdventureEngine = (function() {
                     
                     let rightVal;
                     try {
-                         const fnVal = new Function(...Object.keys(window.AdventureGlobalVars), `return ${right};`);
-                         rightVal = fnVal(...Object.values(window.AdventureGlobalVars));
+                          // També millorem l'execució d'efectes permetent variables amb $
+                          const cleanRight = right.replace(/\$(\w+)/g, '$1');
+                          const fnVal = new Function(...Object.keys(window.AdventureGlobalVars), `return ${cleanRight};`);
+                          rightVal = fnVal(...Object.values(window.AdventureGlobalVars));
                     } catch(e) { rightVal = right; }
 
                     let currentVal = window.getGameVar(left) || 0;
@@ -305,10 +324,10 @@ jQuery(document).ready(function () {
             if (mutation.addedNodes.length > 0) {
                 let isAudio = false;
                 for(let i=0; i<mutation.addedNodes.length; i++) {
-                     const nodeName = mutation.addedNodes[i].nodeName.toUpperCase();
-                     if (nodeName === 'AUDIO' || nodeName === 'SOURCE' || nodeName === 'W-AUDIO') {
-                         isAudio = true;
-                     }
+                      const nodeName = mutation.addedNodes[i].nodeName.toUpperCase();
+                      if (nodeName === 'AUDIO' || nodeName === 'SOURCE' || nodeName === 'W-AUDIO') {
+                          isAudio = true;
+                      }
                 }
                 if (isAudio) return; // Saltem aquesta mutació perquè és so
             }
@@ -331,6 +350,36 @@ jQuery(document).ready(function () {
 
     if (typeof State !== 'undefined' && State.variables) {
         if (State.variables.hotspotClicks === undefined) State.variables.hotspotClicks = {};
+    }
+
+    // --- NOVA FUNCIÓ CENTRALITZADA DE CONDICIONS DE HOTSPOTS ---
+    function checkHotspotCondition(el) {
+        // 1. Prioritat: Atribut data-condition (expressió completa JS)
+        // Això soluciona el teu problema directe: data-condition="$p1*$p2*$p3==1"
+        const rawCondition = el.attr('data-condition');
+        if (rawCondition) {
+            return window.evaluateAdventureCode(rawCondition);
+        }
+
+        // 2. Fallback: Lògica fragmentada (var, op, val)
+        const conditionVar = el.data('condition-var');
+        if (!conditionVar) return true; // Sense condició = permès
+
+        let val = el.data('condition-val');
+        const op = el.data('condition-op');
+
+        // Si la "variable" conté operadors matemàtics, la tractem com una expressió
+        // Això soluciona el problema si només fessis servir data-condition-var="$p1*$p2"
+        if (/[^a-zA-Z0-9_$]/.test(conditionVar)) {
+            let fullExpr = conditionVar;
+            if (op && val !== undefined) {
+                fullExpr += ` ${op} ${val}`;
+            }
+            return window.evaluateAdventureCode(fullExpr);
+        }
+
+        // 3. Legacy: Lògica simple de comparació directa
+        return evaluateCondition(conditionVar, op && val !== undefined ? op + String(val) : val);
     }
 
     function evaluateCondition(conditionVarName, conditionVal) {
@@ -415,12 +464,20 @@ jQuery(document).ready(function () {
             currentInventory.push(item);
             window.setGameVar('inventory', currentInventory);
         }
+        
+        // MODIFICACIÓ CORREGIDA: Només eliminem de l'escena si hi ha l'atribut d'escena
+        // Ignorem totalment el JSON d'interactions per a aquesta decisió.
+        const shouldRemoveFromScene = el.data('overlay-remove-from-scene') === true || 
+                                      el.data('overlay-remove-from-scene') === "true";
 
-        if (el.data('overlay-remove-from-scene') === true || el.data('overlay-remove-from-scene') === "true") {
+        if (shouldRemoveFromScene) {
             const id = el.attr('alt');
             let removed = window.getGameVar('removedItems') || {};
             removed[id] = true;
             window.setGameVar('removedItems', removed);
+            
+            el.hide();
+            jQuery('#visual-' + id.replace(/\s+/g, '-')).hide();
         }
     }
 
@@ -478,16 +535,117 @@ jQuery(document).ready(function () {
             itemDiv.append(jQuery('<span class="inventory-name"></span>').text(item.name));
 
             itemDiv.on('mouseenter', function() {
-                if (item.soundHover) playHotspotSound(item.soundHover);
-                if (item.infoHover) toggleImageInfo(interpolateHotspotText(item.infoHover));
+                if (window.activeInventoryItem) {
+                    // MODIFICACIÓ: Mostrar "Usar X amb Y" també entre items de l'inventari
+                    // Usem 'title || name' per l'objecte actiu (com als hotspots)
+                    // I 'name' (que és l'Alt) per l'objecte destí, tal com s'ha demanat
+                    const activeItemName = window.activeInventoryItem.title || window.activeInventoryItem.name;
+                    const targetItemName = item.name; 
+                    const text = "Usar " + interpolateHotspotText(activeItemName) + " amb " + interpolateHotspotText(targetItemName);
+                    toggleImageInfo(text);
+                } else {
+                    if (item.soundHover) playHotspotSound(item.soundHover);
+                    if (item.infoHover) toggleImageInfo(interpolateHotspotText(item.infoHover));
+                }
             });
             itemDiv.on('mouseleave', function() { toggleImageInfo(''); });
+            
+            // --- MODIFICAT: Gestió de clic a l'inventari amb suport per a interaccions ---
             itemDiv.on('click', function(e) {
                 e.stopPropagation(); 
+                
+                if (window.activeInventoryItem) {
+                    // Si cliquem el mateix objecte que tenim agafat, el deixem anar
+                    if (window.activeInventoryItem.id === item.id) {
+                        clearCursorLabel();
+                        toggleImageInfo("");
+                        return;
+                    }
+
+                    const activeItem = window.activeInventoryItem;
+                    // Normalització d'IDs per comparació (usant l'atribut Alt/Name)
+                    const targetIdLower = (item.id || item.name || '').trim().toLowerCase();
+                    const activeIdLower = (activeItem.id || activeItem.name || '').trim().toLowerCase();
+
+                    // Helper per executar la interacció
+                    const executeInteraction = (interaction) => {
+                         if (interaction.text) toggleImageInfo(interpolateHotspotText(interaction.text));
+                         if (interaction.var1) window.updateGameVar(interaction.var1, interaction.op1, interaction.val1);
+                         if (interaction.var2) window.updateGameVar(interaction.var2, interaction.op2, interaction.val2);
+                            
+                         // Gestionar eliminació de l'ítem actiu (el del cursor)
+                         if (interaction.removeItem === true || interaction.removeItem === "true") {
+                              removeFromInventory(activeItem.id);
+                              clearCursorLabel(); 
+                         }
+
+                         // Gestionar eliminació de l'ítem destí (el clicat a l'inventari)
+                         if (interaction.removeTargetItem === true || interaction.removeTargetItem === "true") {
+                              removeFromInventory(item.id);
+                         }
+
+                         // Gestionar addició d'ítem combinat
+                         if (interaction.addCombinedItem === true || interaction.addCombinedItem === "true") {
+                              const newItem = {
+                                  id: interaction.combinedItemName,
+                                  name: interaction.combinedItemName,
+                                  image: interaction.combinedItemImage,
+                                  infoHover: interaction.combinedItemInfoText,
+                                  infoClick: interaction.combinedItemInfoText2,
+                                  title: interaction.combinedItemTitle,
+                                  interactions: interaction.combinedItemInteractions,
+                                  // Valors per defecte opcionals
+                                  soundHover: "",
+                                  soundClick: ""
+                              };
+                              
+                              let currentInventory = window.getGameVar('inventory') || [];
+                              currentInventory.push(newItem);
+                              window.setGameVar('inventory', currentInventory);
+                         }
+
+                         return true; 
+                    };
+
+                    let interactionFound = false;
+
+                    // 1. Interaccions definides a l'objecte ACTIU (origen -> destí)
+                    if (activeItem.interactions && Array.isArray(activeItem.interactions)) {
+                        const interaction = activeItem.interactions.find(i => 
+                            (i.targetHotspot || '').trim().toLowerCase() === targetIdLower
+                        );
+                        if (interaction) {
+                            executeInteraction(interaction);
+                            interactionFound = true;
+                        }
+                    }
+
+                    // 2. Interaccions definides a l'objecte CLICAT (destí -> origen)
+                    if (!interactionFound && item.interactions && Array.isArray(item.interactions)) {
+                         const interaction = item.interactions.find(i => {
+                            const reqItem = (i.requiredItem || i.item || '').trim().toLowerCase();
+                            return reqItem === activeIdLower;
+                        });
+                        if (interaction) {
+                            executeInteraction(interaction);
+                            interactionFound = true;
+                        }
+                    }
+
+                    if (!interactionFound) {
+                        // Si no hi ha interacció, mostrem missatge d'error i NO executem res més
+                        toggleImageInfo("Això no es pot fer");
+                    }
+                    // Tant si ha funcionat com si no, sortim per evitar el comportament estàndard de clic
+                    return;
+                }
+
+                // Comportament estàndard (sense cursor actiu): seleccionar l'objecte
                 if (item.soundClick) playHotspotSound(item.soundClick);
                 if (item.infoClick) toggleImageInfo(interpolateHotspotText(item.infoClick));
                 if (item.title) activateCursorLabel(interpolateHotspotText(item.title), item, e);
             });
+            
             container.append(itemDiv);
         });
     }
@@ -743,11 +901,8 @@ jQuery(document).ready(function () {
             return;
         }
 
-        let val = el.data('condition-val');
-        const op = el.data('condition-op');
-        if (op && val !== undefined) val = op + String(val);
-
-        if (evaluateCondition(el.data('condition-var'), val)) {
+        // --- ACTUALITZAT: Fem servir checkHotspotCondition en lloc de evaluateCondition manualment
+        if (checkHotspotCondition(el)) {
             toggleImageInfo(el.attr('data_info'));
             playHotspotSound(el.data('sound'));
         } else {
@@ -779,11 +934,8 @@ jQuery(document).ready(function () {
             return;
         }
 
-        let val = el.data('condition-val');
-        const op = el.data('condition-op');
-        if (op && val !== undefined) val = op + String(val);
-
-        if (!evaluateCondition(el.data('condition-var'), val)) {
+        // --- ACTUALITZAT: Fem servir checkHotspotCondition
+        if (!checkHotspotCondition(el)) {
             toggleImageInfo(el.attr('text_fail_clic'));
             playHotspotSound(el.data('sound-click-fail'));
             return;
@@ -824,11 +976,9 @@ jQuery(document).ready(function () {
         if (handleInventoryInteraction(el)) return;
         
         const passage = el.data('passage');
-        let val = el.data('condition-val');
-        const op = el.data('condition-op');
-        if (op && val !== undefined) val = op + String(val);
 
-        if (evaluateCondition(el.data('condition-var'), val)) {
+        // --- ACTUALITZAT: Fem servir checkHotspotCondition
+        if (checkHotspotCondition(el)) {
             if (el.data('overlay-inventoriable') === true || el.data('overlay-inventoriable') === "true") {
                 addToInventory(el);
             }
@@ -848,7 +998,8 @@ jQuery(document).ready(function () {
         }
     });
     
-    jQuery(document).on('click', 'area.hotspot-item[data-setter]:not([data-passage]):not([data-action="dialog"])', function (e) {
+    // CORRECCIÓ APLICADA AQUÍ: Eliminat [data-setter] perquè sigui més genèric
+    jQuery(document).on('click', 'area.hotspot-item:not([data-passage]):not([data-action="dialog"])', function (e) {
         e.preventDefault();
         if (!jQuery(this).is(':visible')) return; 
         const el = jQuery(this);
@@ -867,11 +1018,8 @@ jQuery(document).ready(function () {
              return;
         }
 
-        let val = el.data('condition-val');
-        const op = el.data('condition-op');
-        if (op && val !== undefined) val = op + String(val);
-
-        if (evaluateCondition(el.data('condition-var'), val)) {
+        // --- ACTUALITZAT: Fem servir checkHotspotCondition
+        if (checkHotspotCondition(el)) {
             if (el.data('overlay-inventoriable') === true || el.data('overlay-inventoriable') === "true") {
                 addToInventory(el);
             }
@@ -899,6 +1047,7 @@ jQuery(document).ready(function () {
     setTimeout(requestGlobalUpdate, 500);
     setTimeout(requestGlobalUpdate, 1000);
 });
+
 
 
 
