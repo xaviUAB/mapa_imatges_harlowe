@@ -534,20 +534,21 @@ jQuery(document).ready(function () {
             itemDiv.append(iconWrapper);
             itemDiv.append(jQuery('<span class="inventory-name"></span>').text(item.name));
 
+            // --- MODIFICAT: Gestió mouseenter per diferenciar entre item propi i altres ---
             itemDiv.on('mouseenter', function() {
-                if (window.activeInventoryItem) {
-                    // MODIFICACIÓ: Mostrar "Usar X amb Y" també entre items de l'inventari
-                    // Usem 'title || name' per l'objecte actiu (com als hotspots)
-                    // I 'name' (que és l'Alt) per l'objecte destí, tal com s'ha demanat
+                if (window.activeInventoryItem && window.activeInventoryItem.id !== item.id) {
+                    // Item seleccionat I diferent a l'actual -> "Usar X amb Y"
                     const activeItemName = window.activeInventoryItem.title || window.activeInventoryItem.name;
                     const targetItemName = item.name; 
                     const text = "Usar " + interpolateHotspotText(activeItemName) + " amb " + interpolateHotspotText(targetItemName);
                     toggleImageInfo(text);
                 } else {
+                    // No hi ha item seleccionat O és el mateix item (sobre ell mateix) -> Mostrar info pròpia
                     if (item.soundHover) playHotspotSound(item.soundHover);
                     if (item.infoHover) toggleImageInfo(interpolateHotspotText(item.infoHover));
                 }
             });
+            
             itemDiv.on('mouseleave', function() { toggleImageInfo(''); });
             
             // --- MODIFICAT: Gestió de clic a l'inventari amb suport per a interaccions ---
@@ -719,6 +720,51 @@ jQuery(document).ready(function () {
         const mainImg = wrapper ? wrapper.querySelector('img[usemap]') : null;
         if (!wrapper || !mainImg) return;
 
+        // --- OPTIMITZACIÓ Z-INDEX (NOU) ---
+        // Ordenar les àrees del mapa: les més petites primer al DOM perquè tinguin prioritat al fer clic
+        // CORRECCIÓ: Afegit comprovació per no fer-ho constantment si ja s'ha fet
+        const map = wrapper.querySelector('map');
+        if (map && !map.getAttribute('data-sorted')) {
+            const areas = Array.from(map.querySelectorAll('area'));
+            const getAreaSize = (el) => {
+                const coordsAttr = el.getAttribute('coords');
+                if (!coordsAttr) return Number.MAX_SAFE_INTEGER; 
+                const c = coordsAttr.split(',').map(n => parseFloat(n) || 0);
+                const shape = (el.getAttribute('shape') || 'rect').toLowerCase();
+                
+                if (shape === 'rect' && c.length >= 4) {
+                    return Math.abs(c[2] - c[0]) * Math.abs(c[3] - c[1]);
+                }
+                if (shape === 'circle' && c.length >= 3) {
+                    return Math.PI * c[2] * c[2];
+                }
+                if (shape === 'poly' && c.length >= 6) {
+                    let area = 0;
+                    const len = c.length;
+                    for (let i = 0; i < len; i += 2) {
+                        // Formula de Shoelace
+                        const x1 = c[i];
+                        const y1 = c[i+1];
+                        const x2 = c[(i + 2) % len];
+                        const y2 = c[(i + 3) % len]; // Wrap around correcte pel segon punt Y
+                        // Nota: Si el poly no està tancat explícitament a l'HTML, el navegador ho fa.
+                        // Aquesta fórmula assumeix llista seqüencial.
+                        area += (x1 * y2 - x2 * y1);
+                    }
+                    return Math.abs(area / 2);
+                }
+                return Number.MAX_SAFE_INTEGER;
+            };
+            
+            // Ordenar ascendent (petit -> gran)
+            areas.sort((a, b) => getAreaSize(a) - getAreaSize(b));
+            
+            // Re-inserir al DOM en el nou ordre
+            areas.forEach(area => map.appendChild(area));
+            map.setAttribute('data-sorted', 'true');
+        }
+        // ----------------------------------
+
         // COMROVACIÓ EXTRA PER CÀRREGA D'IMATGE
         if (!mainImg.complete || mainImg.naturalWidth === 0 || mainImg.width === 0) {
             setTimeout(updateHotspotVisibility, 50);
@@ -738,6 +784,27 @@ jQuery(document).ready(function () {
 
         jQuery('.hotspot-item').each(function() {
             const el = jQuery(this);
+            
+            // --- INICI lògica de reescalat ---
+            // Guardar coordenades originals si no existeixen
+            if (!el.data('orig-coords')) {
+                el.data('orig-coords', el.attr('coords'));
+            }
+            
+            const origCoordsStr = el.data('orig-coords');
+            let coords = []; // Coordenades finals (escalades) per usar
+            
+            if (origCoordsStr) {
+                const origCoords = origCoordsStr.split(',').map(Number);
+                coords = origCoords.map((val, index) => {
+                    // Parells X, Imparells Y
+                    return Math.round(val * (index % 2 === 0 ? scaleX : scaleY));
+                });
+                // Actualitzar l'àrea clicable real
+                el.attr('coords', coords.join(','));
+            }
+            // --- FI lògica de reescalat ---
+
             const alt = el.attr('alt') || 'hotspot-' + Math.random().toString(36).substr(2, 9);
             const removed = window.getGameVar('removedItems') || {};
             if (removed[alt]) {
@@ -766,15 +833,17 @@ jQuery(document).ready(function () {
                         img.id = imgId;
                         img.src = overlayFile;
                         img.className = 'hotspot-visual';
+                        img.style.pointerEvents = 'none'; // CORRECCIÓ: Fer click-through en les visuals
                         jQuery('.twine-image-wrapper').append(img);
                     }
-                    const coords = el.attr('coords').split(',').map(Number);
+                    
+                    // MODIFICAT: Usem 'coords' (les que acabem de calcular)
                     if (coords.length === 4) {
                         const [x1, y1, x2, y2] = coords;
-                        img.style.left = (x1 * scaleX + offsetX) + 'px';
-                        img.style.top = (y1 * scaleY + offsetY) + 'px';
-                        img.style.width = ((x2 - x1) * scaleX) + 'px';
-                        img.style.height = ((y2 - y1) * scaleY) + 'px';
+                        img.style.left = (x1 + offsetX) + 'px';
+                        img.style.top = (y1 + offsetY) + 'px';
+                        img.style.width = (x2 - x1) + 'px';
+                        img.style.height = (y2 - y1) + 'px';
                     }
                     // MODIFICAT: show() directe
                     jQuery(img).show(); 
