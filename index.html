@@ -16,9 +16,9 @@
             color: #2c3e50;
         }
         .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
         .panel {
             background-color: #fff;
@@ -27,7 +27,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         #imageEditor {
-            flex: 2;
+            width: 100%;
             min-width: 400px;
             position: relative;
             cursor: crosshair;
@@ -100,7 +100,7 @@
             border-color: #0056b3;
         }
         #hotspotsConfig {
-            flex: 1;
+            width: 100%;
             min-width: 300px;
         }
         .hotspot-item {
@@ -3235,8 +3235,26 @@
             }
         }
 
-        // Call setupConfirmationModal on page load
+                // Call setupConfirmationModal on page load
         document.addEventListener('DOMContentLoaded', setupConfirmationModal);
+        
+        // --- RESIZE HANDLER FOR HOTSPOTS ---
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (imageDisplay.src && imageDisplay.naturalWidth && imageDisplay.naturalHeight && hotspots.length > 0) {
+                    // Update editor height
+                    const extraSpace = 80;
+                    imageEditor.style.minHeight = imageDisplay.offsetHeight + extraSpace + 'px';
+                    imageEditor.style.height = imageDisplay.offsetHeight + extraSpace + 'px';
+                    
+                    // Re-render hotspots with new dimensions
+                    renderHotspots();
+                }
+            }, 100); // Debounce for 100ms
+        });
+        
         // --- FI DEL JAVASCRIPT ---
     </script>
 </body>
