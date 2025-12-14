@@ -34,11 +34,25 @@ window.evaluateAdventureCode = function(code) {
     if (!code || !code.trim()) return true;
     try {
          const currentVars = (typeof State !== 'undefined' && State.variables) ? State.variables : window.AdventureGlobalVars;
+         
+         // MODIFICACIÓ CRÍTICA: Inicialitzar variables a 0 si no existeixen per evitar ReferenceError
+         // Això soluciona el problema de "1 + $usb" quan $usb encara no s'ha definit
+         const varMatches = code.match(/\$(\w+)/g);
+         if (varMatches) {
+             varMatches.forEach(v => {
+                 const varName = v.substring(1);
+                 if (currentVars[varName] === undefined) {
+                     currentVars[varName] = 0; 
+                     // Assegurar sincronització
+                     window.AdventureGlobalVars[varName] = 0;
+                 }
+             });
+         }
+
          const keys = Object.keys(currentVars);
          const values = Object.values(currentVars);
          
          // 1. Convertir assignacions "=" en igualtats "==" si estem en un context de condició
-         // (Això és un comportament legacy de Twine/AdventureEngine)
          let safeCode = code.replace(/(^|[^<>!=])=([^=])/g, '$1==$2');
          
          // 2. Permetre l'ús de $var eliminant el $ perquè coincideixi amb les claus de l'objecte JS
@@ -47,9 +61,32 @@ window.evaluateAdventureCode = function(code) {
          const fn = new Function(...keys, `return ${safeCode};`);
          return fn(...values);
     } catch (e) {
-        // Silenciem errors d'avaluació per evitar spam a la consola si la variable encara no existeix
+        console.warn("Error evaluant codi:", code, e);
         return false;
     }
+};
+
+// --- HELPER PER RESOLDRE VALORS (LITERALS O EXPRESSIONS) ---
+// Detecta si un string és un número, un booleà, una expressió amb variables o un text simple.
+window.resolveValue = function(val) {
+    if (typeof val !== 'string') return val;
+    const trimmed = val.trim();
+    if (trimmed === '') return '';
+    
+    // 1. Primitius simples
+    if (!isNaN(Number(trimmed))) return Number(trimmed);
+    if (trimmed === 'true') return true;
+    if (trimmed === 'false') return false;
+    
+    // 2. Expressions o variables (contenen operadors o comencen per $)
+    // Si conté operadors matemàtics/lògics o comença per $, avaluem com a codi.
+    if (/[+\-*/%<>=&|]/.test(trimmed) || trimmed.startsWith('$')) {
+         const result = window.evaluateAdventureCode(trimmed);
+         return result;
+    }
+    
+    // 3. Fallback: String literal (eliminant cometes si n'hi ha)
+    return trimmed.replace(/^['"]|['"]$/g, '');
 };
 
 // SISTEMA D'ACTUALITZACIÓ OPTIMITZAT (DEBOUNCE)
@@ -78,10 +115,9 @@ window.setGameVar = function(name, value) {
 window.updateGameVar = function(name, op, val) {
     if (!name) return;
     let currentVal = window.getGameVar(name);
-    let newVal = val;
-    if (!isNaN(Number(val))) newVal = Number(val);
-    else if (val === "true") newVal = true;
-    else if (val === "false") newVal = false;
+    
+    // Usem resolveValue per interpretar el valor (per exemple "1 + $usb")
+    let newVal = window.resolveValue(val);
 
     if (currentVal === undefined) currentVal = (typeof newVal === 'number') ? 0 : "";
 
@@ -571,9 +607,38 @@ jQuery(document).ready(function () {
                     // Helper per executar la interacció
                     const executeInteraction = (interaction) => {
                          if (interaction.text) toggleImageInfo(interpolateHotspotText(interaction.text));
+                         
+                         // Recopilar variables modificades per la lògica "intel·ligent"
+                         const modifiedVars = [];
+                         if (interaction.var1) modifiedVars.push(interaction.var1.replace('$', ''));
+                         if (interaction.var2) modifiedVars.push(interaction.var2.replace('$', ''));
+
                          if (interaction.var1) window.updateGameVar(interaction.var1, interaction.op1, interaction.val1);
                          if (interaction.var2) window.updateGameVar(interaction.var2, interaction.op2, interaction.val2);
-                            
+                         
+                         // --- LOGICA INTEL·LIGENT DE RESTAURACIÓ ---
+                         // Si modifiquem una variable que controla un hotspot que estava "eliminat", el restaurem
+                         if (modifiedVars.length > 0) {
+                             const removed = window.getGameVar('removedItems') || {};
+                             let changed = false;
+                             jQuery('.hotspot-item').each(function() {
+                                 const el = jQuery(this);
+                                 const condVar = el.data('overlay-condition-var');
+                                 const id = el.attr('alt');
+                                 
+                                 // Si el hotspot té l'ID a removedItems I depèn d'una variable que acabem de tocar
+                                 if (id && removed[id] && condVar && modifiedVars.includes(condVar)) {
+                                     delete removed[id];
+                                     changed = true;
+                                     // El mostrem immediatament
+                                     el.show();
+                                     jQuery('#visual-' + id.replace(/\s+/g, '-')).show();
+                                 }
+                             });
+                             if (changed) window.setGameVar('removedItems', removed);
+                         }
+                         // -------------------------------------------
+
                          // Gestionar eliminació de l'ítem actiu (el del cursor)
                          if (interaction.removeItem === true || interaction.removeItem === "true") {
                               removeFromInventory(activeItem.id);
@@ -672,8 +737,34 @@ jQuery(document).ready(function () {
         // Helper per executar la interacció i evitar codi duplicat
         const executeInteraction = (interaction) => {
              if (interaction.text) toggleImageInfo(interpolateHotspotText(interaction.text));
+             
+             // Recopilar variables modificades per la lògica "intel·ligent"
+             const modifiedVars = [];
+             if (interaction.var1) modifiedVars.push(interaction.var1.replace('$', ''));
+             if (interaction.var2) modifiedVars.push(interaction.var2.replace('$', ''));
+
              if (interaction.var1) window.updateGameVar(interaction.var1, interaction.op1, interaction.val1);
              if (interaction.var2) window.updateGameVar(interaction.var2, interaction.op2, interaction.val2);
+             
+             // --- LOGICA INTEL·LIGENT DE RESTAURACIÓ (mateixa que a dalt) ---
+             if (modifiedVars.length > 0) {
+                 const removed = window.getGameVar('removedItems') || {};
+                 let changed = false;
+                 jQuery('.hotspot-item').each(function() {
+                     const el = jQuery(this);
+                     const condVar = el.data('overlay-condition-var');
+                     const id = el.attr('alt');
+                     
+                     if (id && removed[id] && condVar && modifiedVars.includes(condVar)) {
+                         delete removed[id];
+                         changed = true;
+                         el.show();
+                         jQuery('#visual-' + id.replace(/\s+/g, '-')).show();
+                     }
+                 });
+                 if (changed) window.setGameVar('removedItems', removed);
+             }
+             // -------------------------------------------------------------
                 
              if (interaction.removeItem === true) {
                   removeFromInventory(item.id);
@@ -926,14 +1017,8 @@ jQuery(document).ready(function () {
             const operator = match[2];
             let valueStr = match[3];
 
-            let value;
-            if (!isNaN(Number(valueStr))) value = Number(valueStr);
-            else if (valueStr === 'true') value = true;
-            else if (valueStr === 'false') value = false;
-            else if (valueStr.startsWith('$')) {
-                const targetVarName = valueStr.substring(1);
-                value = window.getGameVar(targetVarName);
-            } else value = valueStr.replace(/^['"]|['"]$/g, '');
+            // MODIFICAT: Usem resolveValue per interpretar el valor (per exemple "1 + $usb")
+            let value = window.resolveValue(valueStr);
 
             let currentVal = window.getGameVar(varName);
             if (currentVal === undefined) currentVal = (typeof value === 'number') ? 0 : "";
@@ -1116,7 +1201,6 @@ jQuery(document).ready(function () {
     setTimeout(requestGlobalUpdate, 500);
     setTimeout(requestGlobalUpdate, 1000);
 });
-
 
 
 
